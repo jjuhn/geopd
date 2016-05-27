@@ -88,12 +88,24 @@
 
                     <!-- Survey //-->
                     <div id="survey" class="tab-pane fade">
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="help-block">
+                                    In order to best serve your interests and those of the general membership, please
+                                    spend a minute completing the following questionnaire. Briefly, we seek to learn
+                                    what clinical tools you use, what epidemiologic exposures you measure, and what
+                                    types of biospecimens you currently have.
+                                </p>
+                            </div>
+                        </div>
+
                         <div class="row">
 
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Clinical Information</h3>
                                 {% if current_user.id == member.id %}
-                                <p class="text-muted">&#x2714 Check all that apply.</p>
+                                    <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
                                     {% for c in clinical %}
@@ -110,7 +122,7 @@
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Epidemiologic Exposures</h3>
                                 {% if current_user.id == member.id %}
-                                <p class="text-muted">&#x2714 Check all that apply.</p>
+                                    <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
                                     {% for c in epidemiologic %}
@@ -127,7 +139,7 @@
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Biospecimens</h3>
                                 {% if current_user.id == member.id %}
-                                <p class="text-muted">&#x2714 Check all that apply.</p>
+                                    <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
                                     {% for c in biospecimen %}

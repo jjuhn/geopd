@@ -132,26 +132,6 @@ form p.text-muted {
     width: 60%;
 }
 
-ul.list-group li.list-group-item {
-    text-indent: -2em;
-    padding-left: 3em;
-}
-
-ul.list-group li.list-group-item::before {
-    font-family: 'Glyphicons Halflings';
-    content: '\e013\00a0';
-    color: #337ab7;
-}
-
-li.list-group-item-heading {
-    color: #ffffff;
-    background-color: #337ab7;
-    font-style: normal;
-    font-weight: normal;
-    font-size: large;
-    padding-left: 0;
-}
-
 div.geopd-label {
     display: inline-block;
     color: #666666;

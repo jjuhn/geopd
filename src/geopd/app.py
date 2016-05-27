@@ -38,7 +38,7 @@ application.config.update(dict(
 
 bootstrap = Bootstrap(application)
 mail = Mail(application)
-csrf = CsrfProtect()
+csrf = CsrfProtect(application)
 
 application.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')
 

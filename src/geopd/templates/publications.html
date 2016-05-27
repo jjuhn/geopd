@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1 class="page-header">Publications</h1>
+            <table class="table table-striped">
+                {% for pub in publications %}
+                <tr>
+                    <td>
+                        <div class="publication">
+                            {% if pub.pdf_url %}
+                            <a href="{{ pub.pdf_url }}" class="pull-right">
+                                <img alt="pdf" title="Download PDF" size=""
+                                     src="{{ url_for('static', filename='images/pdf.png') }}">
+                            </a>
+                            {% endif %}
+                            <h3 class="text-primary">
+                                <a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pub.id }}">{{ pub.title }}</a>
+                            </h3>
+                            <p class="text-muted">
+                                <em>{{ pub.source }} {{pub.published_on}}
+                                    {{ pub.volume }}({{ pub.issue }}):{{ pub.pages }}</em>
+                            </p>
+                            <p>{{ pub.authors }}</p>
+                            {% if pub.abstract %}
+                            <p>
+                                <a href="#" data-toggle="collapse" data-target="#abstract_{{pub.id}}">Abstract</a>
+                            </p>
+                            <div id="abstract_{{pub.id}}" class="collapse">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="well">
+                                                {{ pub.abstract }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

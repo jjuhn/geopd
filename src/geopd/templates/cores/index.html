@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    {% for core in cores %}
+    <div class="row">
+        <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+            <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
+        </div>
+        <div class="col-md-7">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-heading">{{ core.name }} Core</li>
+                {% include 'cores/' + core.key + '.html' %}
+            </ul>
+        </div>
+    </div>
+    <br/>
+    {% endfor %}
+</div>
+{% endblock %}

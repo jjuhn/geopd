@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div id="map"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8-PS6246ge-nX02b-B9vst_3SF909Jis&callback=initMap"
+        async defer></script>
+<script>
+
+    function create_info_window_html(member) {
+        var container = $('<div/>').append(
+                $('<div/>').addClass('info-window')
+                .append($('<h4/>').html(member.name))
+                .append($('<p/>').html(member.institution))
+                .append($('<em/>').html(member.city)));
+        return container.html();
+    }
+
+    var map = null;
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 10.0, lng: 0.0},
+            zoom: 3,
+        });
+
+        {% for member in members %}
+            var marker{{ loop.index }} = new google.maps.Marker({
+               position: {lat: {{ member.institution.latitude }}, lng: {{ member.institution.longitude }}},
+               map: map,
+               title: '{{ member.name }}',
+            });
+
+            marker{{ loop.index }}.addListener('click', function() {
+               new google.maps.InfoWindow({
+                   content: create_info_window_html({
+                       profile: '{{ url_for("web.show_member", id=member.id) }}',
+                       name: '{{ member.name }}',
+                       institution: '{{ member.institution.name }}',
+                       city: '{{ member.institution.city }}',
+                   })
+               }).open(map, marker{{ loop.index }});
+            });
+        {% endfor %}
+    }
+</script>
+{% endblock %}

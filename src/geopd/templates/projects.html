@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h1 class="page-header">Projects</h1>
+            <table class="table table-striped">
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        <div>
+                            <h3 class="text-primary">{{ project.name }}</h3>
+                            <p class="text-muted">
+                                <em>{{ project.investigators | join(', ') }}</em>
+                            </p>
+                            <p>{{ project.description }}</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

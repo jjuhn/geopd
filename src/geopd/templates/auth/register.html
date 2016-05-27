@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}{{ super() }} - Register{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3">
+                <div id="registration-panel" class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Request for Access</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <form id="registration-form" action="{{ url_for('register') }}"
+                              role="form" method="post" data-toggle="validator">
+                            {{ form.csrf_token }}
+
+                            <p class="text-muted">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                                Complete this form to request a login account.
+                                Access will be granted upon the approval of the request.
+                            </p>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-envelope"></span>
+                                    </span>
+                                    <input class="form-control" type="email"
+                                           placeholder="{{ form.email.label.text }}"
+                                           value="{{ request.form.email }}"
+                                           id="{{ form.email.id }}" name="{{ form.email.name }}"
+                                           required="required" />
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-user"></span>
+                                    </span>
+                                    <input class="form-control"
+                                           placeholder="{{ form.name.label.text }}"
+                                           value="{{ request.form.name }}"
+                                           id="{{ form.name.id }}" name="{{ form.name.name }}"
+                                           required="required"
+                                           style="text-transform: capitalize;" />
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-lock"></span>
+                                    </span>
+                                    <input class="form-control" type="password"
+                                           id="{{ form.password.id }}" ,
+                                           name="{{ form.password.name }}" ,
+                                           placeholder="{{ form.password.label.text }}"
+                                           required="required"
+                                           data-minlength="8" ,
+                                           data-minlength-error="password must include at least 8 characters">
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-lock"></span>
+                                    </span>
+                                    <input class="form-control" type="password"
+                                           id="{{ form.confirm.id }}" ,
+                                           name="{{ form.confirm.name }}" ,
+                                           placeholder="{{ form.confirm.label.text }}"
+                                           required="required"
+                                           data-match="#{{ form.password.id }}"
+                                           data-match-error="passwords don't match">
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <hr/>
+
+                            <p class="text-muted">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                                Please enter the name of your institution.
+                            </p>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-home"></span>
+                                    </span>
+                                    <input class="form-control" autocomplete="off"
+                                           id="{{ form.institution.id }}" ,
+                                           name="{{ form.institution.name }}" ,
+                                           placeholder="{{ form.institution.label.text }}"
+                                           required="required">
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <hr/>
+
+                            <div class="form-group">
+                                <input type="checkbox" name="{{ form.accept.name }}"
+                                       id="{{ form.accept.id }}" required="required" />
+                                    <span>I agree with the
+                                        <a data-toggle="collapse" href="#terms">Terms and Conditions</a>
+                                    </span>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <div id="terms" class="collapse">
+                                <div class="well">
+                                    {% include 'auth/terms.html' %}
+                                </div>
+                            </div>
+
+                            <div class="form-group pull-right">
+                                {{ form.register(class='btn btn-primary btn-main') }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+
+        $(document).ready(function () {
+
+            var institutions = [];
+            {% for inst in institutions %}
+            institutions.push("{{ inst.name|safe }}");{% endfor %}
+
+            $('#institution').autocomplete({
+                source: function(request, response) {
+                    var results = $.ui.autocomplete.filter(institutions, request.term);
+                    response(results.slice(0, 10));
+                },
+                minLength: 1,
+
+            });
+
+            $('#accept').change(function () {
+                $('#terms').collapse('hide');
+            });
+
+//            $('#registration-form').bootstrapValidator($.extend(true, bootstrapValidatorDefaults, {
+//                fields: {
+//                    email: email_field,
+//                    name: name_field,
+//                    password: password_field,
+//                    confirm: confirm_field,
+//                    institution: {
+//                        validators: {
+//                            notEmpty: {message: 'please provide an institution name'},
+//                        }
+//                    },
+//                    accept: {
+//                        validators: {
+//                            notEmpty: {message: 'to register you must agree with the terms and conditions'},
+//                        }
+//                    }
+//                }
+//            })).submit(function () {
+//                $('#terms').collapse('hide');
+//            });
+        });
+    </script>
+{% endblock %}

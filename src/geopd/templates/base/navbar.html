@@ -1,0 +1,50 @@
+{% macro nav_item(href, title) -%}
+    <li {% if request.path.startswith(href) %} class="active"{% endif %}>
+        <a href="{{ href }}">{{ title }}</a>
+    </li>
+{%- endmacro %}
+
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+
+        <!-- brand and toggle -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">
+                <img alt="{{ config.APP_BRAND }}" src="{{ url_for('static', filename='images/brand.png') }}"
+                     title="{{ config.APP_NAME }}">
+            </a>
+        </div>
+
+        <!-- main navigation -->
+        <div class="collapse navbar-collapse" id="navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                {{ nav_item('/about/', 'About Us') }}
+                {{ nav_item('/meetings/', 'Annual Meetings') }}
+                {{ nav_item('/projects/', 'Projects') }}
+                {{ nav_item('/publications/', 'Publications') }}
+                {{ nav_item('/cores/', 'Cores') }}
+                {{ nav_item('/members/', 'Members') }}
+                {% if current_user.is_anonymous %}
+                    {{ nav_item('/contact/', 'Contact Us') }}
+                {% endif %}
+            </ul>
+
+            <!-- right side -->
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_authenticated %}
+                {% include 'auth/user.html' %}
+                {% else %}
+                {% include 'auth/login.html' %}
+                {% endif %}
+            </ul>
+
+        </div>
+    </div>
+</nav>

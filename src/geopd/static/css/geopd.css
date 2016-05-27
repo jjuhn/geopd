@@ -1,0 +1,184 @@
+body {
+    overflow-y: scroll;
+}
+
+input[type=checkbox] ~ span {
+    margin-left: 0.5em;
+}
+
+.container-fluid, .container {
+    color: #666666;
+}
+
+.navbar-brand {
+    padding: 0.5em;
+}
+
+
+#map {
+    height: 600px;
+}
+
+.profile {
+    padding-left: 1em;
+}
+
+.publication a img {
+    margin-right: 1em;
+}
+
+.promo-tokyo {
+    border-top-right-radius: 75px;
+    border-bottom-left-radius: 75px;
+}
+
+.promo-tokyo img {
+    border-top-right-radius: 75px;
+}
+
+.promo-tokyo h2 {
+    color: #990000;
+    font-weight: bold;
+}
+
+.dx-error p, .dx-message p {
+    font-size: larger;
+    font-style: normal;
+    font-weight: normal;
+}
+
+.dx-nowrap {
+    white-space: nowrap;
+}
+
+.dx-depth ul, .dx-depth ul {
+    padding: 0;
+    margin: 0;
+}
+
+.dx-reply {
+    margin-left: 3em;
+}
+
+.thumbnail {
+    margin-bottom: 0;
+}
+
+.tab-pane {
+    padding-top: 1em;
+}
+
+li.media .well {
+    margin-bottom: 0;
+}
+
+.dx-reply-group {
+    margin-top: 1em;
+}
+
+.dataTable > tbody > tr > td {
+    vertical-align: middle;
+}
+
+.label {
+    font-size: 100% !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+}
+
+.rating-xs {
+    font-size: 1em !important;
+}
+
+.rating-container .star {
+    margin: 0;
+}
+
+#registration-panel {
+    margin-top: 2em;
+}
+
+.ui-autocomplete {
+    position: absolute;
+    z-index: 1000;
+    cursor: default;
+    padding: 0;
+    margin-top: 2px;
+    list-style: none;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.ui-autocomplete > li {
+    padding: 3px 20px;
+    cursor: pointer;
+}
+
+.ui-autocomplete > li.ui-state-focus {
+    background-color: #DDD;
+}
+
+.ui-helper-hidden-accessible {
+    display: none;
+}
+
+form p.text-muted {
+    width: 60%;
+}
+
+ul.list-group li.list-group-item {
+    text-indent: -2em;
+    padding-left: 3em;
+}
+
+ul.list-group li.list-group-item::before {
+    font-family: 'Glyphicons Halflings';
+    content: '\e013\00a0';
+    color: #337ab7;
+}
+
+li.list-group-item-heading {
+    color: #ffffff;
+    background-color: #337ab7;
+    font-style: normal;
+    font-weight: normal;
+    font-size: large;
+    padding-left: 0;
+}
+
+div.geopd-label {
+    display: inline-block;
+    color: #666666;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    margin-left: 30px;
+    padding: 0;
+    font-size: large;
+}
+
+div.geopd-label:before {
+    content: "";
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+}
+
+div.geopd-label span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.edit .glyphicon-remove {
+    color: #999;
+}
+
+.edit button[type="cancel"] {
+    margin-left: 2px;
+}

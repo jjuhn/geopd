@@ -8,7 +8,6 @@ from flask_login import current_user
 from flask.ext.assets import Environment
 from flask.ext.mail import Mail
 from flask_bootstrap import Bootstrap
-from flask_recaptcha import ReCaptcha
 from flask_wtf import CsrfProtect
 
 
@@ -32,14 +31,13 @@ application.config.update(dict(
     MAIL_USE_TLS=config.getboolean('mail', 'use_tls'),
     MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
     MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
-    RECAPTCHA_SITE_KEY='6LfmDSATAAAAAAuzB4kg9Vo0vX_9xsuqaOjVDXax',
-    RECAPTCHA_SECRET_KEY='6LfmDSATAAAAAKI0YXv3a8O0JnfFs6tuFZOTVGcl',
-    RECAPTCHA_TYPE='image',
+    RECAPTCHA_USE_SSL=config.getboolean('www.recaptcha', 'use_ssl'),
+    RECAPTCHA_PUBLIC_KEY=config.get('www.recaptcha', 'public_key'),
+    RECAPTCHA_PRIVATE_KEY=config.get('www.recaptcha', 'private_key'),
 ))
 
 bootstrap = Bootstrap(application)
 mail = Mail(application)
-recaptcha = ReCaptcha(application)
 csrf = CsrfProtect()
 
 application.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')

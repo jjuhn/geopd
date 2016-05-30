@@ -10,6 +10,7 @@ from geopd.mail import send_email
 from sqlalchemy.orm import joinedload
 
 web_blueprint = Blueprint('web', __name__)
+ajax_blueprint = Blueprint('ajax', __name__)  # todo:: to be replaced with api blueprint
 
 
 ########################################################################################################################
@@ -86,7 +87,7 @@ def show_member(id):
                            biospecimen=BiospecimenInfo.query.all())
 
 
-@web_blueprint.route('/members/<int:id>/info/', methods=['POST'])
+@ajax_blueprint.route('/members/<int:id>/info/', methods=['POST'])
 @login_required
 def update_member_info(id):
 
@@ -179,3 +180,4 @@ def show_contact():
 # register web blueprint
 ########################################################################################################################
 application.register_blueprint(web_blueprint)
+application.register_blueprint(ajax_blueprint)

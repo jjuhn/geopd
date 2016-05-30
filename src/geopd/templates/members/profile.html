@@ -21,13 +21,9 @@
         <div class="row">
             <div class="col-md-2 col-md-offset-2 col-sm-12 col-xs-12">
                 {% if current_user.id == member.id %}
-                    <form id="avatar-form" class="text-center"
-                          action="" method="post" enctype="multipart/form-data">
-                        {{ form.csrf_token }}
-                        <div class="kv-avatar center-block">
-                            <input id="avatar" name="avatar" type="file" class="file-loading">
-                        </div>
-                    </form>
+                    <div class="kv-avatar text-center">
+                        <input id="avatar" name="avatar" type="file" class="file-loading">
+                    </div>
                 {% else %}
                     <img src="{{ url_for('web.get_member_avatar', id=member.id) }}" alt="{{ member.name }}"
                          class="img-rounded img-responsive thumbnail center-block"/>
@@ -311,16 +307,15 @@
                     removeTitle: 'Cancel or reset changes',
                     elErrorContainer: '#kv-avatar-errors',
                     msgErrorClass: 'alert alert-block alert-danger',
+                    defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
+                                .attr('alt', "{{ member.name }}")
+                                .attr('title', "{{ member.name }}")
+                                .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}")),
                     removeFromPreviewOnError: true,
                     allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
                     layoutTemplates: {
                         footer: '',
                     },
-                    initialPreview: [
-                        geopd.dom.html($('<img/>').addClass('file-preview-image')
-                                .attr('alt', "{{ member.name }}")
-                                .attr('title', "{{ member.name }}")
-                                .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}"))],
                 });
 
             {% else %}

@@ -202,6 +202,24 @@
                             </div>
                         </div>
 
+                        <div id="sharing" class="collapse">
+                            <h4 class="page-header text-primary">
+                                Does the informed consent permit sharing of de-identified data & DNA samples?
+                            </h4>
+                            <div class="funkyradio">
+                                <div class="funkyradio-primary">
+                                    <input type="radio" name="sharing" id="sharing-yes" value="yes"
+                                           {% if member.info.sharing == true %}checked="checked"{% endif %}/>
+                                    <label for="sharing-yes">Yes</label>
+                                </div>
+                                <div class="funkyradio-primary">
+                                    <input type="radio" name="sharing" id="sharing-no" value="no"
+                                           {% if member.info.sharing == false %}checked="checked"{% endif %}/>
+                                    <label for="sharing-no">No</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <h4 class="page-header text-primary">
                             Are you willing to send (to a centralized laboratory) a small number of DNA samples to
                             assess genotyping accuracy?
@@ -273,6 +291,14 @@
                             $(explain).find('.collapse').collapse('hide');
                         }
                     });
+                });
+
+                $('#consent-yes').click(function() {
+                   $('#sharing').collapse('show');
+                });
+
+                $('#consent-no').click(function() {
+                   $('#sharing').collapse('hide');
                 });
 
 

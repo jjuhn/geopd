@@ -135,6 +135,9 @@ def update_member_info(id):
         current_user.info.consent_explain = value
         return value
 
+    elif name == 'sharing':
+        current_user.info.consent_sharing = False if request.form['value'] == 'no' else True
+
     elif name == 'sample':
         current_user.info.sample = False if request.form['value'] == 'no' else True
 

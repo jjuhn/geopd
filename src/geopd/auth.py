@@ -202,6 +202,7 @@ def register():
             flash('Error while processing request. Please try again later', 'warning')
         else:
             user.info = UserInfo(user.id)  # create empty user info record
+            user.avatar = UserAvatar(user.id)  # create empty avatar record
             token = user.generate_confirmation_token()
             send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
             flash('A confirmation email has been sent to your email address', 'success')

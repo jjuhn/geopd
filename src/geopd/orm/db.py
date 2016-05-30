@@ -15,15 +15,15 @@ from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from sqlalchemy import event
 from sqlalchemy.schema import Table, Column
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy.types import Boolean
-from sqlalchemy.types import DateTime
-from sqlalchemy.types import Date
+from sqlalchemy.types import DateTime, Date
+from sqlalchemy.types import LargeBinary
 from sqlalchemy.types import Integer, BigInteger
 from sqlalchemy.types import Float
 from sqlalchemy.types import Text, String
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import false
 
@@ -100,6 +100,7 @@ class User(UserMixin, Base):
     status = relationship('UserStatus', foreign_keys=[status_id])
     institution = relationship('Institution', foreign_keys=[institution_id], back_populates='users')
     info = relationship('UserInfo', primaryjoin="User.id == UserInfo.user_id", uselist=False)
+    avatar = relationship('UserAvatar', primaryjoin="User.id == UserAvatar.user_id", uselist=False)
 
     def __init__(self, email, password, name):
         self.email = email
@@ -207,8 +208,18 @@ class UserStatus(Base):
         return self.name
 
 
+class UserAvatar(Base):
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    data = Column(LargeBinary)
+    mimetype = Column(Text)
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+
 class UserInfo(Base):
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+
     research_interests = Column(Text)
     research_experience = Column(Text)
 

@@ -41,6 +41,7 @@ def init_db():
         db.add(member)
         db.flush()
         member.info = UserInfo(member.id)
+        member.avatar = UserAvatar(member.id)
 
     clinical_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'clinical.tsv'))
     for row in csv.DictReader(clinical_stream, delimiter='\t'):

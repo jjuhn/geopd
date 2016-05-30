@@ -1,5 +1,5 @@
 from flask.ext.wtf import Form, RecaptchaField
-from wtforms import StringField, SubmitField, TextAreaField
+from wtforms import StringField, SubmitField, TextAreaField, FileField
 
 
 class ContactForm(Form):
@@ -9,3 +9,7 @@ class ContactForm(Form):
     message = TextAreaField('Message')
     recaptcha = RecaptchaField()
     submit = SubmitField('Submit')
+
+
+class AvatarForm(Form):
+    avatar = FileField('Avatar')

@@ -12,19 +12,25 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-md-offset-2 col-md-8">
+                <div id="kv-avatar-errors" class="center-block"></div>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-2 col-md-offset-2 col-sm-12 col-xs-12">
-                <img src="{{ member.gravatar(size=256) }}" alt="{{ member.name }}"
-                     class="gravatar img-rounded img-responsive thumbnail center-block"
-                     data-gravatar="{{ member.gravatar(size=256, default='404') }}"/>
-                {% if member.id == current_user.id %}
-                    <div class="gravatar-help btn-group-vertical hidden center-block">
-                        <a href="https://en.gravatar.com/site/login"
-                           class="btn btn-link btn-sm">Upload picture with Gravatar</a>
-                        <a href="https://en.gravatar.com/support/what-is-gravatar/"
-                           class="btn btn-link btn-sm">What is Gravatar?</a>
-                    </div>
+                {% if current_user.id == member.id %}
+                    <form id="avatar-form" class="text-center"
+                          action="" method="post" enctype="multipart/form-data">
+                        {{ form.csrf_token }}
+                        <div class="kv-avatar center-block">
+                            <input id="avatar" name="avatar" type="file" class="file-loading">
+                        </div>
+                    </form>
+                {% else %}
+                    <img src="{{ url_for('web.get_member_avatar', id=member.id) }}" alt="{{ member.name }}"
+                         class="img-rounded img-responsive thumbnail center-block"/>
                 {% endif %}
             </div>
             <div class="col-md-6 col-sm-12 col-xs-12">
@@ -248,17 +254,6 @@
     {{ super() }}
     <script>
         $(document).ready(function () {
-            $('img.gravatar').each(function (i, img) {
-                $.ajax({
-                    url: $(img).attr('data-gravatar'),
-                    type: 'HEAD',
-                    crossDomain: true,
-                    error: function () {
-                        $(img).addClass('gravatar-default');
-                        $(img).next('.gravatar-help').removeClass('hidden');
-                    }
-                });
-            });
 
             {% if current_user.id == member.id %}
 
@@ -293,14 +288,40 @@
                     });
                 });
 
-                $('#consent-yes').click(function() {
-                   $('#sharing').collapse('show');
+                $('#consent-yes').click(function () {
+                    $('#sharing').collapse('show');
                 });
 
-                $('#consent-no').click(function() {
-                   $('#sharing').collapse('hide');
+                $('#consent-no').click(function () {
+                    $('#sharing').collapse('hide');
                 });
 
+                $("#avatar").fileinput({
+                    uploadURL: "{{ url_for('ajax.update_member_info', id=current_user.id) }}",
+                    uploadAsync: true,
+                    overwriteInitial: true,
+                    maxFileSize: 1500,
+                    showClose: false,
+                    showCaption: false,
+                    browseLabel: '',
+                    removeLabel: '',
+                    uploadLabel: 'Save',
+                    browseIcon: '<i class="glyphicon glyphicon-pencil"></i>',
+                    removeIcon: '<i class="glyphicon glyphicon-remove"></i>',
+                    removeTitle: 'Cancel or reset changes',
+                    elErrorContainer: '#kv-avatar-errors',
+                    msgErrorClass: 'alert alert-block alert-danger',
+                    removeFromPreviewOnError: true,
+                    allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
+                    layoutTemplates: {
+                        footer: '',
+                    },
+                    initialPreview: [
+                        geopd.dom.html($('<img/>').addClass('file-preview-image')
+                                .attr('alt', "{{ member.name }}")
+                                .attr('title', "{{ member.name }}")
+                                .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}"))],
+                });
 
             {% else %}
                 $('#survey input[type=checkbox], #survey input[type=radio]').prop('disabled', true);

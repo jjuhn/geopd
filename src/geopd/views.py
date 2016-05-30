@@ -1,13 +1,14 @@
 from flask import Blueprint
-from flask import render_template, abort, redirect, flash, escape
+from flask import render_template, abort, redirect, flash, escape, make_response
 from flask.ext.login import login_required, current_user
 
 from geopd.app import application, config
 from geopd.orm.db import *
-from geopd.forms import ContactForm
+from geopd.forms import ContactForm, AvatarForm
 from geopd.mail import send_email
 
 from sqlalchemy.orm import joinedload
+from werkzeug.utils import secure_filename
 
 web_blueprint = Blueprint('web', __name__)
 ajax_blueprint = Blueprint('ajax', __name__)  # todo:: to be replaced with api blueprint
@@ -74,17 +75,43 @@ def show_members():
     return render_template(tpl, members=members)
 
 
-@web_blueprint.route('/members/<int:id>')
+@web_blueprint.route('/members/<int:id>', methods=['GET', 'POST'])
 @login_required
 def show_member(id):
+
+    form = AvatarForm()
+    if form.validate_on_submit() and form.avatar.data.filename:
+        avatar = UserAvatar.query.get(id)
+        avatar.data = form.avatar.data.stream.read()
+        avatar.mimetype = form.avatar.data.mimetype
+        try:
+            db.commit()  # commit instead of flush to make sure image is stored at this point
+        except:
+            flash('Error saving your profile image.', category='danger')
+        else:
+            flash('Your profile image has been saved successfully', category='success')
+
     user = User.query.options(joinedload('info'),
                               joinedload('info', 'clinical'),
                               joinedload('info', 'epidemiologic'),
                               joinedload('info', 'biospecimen')).filter(User.id == id).one()
-    return render_template('members/profile.html', member=user,
+    return render_template('members/profile.html', member=user, form=form,
                            clinical=ClinicalInfo.query.all(),
                            epidemiologic=EpidemiologicInfo.query.all(),
                            biospecimen=BiospecimenInfo.query.all())
+
+
+@web_blueprint.route('/members/<int:id>/avatar')
+@login_required
+def get_member_avatar(id):
+
+    avatar = UserAvatar.query.get(id)
+    if not avatar.data:
+        return application.send_static_file('images/avatar.png')
+
+    response = make_response(avatar.data)
+    response.headers['Content-Type'] = avatar.mimetype
+    return response
 
 
 @ajax_blueprint.route('/members/<int:id>/info/', methods=['POST'])

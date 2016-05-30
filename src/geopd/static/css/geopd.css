@@ -162,3 +162,16 @@ div.geopd-label span {
 .edit button[type="cancel"] {
     margin-left: 2px;
 }
+
+.kv-avatar .file-preview-frame,.kv-avatar .file-preview-frame:hover {
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    text-align: center;
+}
+
+.file-preview-image {
+    width: 100% !important;
+    height: auto !important;
+}

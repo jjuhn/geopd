@@ -202,7 +202,7 @@
                             </div>
                         </div>
 
-                        <div id="sharing" class="collapse">
+                        <div id="sharing" class="collapse {% if member.info.consent == True %}in{% endif %}">
                             <h4 class="page-header text-primary">
                                 Does the informed consent permit sharing of de-identified data & DNA samples?
                             </h4>
@@ -262,7 +262,7 @@
 
             {% if current_user.id == member.id %}
 
-                var info_update_url = '{{ url_for('web.update_member_info', id=current_user.id) }}';
+                var info_update_url = '{{ url_for('ajax.update_member_info', id=current_user.id) }}';
 
                 $('#survey input[type=checkbox], #survey input[type=radio]').click(function (e) {
                     $.post(info_update_url, {

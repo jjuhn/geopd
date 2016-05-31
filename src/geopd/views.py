@@ -121,7 +121,7 @@ def update_member_info(id):
     if id != current_user.id:
         abort(403)  # unauthorized
 
-    name = request.form['name']
+    name = request.form.get('name', None)
 
     if name == 'clinical':
         obj = ClinicalInfo.query.get(request.form['value'])
@@ -178,6 +178,11 @@ def update_member_info(id):
         value = escape(request.form['value'])
         current_user.info.research_experience = value
         return value
+
+    elif name == 'avatar':
+        avatar = UserAvatar.query.get(id)
+        avatar.data = request.files[name].stream.read()
+        avatar.mimetype = request.files[name].mimetype
 
     else:
         abort(400)

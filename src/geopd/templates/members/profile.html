@@ -22,7 +22,7 @@
             <div class="col-md-2 col-md-offset-2 col-sm-12 col-xs-12">
                 {% if current_user.id == member.id %}
                     <div class="kv-avatar text-center">
-                        <input id="avatar" name="avatar" type="file" class="file-loading">
+                        <input id="avatar" name="avatar" type="file" class="file-loading center-block">
                     </div>
                 {% else %}
                     <img src="{{ url_for('web.get_member_avatar', id=member.id) }}" alt="{{ member.name }}"
@@ -293,28 +293,37 @@
                 });
 
                 $("#avatar").fileinput({
-                    uploadURL: "{{ url_for('ajax.update_member_info', id=current_user.id) }}",
+                    uploadUrl: "{{ url_for('ajax.update_member_info', id=current_user.id) }}",
                     uploadAsync: true,
+                    uploadExtraData: {
+                        name: 'avatar'
+                    },
                     overwriteInitial: true,
                     maxFileSize: 1500,
+
                     showClose: false,
                     showCaption: false,
                     browseLabel: '',
                     removeLabel: '',
                     uploadLabel: 'Save',
                     browseIcon: '<i class="glyphicon glyphicon-pencil"></i>',
-                    removeIcon: '<i class="glyphicon glyphicon-remove"></i>',
+                    removeIcon: '<i class="glyphicon glyphicon-remove-circle"></i>',
                     removeTitle: 'Cancel or reset changes',
+                    browseClass: 'btn btn-primary btn-sm',
+                    removeClass: 'btn btn-default btn-sm',
+                    uploadClass: 'btn btn-default btn-sm',
+
                     elErrorContainer: '#kv-avatar-errors',
                     msgErrorClass: 'alert alert-block alert-danger',
                     defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
-                                .attr('alt', "{{ member.name }}")
-                                .attr('title', "{{ member.name }}")
-                                .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}")),
+                            .attr('alt', "{{ member.name }}")
+                            .attr('title', "{{ member.name }}")
+                            .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}")),
                     removeFromPreviewOnError: true,
                     allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
                     layoutTemplates: {
                         footer: '',
+                        main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{remove}\n{upload}\n{browse}\n',
                     },
                 });
 

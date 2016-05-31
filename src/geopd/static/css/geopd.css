@@ -163,6 +163,10 @@ div.geopd-label span {
     margin-left: 2px;
 }
 
+.fileinput-remove-button, .fileinput-upload-button {
+    color: #999999;
+}
+
 .kv-avatar .file-preview-frame,.kv-avatar .file-preview-frame:hover {
     margin: 0;
     padding: 0;
@@ -171,7 +175,21 @@ div.geopd-label span {
     text-align: center;
 }
 
+.file-preview {
+    max-width: 256px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .file-preview-image {
+    text-align: center;
     width: 100% !important;
     height: auto !important;
+    max-width: 256px;
+}
+
+.file-drop-zone {
+    border: 0;
+    padding: 0;
+    margin: 0;
 }

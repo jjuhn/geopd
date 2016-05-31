@@ -238,12 +238,6 @@ class UserInfo(Base):
         self.user_id = user_id
 
 
-# @event.listens_for(UserInfo.ethical, 'set')
-# def receive_set(target, value, oldvalue, initiator):
-#     if value:
-#         target.ethical_explain = None
-
-
 class ClinicalInfo(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)

@@ -78,21 +78,21 @@ def before_request():
             return render_template('auth/change_password.html', form=form)
 
         elif request.blueprint == 'web':
-            if request.endpoint != 'web.show_member' or (
+            if request.endpoint != 'web.show_user' or (
                     'id' in request.view_args and request.view_args['id'] != current_user.id):
                 if 1 == randint(1, 5):
                     if not current_user.info.research_interests or not current_user.info.research_experience:
                         flash(Markup(
                             'Your biography is not up to date. '
                             '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
-                                url_for('web.show_member', id=current_user.id))), category='warning')
+                                url_for('web.show_user', id=current_user.id))), category='warning')
                     elif not current_user.info.clinical or not current_user.info.epidemiologic \
                             or not current_user.info.biospecimen or current_user.info.ethical == None \
                             or current_user.info.consent == None:
                         flash(Markup(
                             'You have not completed the survey. Please complete the survey '
                             '<a href="{0}#survey" class="alert-link">here</a>.'.format(
-                                url_for('web.show_member', id=current_user.id))), category='warning')
+                                url_for('web.show_user', id=current_user.id))), category='warning')
 
 
 ########################################################################################################################

@@ -29,19 +29,19 @@ def init_db():
         institutions[row['name']] = institution
         db.add(institution)
 
-    members = dict()
-    members_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'members.tsv'))
-    for row in csv.DictReader(members_stream, delimiter='\t'):
-        member = User(row['email'], config.get('db.init', 'password'), row['name'])
-        member.institution = institutions[row['institution']]
-        member.status_id = USER_STATUS_ACTIVE
-        member.confirmed = True
-        member.force_password_reset = True
-        members[row['name']] = member
-        db.add(member)
+    users = dict()
+    users_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'users.tsv'))
+    for row in csv.DictReader(users_stream, delimiter='\t'):
+        user = User(row['email'], config.get('db.init', 'password'), row['name'])
+        user.institution = institutions[row['institution']]
+        user.status_id = USER_STATUS_ACTIVE
+        user.confirmed = True
+        user.force_password_reset = True
+        users[row['name']] = user
+        db.add(user)
         db.flush()
-        member.info = UserInfo(member.id)
-        member.avatar = UserAvatar(member.id)
+        user.info = UserInfo(user.id)
+        user.avatar = UserAvatar(user.id)
 
     clinical_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'clinical.tsv'))
     for row in csv.DictReader(clinical_stream, delimiter='\t'):
@@ -62,7 +62,7 @@ def init_db():
     for row in csv.DictReader(projects_stream, delimiter='\t'):
         project = Project(row['name'], row['description'])
         for name in row['investigators'].split(','):
-            project.investigators.append(members[name])
+            project.investigators.append(users[name])
         db.add(project)
 
     publications = dict()

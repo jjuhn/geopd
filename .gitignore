@@ -8,4 +8,4 @@ parts
 *.egg-info
 .webassets-cache
 global.*
-members.tsv
+users.tsv

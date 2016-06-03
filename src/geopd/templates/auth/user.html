@@ -6,7 +6,7 @@
             <a href="{{ url_for('logout') }}"><i class="glyphicon glyphicon-log-out"></i> Logout</a>
         </li>
         <li role="separator" class="nav-divider"></li>
-        <li><a href="{{ url_for('web.show_member', id=current_user.id) }}">My Profile</a></li>
+        <li><a href="{{ url_for('web.show_user', id=current_user.id) }}">My Profile</a></li>
         <li><a href="{{ url_for('change_password') }}">Change My Password</a></li>
     </ul>
 </li>

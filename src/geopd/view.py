@@ -27,7 +27,7 @@ ajax_blueprint = Blueprint('ajax', __name__)  # todo:: to be replaced with api b
 def index():
 
     if not current_user.is_anonymous:
-        return redirect(url_for('web.show_member', id=current_user.id))
+        return redirect(url_for('web.show_user', id=current_user.id))
 
     return render_template('welcome.html', cores=Core.query.all(),
                            meetings=Meeting.query.filter(Meeting.carousel).order_by(Meeting.year.desc()).all())
@@ -87,16 +87,16 @@ def show_cores():
 ########################################################################################################################
 # Members
 ########################################################################################################################
-@web_blueprint.route('/members/')
-def show_members():
-    members = User.query.options(joinedload('institution'))
-    tpl = 'members/public.html' if current_user.is_anonymous else 'members/index.html'
-    return render_template(tpl, members=members)
+@web_blueprint.route('/users/')
+def show_users():
+    users = User.query.options(joinedload('institution'))
+    tpl = 'users/public.html' if current_user.is_anonymous else 'users/index.html'
+    return render_template(tpl, users=users)
 
 
-@web_blueprint.route('/members/<int:id>', methods=['GET', 'POST'])
+@web_blueprint.route('/users/<int:id>', methods=['GET', 'POST'])
 @login_required
-def show_member(id):
+def show_user(id):
 
     form = AvatarForm()
     if form.validate_on_submit() and form.avatar.data.filename:
@@ -114,15 +114,15 @@ def show_member(id):
                               joinedload('info', 'clinical'),
                               joinedload('info', 'epidemiologic'),
                               joinedload('info', 'biospecimen')).filter(User.id == id).one()
-    return render_template('members/profile.html', member=user, form=form,
+    return render_template('users/profile.html', user=user, form=form,
                            clinical=ClinicalInfo.query.all(),
                            epidemiologic=EpidemiologicInfo.query.all(),
                            biospecimen=BiospecimenInfo.query.all())
 
 
-@web_blueprint.route('/members/<int:id>/avatar')
+@web_blueprint.route('/users/<int:id>/avatar')
 @login_required
-def get_member_avatar(id):
+def get_user_avatar(id):
 
     avatar = UserAvatar.query.get(id)
     if not avatar.data:
@@ -133,9 +133,9 @@ def get_member_avatar(id):
     return response
 
 
-@ajax_blueprint.route('/members/<int:id>/info/', methods=['POST'])
+@ajax_blueprint.route('/users/<int:id>/info/', methods=['POST'])
 @login_required
-def update_member_info(id):
+def update_user_info(id):
 
     if id != current_user.id:
         abort(403)  # unauthorized

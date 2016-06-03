@@ -10,15 +10,15 @@
 
             <ul class="nav nav-tabs">
                 <li role="presentation" class="active">
-                    <a id="list-tab" href="#members-list" data-toggle="tab">Detailed List</a>
+                    <a id="list-tab" href="#users-list" data-toggle="tab">Detailed List</a>
                 </li>
                 <li role="presentation">
-                    <a id="map-tab" href="#members-map" data-toggle="tab">World Map</a>
+                    <a id="map-tab" href="#users-map" data-toggle="tab">World Map</a>
                 </li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade in active" id="members-list">
+                <div class="tab-pane fade in active" id="users-list">
                     <table id="users" class="table table-striped table-hover table-condensed" cellspacing="0"
                            width="100%">
                         <thead>
@@ -32,7 +32,7 @@
                         </thead>
                     </table>
                 </div>
-                <div class="tab-pane fade" id="members-map">
+                <div class="tab-pane fade" id="users-map">
                     <div id="map"></div>
                 </div>
             </div>
@@ -48,12 +48,12 @@
         async defer></script>
 <script>
 
-    function create_info_window_html(member) {
+    function create_info_window_html(user) {
         var container = $('<div/>').append(
                 $('<div/>').addClass('info-window')
-                .append($('<a/>').attr('href', member.profile).html($('<h4/>').html(member.name)))
-                .append($('<p/>').html(member.institution))
-                .append($('<em/>').html(member.city)));
+                .append($('<a/>').attr('href', user.profile).html($('<h4/>').html(user.name)))
+                .append($('<p/>').html(user.institution))
+                .append($('<em/>').html(user.city)));
         return container.html();
     }
 
@@ -64,35 +64,35 @@
             zoom: 3,
         });
 
-        {% for member in members %}
+        {% for user in users %}
             var marker{{ loop.index }} = new google.maps.Marker({
-               position: {lat: {{ member.institution.latitude }}, lng: {{ member.institution.longitude }}},
+               position: {lat: {{ user.institution.latitude }}, lng: {{ user.institution.longitude }}},
                map: map,
-               title: '{{ member.name }}',
+               title: '{{ user.name }}',
             });
 
             marker{{ loop.index }}.addListener('click', function() {
                new google.maps.InfoWindow({
                    content: create_info_window_html({
-                       profile: '{{ url_for("web.show_member", id=member.id) }}',
-                       name: '{{ member.name }}',
-                       institution: '{{ member.institution.name }}',
-                       city: '{{ member.institution.city }}',
+                       profile: '{{ url_for("web.show_user", id=user.id) }}',
+                       name: '{{ user.name }}',
+                       institution: '{{ user.institution.name }}',
+                       city: '{{ user.institution.city }}',
                    })
                }).open(map, marker{{ loop.index }});
             });
         {% endfor %}
     }
 
-    var members = [];
-    {% for member in members %}
-        members.push({
-            profile: '{{ url_for('web.show_member', id=member.id) }}',
-            name: '{{ member.name }}',
-            institution: '{{ member.institution.name }}',
-            city: '{{ member.institution.city }}',
-            member_since: '{{ member.created_on.isoformat() }}Z',
-            last_seen: {% if member.last_seen %}'{{ member.last_seen.isoformat() }}Z'{% else %}undefined{% endif %},
+    var users = [];
+    {% for user in users %}
+        users.push({
+            profile: '{{ url_for('web.show_user', id=user.id) }}',
+            name: '{{ user.name }}',
+            institution: '{{ user.institution.name }}',
+            city: '{{ user.institution.city }}',
+            user_since: '{{ user.created_on.isoformat() }}Z',
+            last_seen: {% if user.last_seen %}'{{ user.last_seen.isoformat() }}Z'{% else %}undefined{% endif %},
         });
     {% endfor %}
 
@@ -100,18 +100,18 @@
 
         $('#users').DataTable({
 
-            data: members,
+            data: users,
             columns: [
-                {data: function(member) {
-                    return geopd.dom.link(member.profile, member.name);
+                {data: function(user) {
+                    return geopd.dom.link(user.profile, user.name);
                 }},
                 {data: 'institution'},
                 {data: 'city'},
-                {data: function(member) {
-                    return geopd.dom.datetime(member.member_since);
+                {data: function(user) {
+                    return geopd.dom.datetime(user.member_since);
                 }},
-                {data: function(member) {
-                    return geopd.dom.datetime(member.last_seen);
+                {data: function(user) {
+                    return geopd.dom.datetime(user.last_seen);
                 }},
             ],
 

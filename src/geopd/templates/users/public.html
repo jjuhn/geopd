@@ -12,12 +12,12 @@
         async defer></script>
 <script>
 
-    function create_info_window_html(member) {
+    function create_info_window_html(user) {
         var container = $('<div/>').append(
                 $('<div/>').addClass('info-window')
-                .append($('<h4/>').html(member.name))
-                .append($('<p/>').html(member.institution))
-                .append($('<em/>').html(member.city)));
+                .append($('<h4/>').html(user.name))
+                .append($('<p/>').html(user.institution))
+                .append($('<em/>').html(user.city)));
         return container.html();
     }
 
@@ -28,20 +28,20 @@
             zoom: 3,
         });
 
-        {% for member in members %}
+        {% for user in users %}
             var marker{{ loop.index }} = new google.maps.Marker({
-               position: {lat: {{ member.institution.latitude }}, lng: {{ member.institution.longitude }}},
+               position: {lat: {{ user.institution.latitude }}, lng: {{ user.institution.longitude }}},
                map: map,
-               title: '{{ member.name }}',
+               title: '{{ user.name }}',
             });
 
             marker{{ loop.index }}.addListener('click', function() {
                new google.maps.InfoWindow({
                    content: create_info_window_html({
-                       profile: '{{ url_for("web.show_member", id=member.id) }}',
-                       name: '{{ member.name }}',
-                       institution: '{{ member.institution.name }}',
-                       city: '{{ member.institution.city }}',
+                       profile: '{{ url_for("web.show_user", id=user.id) }}',
+                       name: '{{ user.name }}',
+                       institution: '{{ user.institution.name }}',
+                       city: '{{ user.institution.city }}',
                    })
                }).open(map, marker{{ loop.index }});
             });

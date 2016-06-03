@@ -6,8 +6,8 @@
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <ol class="breadcrumb">
-                    <li><a href="{{ url_for('web.show_members') }}">Members</a></li>
-                    <li>{{ member.name }}</li>
+                    <li><a href="{{ url_for('web.show_users') }}">Members</a></li>
+                    <li>{{ user.name }}</li>
                 </ol>
             </div>
         </div>
@@ -20,34 +20,34 @@
 
         <div class="row">
             <div class="col-md-2 col-md-offset-2 col-sm-12 col-xs-12">
-                {% if current_user.id == member.id %}
+                {% if current_user.id == user.id %}
                     <div class="kv-avatar text-center">
                         <input id="avatar" name="avatar" type="file" class="file-loading center-block">
                     </div>
                 {% else %}
-                    <img src="{{ url_for('web.get_member_avatar', id=member.id) }}" alt="{{ member.name }}"
+                    <img src="{{ url_for('web.get_user_avatar', id=user.id) }}" alt="{{ user.name }}"
                          class="img-rounded img-responsive thumbnail center-block"/>
                 {% endif %}
             </div>
             <div class="col-md-6 col-sm-12 col-xs-12">
                 <br class="visible-sm visible-xs"/>
-                <h2>{{ member.name }}</h2>
-                <p class="text-muted">{{ member.institution.name }}<br/>
+                <h2>{{ user.name }}</h2>
+                <p class="text-muted">{{ user.institution.name }}<br/>
                     <small>
                         <span class="glyphicon glyphicon-map-marker"></span>
-                        <em>{{ member.institution.city }}</em>
+                        <em>{{ user.institution.city }}</em>
                     </small>
                 </p>
                 <p>
                     <i class="glyphicon glyphicon-envelope"></i>
-                    <a href="mailto:{{ member.email }}?Subject=[GEoPD]%20" target="_top">{{ member.email }}</a>
+                    <a href="mailto:{{ user.email }}?Subject=[GEoPD]%20" target="_top">{{ user.email }}</a>
                 </p>
                 <p class="text-muted">Member since
-                    <time class="moment">{{ member.created_on|datetime }}</time>
+                    <time class="moment">{{ user.created_on|datetime }}</time>
                     .
-                    {% if member.last_seen %}
+                    {% if user.last_seen %}
                         Last Seen
-                        <time class="moment">{{ member.last_seen|datetime }}</time>
+                        <time class="moment">{{ user.last_seen|datetime }}</time>
                         .
                     {% endif %}
                 </p>
@@ -70,17 +70,17 @@
                     <div id="biography" class="tab-pane fade in active">
                         <h3 class="page-header text-primary">Research Interests</h3>
                         <p class="edit edit-biography" id="interest">
-                            {%- if member.info.research_interests -%}
-                                {{ member.info.research_interests }}
-                            {%- elif current_user.id != member.id -%}
+                            {%- if user.info.research_interests -%}
+                                {{ user.info.research_interests }}
+                            {%- elif current_user.id != user.id -%}
                                 No research interests provided.
                             {%- endif -%}
                         </p>
                         <h3 class="page-header text-primary">Research Experience</h3>
                         <p class="edit edit-biography" id="experience">
-                            {%- if member.info.research_experience -%}
-                                {{ member.info.research_experience }}
-                            {%- elif current_user.id != member.id -%}
+                            {%- if user.info.research_experience -%}
+                                {{ user.info.research_experience }}
+                            {%- elif current_user.id != user.id -%}
                                 No research experience provided.
                             {%- endif -%}
                         </p>
@@ -94,7 +94,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <p class="help-block">
-                                    In order to best serve your interests and those of the general membership, please
+                                    In order to best serve your interests and those of the general usership, please
                                     spend a minute completing the following questionnaire. Briefly, we seek to learn
                                     what clinical tools you use, what epidemiologic exposures you measure, and what
                                     types of biospecimens you currently have.
@@ -106,7 +106,7 @@
 
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Clinical Information</h3>
-                                {% if current_user.id == member.id %}
+                                {% if current_user.id == user.id %}
                                     <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
@@ -114,7 +114,7 @@
                                         <div class="funkyradio-primary">
                                             <input type="checkbox" name="clinical" id="clinical-{{ c.id }}"
                                                    value="{{ c.id }}"
-                                                   {% if c in member.info.clinical %}checked="checked"{% endif %}/>
+                                                   {% if c in user.info.clinical %}checked="checked"{% endif %}/>
                                             <label for="clinical-{{ c.id }}">{{ c.name }}</label>
                                         </div>
                                     {% endfor %}
@@ -123,7 +123,7 @@
 
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Epidemiologic Exposures</h3>
-                                {% if current_user.id == member.id %}
+                                {% if current_user.id == user.id %}
                                     <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
@@ -131,7 +131,7 @@
                                         <div class="funkyradio-primary">
                                             <input type="checkbox" name="epidemiologic" id="epidemiologic-{{ c.id }}"
                                                    value="{{ c.id }}"
-                                                   {% if c in member.info.epidemiologic %}checked="checked"{% endif %}/>
+                                                   {% if c in user.info.epidemiologic %}checked="checked"{% endif %}/>
                                             <label for="epidemiologic-{{ c.id }}">{{ c.name }}</label>
                                         </div>
                                     {% endfor %}
@@ -140,7 +140,7 @@
 
                             <div class="col-md-4">
                                 <h3 class="page-header text-primary">Biospecimens</h3>
-                                {% if current_user.id == member.id %}
+                                {% if current_user.id == user.id %}
                                     <p class="text-muted">&#x2714 Check all that apply.</p>
                                 {% endif %}
                                 <div class="funkyradio">
@@ -148,7 +148,7 @@
                                         <div class="funkyradio-primary">
                                             <input type="checkbox" name="biospecimen" id="biospecimen-{{ c.id }}"
                                                    value="{{ c.id }}"
-                                                   {% if c in member.info.biospecimen %}checked="checked"{% endif %}/>
+                                                   {% if c in user.info.biospecimen %}checked="checked"{% endif %}/>
                                             <label for="biospecimen-{{ c.id }}">{{ c.name }}</label>
                                         </div>
                                     {% endfor %}
@@ -164,19 +164,19 @@
                         <div class="funkyradio explain">
                             <div class="funkyradio-primary">
                                 <input type="radio" name="ethical" id="ethical-yes" value="yes"
-                                       {% if member.info.ethical == true %}checked="checked"{% endif %}/>
+                                       {% if user.info.ethical == true %}checked="checked"{% endif %}/>
                                 <label for="ethical-yes">Yes</label>
                             </div>
                             <div class="funkyradio-primary">
                                 <input type="radio" name="ethical" id="ethical-no" value="no"
-                                       {% if member.info.ethical == false %}checked="checked"{% endif %}/>
+                                       {% if user.info.ethical == false %}checked="checked"{% endif %}/>
                                 <label for="ethical-no">No</label>
                             </div>
-                            <div class="collapse {% if member.info.ethical == False %}in{% endif %}"
+                            <div class="collapse {% if user.info.ethical == False %}in{% endif %}"
                                  id="ethical-explanation">
                                 <h5 class="text-primary">Explanation</h5>
                                 <p id="ethical-explain" class="edit edit-explain">
-                                    {{ member.info.ethical_explain if member.info.ethical_explain }}
+                                    {{ user.info.ethical_explain if user.info.ethical_explain }}
                                 </p>
                             </div>
                         </div>
@@ -187,36 +187,36 @@
                         <div class="funkyradio explain">
                             <div class="funkyradio-primary">
                                 <input type="radio" name="consent" id="consent-yes" value="yes"
-                                       {% if member.info.consent == true %}checked="checked"{% endif %}/>
+                                       {% if user.info.consent == true %}checked="checked"{% endif %}/>
                                 <label for="consent-yes">Yes</label>
                             </div>
                             <div class="funkyradio-primary explain">
                                 <input type="radio" name="consent" id="consent-no" value="no"
-                                       {% if member.info.consent == false %}checked="checked"{% endif %}/>
+                                       {% if user.info.consent == false %}checked="checked"{% endif %}/>
                                 <label for="consent-no">No</label>
                             </div>
-                            <div class="collapse {% if member.info.consent == False %}in{% endif %}"
+                            <div class="collapse {% if user.info.consent == False %}in{% endif %}"
                                  id="consent-explanation">
                                 <h5 class="text-primary">Explanation</h5>
                                 <p id="consent-explain" class="edit edit-explain">
-                                    {{ member.info.consent_explain if member.info.consent_explain }}
+                                    {{ user.info.consent_explain if user.info.consent_explain }}
                                 </p>
                             </div>
                         </div>
 
-                        <div id="sharing" class="collapse {% if member.info.consent == True %}in{% endif %}">
+                        <div id="sharing" class="collapse {% if user.info.consent == True %}in{% endif %}">
                             <h4 class="page-header text-primary">
                                 Does the informed consent permit sharing of de-identified data & DNA samples?
                             </h4>
                             <div class="funkyradio">
                                 <div class="funkyradio-primary">
                                     <input type="radio" name="sharing" id="sharing-yes" value="yes"
-                                           {% if member.info.sharing == true %}checked="checked"{% endif %}/>
+                                           {% if user.info.sharing == true %}checked="checked"{% endif %}/>
                                     <label for="sharing-yes">Yes</label>
                                 </div>
                                 <div class="funkyradio-primary">
                                     <input type="radio" name="sharing" id="sharing-no" value="no"
-                                           {% if member.info.sharing == false %}checked="checked"{% endif %}/>
+                                           {% if user.info.sharing == false %}checked="checked"{% endif %}/>
                                     <label for="sharing-no">No</label>
                                 </div>
                             </div>
@@ -229,12 +229,12 @@
                         <div class="funkyradio">
                             <div class="funkyradio-primary">
                                 <input type="radio" name="sample" id="sample-yes" value="yes"
-                                       {% if member.info.sample == true %}checked="checked"{% endif %}/>
+                                       {% if user.info.sample == true %}checked="checked"{% endif %}/>
                                 <label for="sample-yes">Yes</label>
                             </div>
                             <div class="funkyradio-primary">
                                 <input type="radio" name="sample" id="sample-no" value="no"
-                                       {% if member.info.sample == false %}checked="checked"{% endif %}/>
+                                       {% if user.info.sample == false %}checked="checked"{% endif %}/>
                                 <label for="sample-no">No</label>
                             </div>
                         </div>
@@ -251,9 +251,9 @@
     <script>
         $(document).ready(function () {
 
-            {% if current_user.id == member.id %}
+            {% if current_user.id == user.id %}
 
-                var info_update_url = '{{ url_for('ajax.update_member_info', id=current_user.id) }}';
+                var info_update_url = '{{ url_for('ajax.update_user_info', id=current_user.id) }}';
 
                 $('#survey input[type=checkbox], #survey input[type=radio]').click(function (e) {
                     $.post(info_update_url, {
@@ -293,7 +293,7 @@
                 });
 
                 $("#avatar").fileinput({
-                    uploadUrl: "{{ url_for('ajax.update_member_info', id=current_user.id) }}",
+                    uploadUrl: "{{ url_for('ajax.update_user_info', id=current_user.id) }}",
                     uploadAsync: true,
                     uploadExtraData: {
                         name: 'avatar'
@@ -316,9 +316,9 @@
                     elErrorContainer: '#kv-avatar-errors',
                     msgErrorClass: 'alert alert-block alert-danger',
                     defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
-                            .attr('alt', "{{ member.name }}")
-                            .attr('title', "{{ member.name }}")
-                            .attr('src', "{{ url_for('web.get_member_avatar', id=current_user.id) }}")),
+                            .attr('alt', "{{ user.name }}")
+                            .attr('title', "{{ user.name }}")
+                            .attr('src', "{{ url_for('web.get_user_avatar', id=current_user.id) }}")),
                     removeFromPreviewOnError: true,
                     allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
                     layoutTemplates: {

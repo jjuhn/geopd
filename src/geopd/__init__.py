@@ -35,6 +35,7 @@ app.config.update(dict(
 import geopd.auth
 import geopd.error
 import geopd.view
+import geopd.api
 
 ########################################################################################################################
 # helpers

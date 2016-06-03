@@ -404,6 +404,9 @@ class Meeting(Base):
 
 
 class Core(Base):
+    __jsonapi_type__ = 'cores'
+    __jsonapi_fields__ = ['name', 'key']
+
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False, unique=True)
     key = Column(Text, nullable=False, unique=True)

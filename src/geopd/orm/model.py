@@ -7,22 +7,30 @@ import pkg_resources
 from datetime import datetime
 from urllib import quote_plus
 
-from geopd import Base, db
+from geopd.orm import db
+from geopd.orm import Base
 from geopd.util import name2key
-from flask import request, current_app, url_for
-from flask.ext.login import UserMixin
+from flask import request
+from flask import current_app
+from flask import url_for
+from flask_login import UserMixin
 from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
 
-from sqlalchemy.schema import Table, Column
+from sqlalchemy.schema import Table
+from sqlalchemy.schema import Column
 from sqlalchemy.schema import ForeignKey
 from sqlalchemy.types import Boolean
-from sqlalchemy.types import DateTime, Date
+from sqlalchemy.types import DateTime
+from sqlalchemy.types import Date
 from sqlalchemy.types import LargeBinary
-from sqlalchemy.types import Integer, BigInteger
+from sqlalchemy.types import Integer
+from sqlalchemy.types import BigInteger
 from sqlalchemy.types import Float
-from sqlalchemy.types import Text, String
+from sqlalchemy.types import Text
+from sqlalchemy.types import String
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import false
@@ -41,8 +49,6 @@ GENDER_MALE = 2
 USER_STATUS_PENDING = 0
 USER_STATUS_ACTIVE = 1
 USER_STATUS_DISABLED = 2
-
-GENE_PROTEIN_CODING = 4
 
 GRAVATAR_DEFAULT_URL = 'http://www.can.ubc.ca/avatar.png'
 

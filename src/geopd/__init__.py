@@ -1,51 +1,72 @@
-import ConfigParser
-import os.path
-import atexit
+import os
 
-from geopd.conn import create_scoped_session
-from geopd.util import to_underscore
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from flask import Flask
+from flask_assets import Environment
+from flask_bootstrap import Bootstrap
+from flask_wtf import CsrfProtect
 
-CONFIG_FILE_VAR_NAME = 'GEOPD_CONFIG_PATH'
+from geopd.config import config
 
-if CONFIG_FILE_VAR_NAME not in os.environ:
-    raise RuntimeError("environment variable {0} is not set".format(CONFIG_FILE_VAR_NAME))
+app = Flask(__name__)
 
-try:
-    with open(os.environ[CONFIG_FILE_VAR_NAME]) as config_file:
-        config = ConfigParser.ConfigParser()
-        config.readfp(config_file)
-except EnvironmentError as e:
-    raise RuntimeError("failed to load configuration: {0}".format(e))
+########################################################################################################################
+# configure app
+########################################################################################################################
+app.config.update(dict(
+    SECRET_KEY=config.get('www', 'secret_key'),
+    APP_CODE=config.get('www', 'app_code'),
+    APP_BRAND=config.get('www', 'app_brand'),
+    APP_NAME=config.get('www', 'app_name'),
+    DEBUG=config.getboolean('www', 'debug') if config.has_option('www', 'debug') else False,
+    MAIL_SERVER=config.get('mail', 'server'),
+    MAIL_PORT=config.get('mail', 'port'),
+    MAIL_USE_TLS=config.getboolean('mail', 'use_tls'),
+    MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
+    RECAPTCHA_USE_SSL=config.getboolean('www.recaptcha', 'use_ssl'),
+    RECAPTCHA_PUBLIC_KEY=config.get('www.recaptcha', 'public_key'),
+    RECAPTCHA_PRIVATE_KEY=config.get('www.recaptcha', 'private_key'),
+))
 
-try:
-    db_conn_dict = dict(config.items('db'))
-except ConfigParser.NoSectionError as e:
-    raise RuntimeError("failed to load database configuration: {0}".format(e))
+########################################################################################################################
+# import blueprints
+########################################################################################################################
 
-db = create_scoped_session(**db_conn_dict)  #: global database connection
+import geopd.auth
+import geopd.error
+import geopd.view
 
+########################################################################################################################
+# helpers
+########################################################################################################################
+bootstrap = Bootstrap(app)
+csrf = CsrfProtect(app)
 
-def commit():
-    global db
-    try:
-        db.commit()
-    except:
-        db.rollback()
-        raise
+########################################################################################################################
+# web assets
+########################################################################################################################
+assets = Environment(app)
 
+assets.register('js',
+                'js/URI.js',
+                'js/star-rating.js',
+                'js/jquery-comments.js',
+                'js/validator.js',
+                'js/fileinput.js',
+                'js/jquery.jeditable.js',
+                'js/geopd.js',
+                output='js/global.js')  # jsmin?
 
-@atexit.register
-def close():
-    global db
-    db.close()
+assets.register('css',
+                'css/star-rating.css',
+                'css/jquery-comments.css',
+                'css/fileinput.css',
+                'css/event-list.css',
+                'css/funkyradio.css',
+                'css/geopd.css',
+                output='css/global.min.css', filters='cssmin')
 
-
-class Base(object):
-    @declared_attr
-    def __tablename__(cls):
-        return to_underscore(cls.__name__)
-
-
-Base = declarative_base(cls=Base)
-Base.query = db.query_property()
+########################################################################################################################
+# jinja2 filters
+########################################################################################################################
+app.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')

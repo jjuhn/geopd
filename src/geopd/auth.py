@@ -1,14 +1,21 @@
 from functools import wraps
 
-from geopd.orm.db import *
-from geopd.app import application, db
-from geopd.mail import send_email
-from flask import redirect, render_template, flash
-from flask import request, url_for
+from geopd import app
+from geopd.orm.model import *
+from geopd.email import send_email
+from flask import redirect
+from flask import render_template
+from flask import flash
+from flask import request
+from flask import url_for
 from flask import Markup
-from flask.ext.login import LoginManager
-from flask.ext.login import login_user, logout_user, current_user, current_app, login_required
-from flask.ext.wtf import Form
+from flask_login import LoginManager
+from flask_login import login_user
+from flask_login import logout_user
+from flask_login import current_user
+from flask_login import current_app
+from flask_login import login_required
+from flask_wtf import Form
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.exc import NoResultFound
 from wtforms import StringField, BooleanField, PasswordField, SubmitField
@@ -23,7 +30,7 @@ from random import randint
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'login'
-login_manager.init_app(application)
+login_manager.init_app(app)
 
 
 @login_manager.user_loader
@@ -54,7 +61,7 @@ def active_required(func):
     return decorated_view
 
 
-@application.before_request
+@app.before_request
 def before_request():
     if current_user.is_authenticated:
 
@@ -138,12 +145,12 @@ class PasswordResetForm(Form):
 ########################################################################################################################
 
 
-@application.context_processor
+@app.context_processor
 def inject_login_form():
     return dict(login_form=LoginForm())
 
 
-@application.route('/login/', methods=['POST'])
+@app.route('/login/', methods=['POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -167,7 +174,7 @@ def login():
     return redirect(request.args.get('next') or request.referrer or url_for('index'))
 
 
-@application.route('/logout/')
+@app.route('/logout/')
 @login_required
 def logout():
     logout_user()
@@ -175,7 +182,7 @@ def logout():
     return redirect(url_for('index'))
 
 
-@application.route('/register/', methods=['GET', 'POST'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -216,7 +223,7 @@ def register():
     return render_template('auth/register.html', form=form, institutions=Institution.query.all())
 
 
-@application.route('/confirm/<token>')
+@app.route('/confirm/<token>')
 @login_required
 def confirm(token):
     if current_user.confirmed:
@@ -234,7 +241,7 @@ def confirm(token):
     return redirect(url_for('index'))
 
 
-@application.route('/confirm/')
+@app.route('/confirm/')
 @login_required
 def resend_confirmation():
     token = current_user.generate_confirmation_token()
@@ -243,7 +250,7 @@ def resend_confirmation():
     return redirect(url_for('index'))
 
 
-@application.route('/password/', methods=['GET', 'POST'])
+@app.route('/password/', methods=['GET', 'POST'])
 @login_required
 def change_password():
     form = ChangePasswordForm()
@@ -260,7 +267,7 @@ def change_password():
     return render_template("auth/change_password.html", form=form)
 
 
-@application.route('/reset/', methods=['GET', 'POST'])
+@app.route('/reset/', methods=['GET', 'POST'])
 def reset_password_request():
     if not current_user.is_anonymous:
         return redirect(url_for('index'))
@@ -279,7 +286,7 @@ def reset_password_request():
     return render_template('auth/reset_password_request.html', form=form)
 
 
-@application.route('/reset/<token>', methods=['GET', 'POST'])
+@app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if not current_user.is_anonymous:
         return redirect(url_for('index'))

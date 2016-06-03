@@ -19,17 +19,15 @@ setup(name='geopd',
           'sqlalchemy-utils',
           'python-dateutil',
           'ipaddress',
-          'openpyxl',
           'cssmin',
           'jsmin',
           'psycopg2',
-          'biopython',
       ],
       include_package_data=True,
       zip_safe=False,
       entry_points={
         'console_scripts': [
-            'geopd_web=geopd.app:run',
+            'geopd_web=geopd.server:run',
         ],
     },
 )

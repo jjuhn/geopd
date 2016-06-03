@@ -1,7 +1,13 @@
 import os
+
 from flask import render_template
-from flask.ext.mail import Message
-from geopd.app import mail, config
+from flask_mail import Mail
+from flask_mail import Message
+
+from geopd import app
+from geopd.config import config
+
+mail = Mail(app)
 
 
 def send_email(to, subject, template_name, **context):

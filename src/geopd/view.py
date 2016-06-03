@@ -1,17 +1,36 @@
 from flask import Blueprint
-from flask import render_template, abort, redirect, flash, escape, make_response
-from flask.ext.login import login_required, current_user
+from flask import render_template
+from flask import abort
+from flask import redirect
+from flask import flash
+from flask import escape
+from flask import make_response
+from flask import send_from_directory
+from flask_login import login_required, current_user
 
-from geopd.app import application, config
-from geopd.orm.db import *
-from geopd.forms import ContactForm, AvatarForm
-from geopd.mail import send_email
+from geopd import app
+from geopd.config import config
+from geopd.orm.model import *
+from geopd.form import ContactForm, AvatarForm
+from geopd.email import send_email
 
 from sqlalchemy.orm import joinedload
-from werkzeug.utils import secure_filename
 
 web_blueprint = Blueprint('web', __name__)
 ajax_blueprint = Blueprint('ajax', __name__)  # todo:: to be replaced with api blueprint
+
+
+########################################################################################################################
+# Main Page
+########################################################################################################################
+@app.route('/')
+def index():
+
+    if not current_user.is_anonymous:
+        return redirect(url_for('web.show_member', id=current_user.id))
+
+    return render_template('welcome.html', cores=Core.query.all(),
+                           meetings=Meeting.query.filter(Meeting.carousel).order_by(Meeting.year.desc()).all())
 
 
 ########################################################################################################################
@@ -107,7 +126,7 @@ def get_member_avatar(id):
 
     avatar = UserAvatar.query.get(id)
     if not avatar.data:
-        return application.send_static_file('images/avatar.png')
+        return app.send_static_file('images/avatar.png')
 
     response = make_response(avatar.data)
     response.headers['Content-Type'] = avatar.mimetype
@@ -209,7 +228,16 @@ def show_contact():
 
 
 ########################################################################################################################
+# Favicon
+########################################################################################################################
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+
+########################################################################################################################
 # register web blueprint
 ########################################################################################################################
-application.register_blueprint(web_blueprint)
-application.register_blueprint(ajax_blueprint)
+app.register_blueprint(web_blueprint)
+app.register_blueprint(ajax_blueprint)

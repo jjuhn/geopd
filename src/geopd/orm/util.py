@@ -1,5 +1,5 @@
 from geopd import config
-from geopd.orm.db import *
+from geopd.orm.model import *
 
 import csv
 import dateutil.parser

@@ -105,11 +105,12 @@ def init_db():
     db.add(Meeting('Tokyo', 2015, program=True, carousel=True))
     db.add(Meeting('Luxembourg', 2016, program=True))
 
-    db.add(Core('Bioinformatics'))
-    db.add(Core('Biology'))
-    db.add(Core('Clinical'))
-    db.add(Core('Communications'))
-    db.add(Core('Epidemiology & Statistics'))
+    cores_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'cores.tsv'))
+    for row in csv.DictReader(cores_stream, delimiter='\t'):
+        core = Core(row['name'], key=row['key'])
+        for name in row['leaders'].split(','):
+            core.leaders.append(users[name])
+        db.add(core)
 
     db.commit()
 

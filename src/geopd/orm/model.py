@@ -191,7 +191,7 @@ class User(UserMixin, Base):
         self.last_seen = datetime.utcnow()
 
     def __repr__(self):
-        return "<User({0})>".format(self.email)
+        return "<User({0})>".format(self.name)
 
     def __str__(self):
         return self.name
@@ -413,9 +413,9 @@ class Core(Base):
 
     leaders = relationship('User', secondary=core_leader_table)
 
-    def __init__(self, name):
+    def __init__(self, name, key):
         self.name = name
-        self.key = name2key(name)
+        self.key = key
 
     @property
     def image_url(self):

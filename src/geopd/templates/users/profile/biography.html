@@ -1,0 +1,16 @@
+<h3 class="page-header text-primary">Research Interests</h3>
+<p class="edit edit-biography" id="interest">
+    {%- if user.bio.research_interests -%}
+        {{ user.bio.research_interests }}
+    {%- elif current_user.id != user.id -%}
+        No research interests provided.
+    {%- endif -%}
+</p>
+<h3 class="page-header text-primary">Research Experience</h3>
+<p class="edit edit-biography" id="experience">
+    {%- if user.bio.research_experience -%}
+        {{ user.bio.research_experience }}
+    {%- elif current_user.id != user.id -%}
+        No research experience provided.
+    {%- endif -%}
+</p>

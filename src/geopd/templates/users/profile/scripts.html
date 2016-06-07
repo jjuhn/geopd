@@ -1,0 +1,142 @@
+{% if current_user.id == user.id %}
+    <script>
+
+        var autocomplete;
+        var componentMap = {
+            premise: 'institution',
+            locality: 'city',
+            administrative_area_level_3: 'city',
+            country: 'country',
+            administrative_area_level_1: 'region',
+            street_number: 'street',
+            route: 'route',
+            postal_code: 'postal',
+            postal_code_prefix: 'postal'
+        }
+
+        var address = {};
+
+        function initAutocomplete() {
+            // create the autocomplete object (restrict search to geographical location)
+            autocomplete = new google.maps.places.Autocomplete(document.getElementById('location'), {
+                types: ['geocode']
+            });
+            autocomplete.addListener('place_changed', fillInAddress);
+        }
+
+        function fillInAddress() {
+            // Get the place details from the autocomplete object.
+            var place = autocomplete.getPlace();
+            $('#lat').val(place.geometry.location.lat());
+            $('#lng').val(place.geometry.location.lng());
+            $.each(place.address_components, function (i, component) {
+                if (component.types[0] in componentMap) {
+                    address[componentMap[component.types[0]]] = component.long_name;
+                }
+            });
+
+            if (address.street && address.route) {
+                address.street += ' ' + address.route
+            }
+
+            if ('name' in place.html_attributions) {
+                address['institution'] = place.html_attributions.name
+            }
+
+            $.each(address, function (key, value) {
+                $('#' + key).val(value);
+            });
+            $('#address').collapse('show');
+        }
+
+        $(document).ready(function () {
+
+            var info_update_url = '{{ url_for('ajax.update_user_info', id=current_user.id) }}';
+
+            $('#survey input[type=checkbox], #survey input[type=radio]').click(function (e) {
+                $.post(info_update_url, {
+                    'name': $(e.target).attr('name'),
+                    'value': $(e.target).attr('value'),
+                    'checked': (e.target.checked) ? 'yes' : 'no',
+                }).fail(function () {
+                    alert('Error encountered while updating your profile. Please try again later');
+                });
+            });
+
+            $('.edit-biography').editable(info_update_url, {
+                type: 'textarea',
+                rows: 10,
+            });
+
+            $('.explain').each(function (i, explain) {
+                var editable = $(explain).find('p.edit-explain').editable(info_update_url, {
+                    type: 'textarea',
+                    rows: 3,
+                });
+                $(explain).find('input[type=radio]').click(function (e) {
+                    if (e.target.value == 'no') {
+                        $(explain).find('.collapse').collapse('show');
+                    } else {
+                        $(explain).find('.collapse').collapse('hide');
+                    }
+                });
+            });
+
+            $('#consent-yes').click(function () {
+                $('#sharing').collapse('show');
+            });
+
+            $('#consent-no').click(function () {
+                $('#sharing').collapse('hide');
+            });
+
+            $("#avatar").fileinput({
+                uploadUrl: "{{ url_for('ajax.update_user_info', id=current_user.id) }}",
+                uploadAsync: true,
+                uploadExtraData: {
+                    name: 'avatar'
+                },
+                overwriteInitial: true,
+                maxFileSize: 1500,
+
+                showClose: false,
+                showCaption: false,
+                browseLabel: '',
+                removeLabel: '',
+                uploadLabel: 'Save',
+                browseIcon: '<i class="glyphicon glyphicon-pencil"></i>',
+                removeIcon: '<i class="glyphicon glyphicon-remove-circle"></i>',
+                removeTitle: 'Cancel or reset changes',
+                browseClass: 'btn btn-primary btn-sm',
+                removeClass: 'btn btn-default btn-sm',
+                uploadClass: 'btn btn-default btn-sm',
+
+                elErrorContainer: '#kv-avatar-errors',
+                msgErrorClass: 'alert alert-block alert-danger',
+                defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
+                        .attr('alt', "{{ user.name }}")
+                        .attr('title', "{{ user.name }}")
+                        .attr('src', "{{ url_for('web.get_user_avatar', id=current_user.id) }}")),
+                removeFromPreviewOnError: true,
+                allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
+                layoutTemplates: {
+                    footer: '',
+                    main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{remove}\n{upload}\n{browse}\n',
+                },
+            });
+
+
+        });
+    </script>
+    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initAutocomplete"
+            async defer></script>
+
+{% else %}
+
+    <script>
+        $(document).ready(function () {
+            $('#survey input[type=checkbox], #survey input[type=radio]').prop('disabled', true);
+        });
+    </script>
+
+{% endif %}

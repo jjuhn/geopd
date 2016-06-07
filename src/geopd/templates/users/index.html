@@ -103,7 +103,7 @@
                 profile: '{{ url_for('web.show_user', id=user.id) }}',
                 last_name: '{{ user.last_name }}',
                 given_names: '{{ user.given_names }}',
-                institution: '{{ user.address.institution|default('') }}',
+                institution: {% if user.address.institution %}'{{ user.address.institution }}'{% else %}undefined{% endif %},
                 city: {% if user.address.city %}'{{ user.address.city }}'{% else %}undefined{% endif %},
                 member_since: '{{ user.created_on.isoformat() }}Z',
                 last_seen: {% if user.last_seen %}'{{ user.last_seen.isoformat() }}Z'{% else %}undefined{% endif %},

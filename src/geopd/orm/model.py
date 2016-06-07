@@ -246,6 +246,8 @@ class UserAvatar(Base):
 class UserAddress(Base):
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
     institution = Column(Text)
+    department = Column(Text)
+    website = Column(Text)
     street = Column(Text)
     city = Column(Text)
     region = Column(Text)
@@ -258,14 +260,19 @@ class UserAddress(Base):
         self.user_id = user_id
 
     def load(self, form):
+        self.institution = form.get('institution', None)
+        self.department = form.get('department', None)
         self.street = form.get('street', None)
         self.city = form.get('city', None)
         self.region = form.get('region', None)
         self.postal = form.get('postal', None)
         self.country = form.get('country', None)
-        self.institution = form.get('institution', None)
         self.latitude = form.get('lat', None)
         self.longitude = form.get('lng', None)
+
+    @property
+    def institution_full(self):
+        return "{0}, {1}".format(self.department, self.institution) if self.department else self.institution
 
     def __repr__(self):
         return "<UserAddress({0})>".format(self.user_id)

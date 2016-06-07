@@ -28,7 +28,6 @@ def init_db():
         user.status_id = USER_STATUS_ACTIVE
         user.confirmed = True
         user.force_password_reset = True
-        user.address.institution = row['institution']
         db.add(user)
     db.flush()
 

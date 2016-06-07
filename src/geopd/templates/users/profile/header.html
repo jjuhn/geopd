@@ -18,11 +18,13 @@
     <div class="col-md-6 col-sm-12 col-xs-12">
         <br class="visible-sm visible-xs"/>
         <h2>{{ user.name }}</h2>
+        {% if user.address.institution %}
         <p class="text-muted">
             <span class="glyphicon glyphicon-map-marker"></span>
-            {{ user.address.institution }}<br/>
+            {{ user.address.institution_full }}<br/>
             <small><em>{{ user.address }}</em></small>
         </p>
+        {% endif %}
         <p>
             <i class="glyphicon glyphicon-envelope"></i>
             <a href="mailto:{{ user.email }}?Subject=[GEoPD]%20" target="_top">{{ user.email }}</a>

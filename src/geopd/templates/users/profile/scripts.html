@@ -5,7 +5,6 @@
         var componentMap = {
             premise: 'institution',
             locality: 'city',
-            administrative_area_level_3: 'city',
             country: 'country',
             administrative_area_level_1: 'region',
             street_number: 'street',
@@ -19,7 +18,7 @@
         function initAutocomplete() {
             // create the autocomplete object (restrict search to geographical location)
             autocomplete = new google.maps.places.Autocomplete(document.getElementById('location'), {
-                types: ['geocode']
+                types: ['establishment']
             });
             autocomplete.addListener('place_changed', fillInAddress);
         }
@@ -39,8 +38,12 @@
                 address.street += ' ' + address.route
             }
 
-            if ('name' in place.html_attributions) {
-                address['institution'] = place.html_attributions.name
+            if ('name' in place) {
+                address['institution'] = place.name
+            }
+
+            if ('website' in place) {
+                address['website'] = place.website
             }
 
             $.each(address, function (key, value) {

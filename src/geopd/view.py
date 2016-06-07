@@ -248,7 +248,7 @@ def update_user_info(id):
 
     elif name == 'avatar':
         current_user.avatar.data = request.files[name].stream.read()
-        current_user.avatar.avatar.mimetype = request.files[name].mimetype
+        current_user.avatar.mimetype = request.files[name].mimetype
 
     else:
         abort(400)

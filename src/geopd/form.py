@@ -6,7 +6,9 @@ from wtforms import SubmitField
 
 
 class AddressMixin(object):
-    location = StringField('Institution, address, city, etc.')
+    location = StringField('Institution')
+    department = StringField('Department')
+    website = StringField('Website')
     street = StringField('Street')
     city = StringField('City')
     region = StringField('Province/State')

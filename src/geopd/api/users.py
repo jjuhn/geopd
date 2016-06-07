@@ -1,7 +1,7 @@
 from flask_login import login_required
 from geopd.api import api_blueprint as api
 from geopd.jsonapi import get_resource, get_collection
-from geopd.orm.model import User, Institution
+from geopd.orm.model import User
 
 
 @api.route('/users/')
@@ -14,9 +14,3 @@ def get_users():
 @login_required
 def get_user(id):
     return get_resource(User.query.filter(User.id == id))
-
-
-@api.route('/users/<int:id>/institution')
-@login_required
-def get_user_institution(id):
-    return get_resource(Institution.query.join(User).filter(User.id == id))

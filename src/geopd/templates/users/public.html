@@ -1,51 +1,60 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-    <div id="map"></div>
-</div>
+    <div class="container-fluid">
+        <div id="map"></div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8-PS6246ge-nX02b-B9vst_3SF909Jis&callback=initMap"
-        async defer></script>
-<script>
+    {{ super() }}
+    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&callback=initMap"
+            async defer></script>
+    <script>
 
-    function create_info_window_html(user) {
-        var container = $('<div/>').append(
-                $('<div/>').addClass('info-window')
-                .append($('<h4/>').html(user.name))
-                .append($('<p/>').html(user.institution))
-                .append($('<em/>').html(user.city)));
-        return container.html();
-    }
+        function create_info_window_html(user) {
+            var container = $('<div/>').append(
+                    $('<div/>').addClass('info-window')
+                            .append($('<h4/>').html(user.name))
+                            .append($('<p/>').html(user.institution)));
 
-    var map = null;
-    function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 10.0, lng: 0.0},
-            zoom: 3,
-        });
+            if (user.address) {
+                container.find('div.info-window').append($('<p/>')
+                        .append($('<span/>').addClass('glyphicon glyphicon-map-marker'))
+                        .append(' ')
+                        .append(user.address));
+            }
 
-        {% for user in users %}
-            var marker{{ loop.index }} = new google.maps.Marker({
-               position: {lat: {{ user.institution.latitude }}, lng: {{ user.institution.longitude }}},
-               map: map,
-               title: '{{ user.name }}',
+            return container.html();
+        }
+
+        var map = null;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: 10.0, lng: 0.0},
+                zoom: 3,
             });
 
-            marker{{ loop.index }}.addListener('click', function() {
-               new google.maps.InfoWindow({
-                   content: create_info_window_html({
-                       profile: '{{ url_for("web.show_user", id=user.id) }}',
-                       name: '{{ user.name }}',
-                       institution: '{{ user.institution.name }}',
-                       city: '{{ user.institution.city }}',
-                   })
-               }).open(map, marker{{ loop.index }});
-            });
-        {% endfor %}
-    }
-</script>
+            {%- for user in users -%}
+                {%- if user.address.latitude is not none and user.address.longitude is not none -%}
+                    var marker{{ loop.index }} = new google.maps.Marker({
+                        position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
+                        map: map,
+                        title: '{{ user.name }}',
+                    });
+
+                    marker{{ loop.index }}.addListener('click', function () {
+                        new google.maps.InfoWindow({
+                            content: create_info_window_html({
+                                profile: '{{ url_for("web.show_user", id=user.id) }}',
+                                name: '{{ user.name }}',
+                                institution: '{{ user.address.institution }}',
+                                address: '{{ user.address }}',
+                            })
+                        }).open(map, marker{{ loop.index }});
+                    });
+                {%- endif -%}
+            {%- endfor -%}
+        }
+    </script>
 {% endblock %}

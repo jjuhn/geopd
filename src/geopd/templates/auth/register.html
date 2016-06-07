@@ -31,21 +31,35 @@
                                            placeholder="{{ form.email.label.text }}"
                                            value="{{ request.form.email }}"
                                            id="{{ form.email.id }}" name="{{ form.email.name }}"
-                                           required="required" />
+                                           required="required"/>
                                 </div>
                                 <div class="help-block with-errors"></div>
                             </div>
+
                             <div class="form-group">
                                 <div class="input-group">
                                     <span class="input-group-addon">
                                         <span class="glyphicon glyphicon-user"></span>
                                     </span>
                                     <input class="form-control"
-                                           placeholder="{{ form.name.label.text }}"
-                                           value="{{ request.form.name }}"
-                                           id="{{ form.name.id }}" name="{{ form.name.name }}"
-                                           required="required"
-                                           style="text-transform: capitalize;" />
+                                           placeholder="{{ form.last_name.label.text }}"
+                                           value="{{ request.form.last_name }}"
+                                           id="{{ form.last_name.id }}" name="{{ form.last_name.name }}"
+                                           required="required"/>
+                                </div>
+                                <div class="help-block with-errors"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-user"></span>
+                                    </span>
+                                    <input class="form-control"
+                                           placeholder="{{ form.given_names.label.text }}"
+                                           value="{{ request.form.given_names }}"
+                                           id="{{ form.given_names.id }}" name="{{ form.given_names.name }}"
+                                           required="required"/>
                                 </div>
                                 <div class="help-block with-errors"></div>
                             </div>
@@ -85,7 +99,7 @@
 
                             <p class="text-muted">
                                 <span class="glyphicon glyphicon-question-sign"></span>
-                                Please enter the name of your institution.
+                                Please enter the name of your institution, address, or city.
                             </p>
 
                             <div class="form-group">
@@ -94,19 +108,72 @@
                                         <span class="glyphicon glyphicon-home"></span>
                                     </span>
                                     <input class="form-control" autocomplete="off"
-                                           id="{{ form.institution.id }}" ,
-                                           name="{{ form.institution.name }}" ,
-                                           placeholder="{{ form.institution.label.text }}"
+                                           id="{{ form.location.id }}" ,
+                                           name="{{ form.location.name }}" ,
+                                           placeholder="{{ form.location.label.text }}"
                                            required="required">
+                                    {{ form.institution }}
+                                    {{ form.lng }}
+                                    {{ form.lat }}
                                 </div>
                                 <div class="help-block with-errors"></div>
+                            </div>
+
+                            <div id="address" class="collapse">
+
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ form.street.label.text }}</span>
+                                                {{ form.street(class='form-control', readonly='readonly') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ form.city.label.text }}</span>
+                                                {{ form.city(class='form-control', readonly='readonly') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ form.region.label.text }}</span>
+                                                {{ form.region(class='form-control', readonly='readonly') }}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ form.postal.label.text }}</span>
+                                                {{ form.postal(class='form-control', readonly='readonly') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">{{ form.country.label.text }}</span>
+                                                {{ form.country(class='form-control', readonly='readonly') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <hr/>
 
                             <div class="form-group">
                                 <input type="checkbox" name="{{ form.accept.name }}"
-                                       id="{{ form.accept.id }}" required="required" />
+                                       id="{{ form.accept.id }}" required="required"/>
                                     <span>I agree with the
                                         <a data-toggle="collapse" href="#terms">Terms and Conditions</a>
                                     </span>
@@ -134,45 +201,62 @@
     {{ super() }}
     <script>
 
-        $(document).ready(function () {
+        var autocomplete;
+        var componentMap = {
+            premise: 'institution',
+            locality: 'city',
+            administrative_area_level_3: 'city',
+            country: 'country',
+            administrative_area_level_1: 'region',
+            street_number: 'street',
+            route: 'route',
+            postal_code: 'postal',
+            postal_code_prefix: 'postal'
+        }
 
-            var institutions = [];
-            {% for inst in institutions %}
-            institutions.push("{{ inst.name|safe }}");{% endfor %}
+        var address = {};
 
-            $('#institution').autocomplete({
-                source: function(request, response) {
-                    var results = $.ui.autocomplete.filter(institutions, request.term);
-                    response(results.slice(0, 10));
-                },
-                minLength: 1,
+        function initAutocomplete() {
+            // create the autocomplete object (restrict search to geographical location)
+            autocomplete = new google.maps.places.Autocomplete(document.getElementById('location'), {
+                types: ['geocode']
+            });
+            autocomplete.addListener('place_changed', fillInAddress);
+        }
 
+        function fillInAddress() {
+            // Get the place details from the autocomplete object.
+            var place = autocomplete.getPlace();
+            console.log(place.address_components);
+            $('#lat').val(place.geometry.location.lat());
+            $('#lng').val(place.geometry.location.lng());
+            $.each(place.address_components, function (i, component) {
+                if (component.types[0] in componentMap) {
+                    address[componentMap[component.types[0]]] = component.long_name;
+                }
             });
 
+            if (address.street && address.route) {
+                address.street += ' ' + address.route
+            }
+
+            if ('name' in place.html_attributions) {
+                address['institution'] =  place.html_attributions.name
+            }
+
+            $.each(address, function(key, value) {
+                console.log(key, value);
+                $('#' + key).val(value);
+            });
+            $('#address').collapse('show');
+        }
+
+        $(document).ready(function () {
             $('#accept').change(function () {
                 $('#terms').collapse('hide');
             });
-
-//            $('#registration-form').bootstrapValidator($.extend(true, bootstrapValidatorDefaults, {
-//                fields: {
-//                    email: email_field,
-//                    name: name_field,
-//                    password: password_field,
-//                    confirm: confirm_field,
-//                    institution: {
-//                        validators: {
-//                            notEmpty: {message: 'please provide an institution name'},
-//                        }
-//                    },
-//                    accept: {
-//                        validators: {
-//                            notEmpty: {message: 'to register you must agree with the terms and conditions'},
-//                        }
-//                    }
-//                }
-//            })).submit(function () {
-//                $('#terms').collapse('hide');
-//            });
         });
     </script>
+    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initAutocomplete"
+            async defer></script>
 {% endblock %}

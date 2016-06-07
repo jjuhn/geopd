@@ -1,5 +1,20 @@
 from flask_wtf import Form, RecaptchaField
-from wtforms import StringField, SubmitField, TextAreaField, FileField
+from wtforms import StringField
+from wtforms import TextAreaField
+from wtforms import HiddenField
+from wtforms import SubmitField
+
+
+class AddressMixin(object):
+    location = StringField('Institution, address, city, etc.')
+    street = StringField('Street')
+    city = StringField('City')
+    region = StringField('Province/State')
+    postal = StringField('Postal Code')
+    country = StringField('Country')
+    institution = HiddenField()
+    lat = HiddenField()
+    lng = HiddenField()
 
 
 class ContactForm(Form):
@@ -11,5 +26,14 @@ class ContactForm(Form):
     submit = SubmitField('Submit')
 
 
-class AvatarForm(Form):
-    avatar = FileField('Avatar')
+class CompleteSurveyForm(Form):
+    submit = SubmitField('Complete Survey')
+
+
+class ChangeAddressForm(Form, AddressMixin):
+    submit = SubmitField('Save')
+
+
+class PostForm(Form):
+    body = TextAreaField("What's on our mind?")
+    submit = SubmitField('Post')

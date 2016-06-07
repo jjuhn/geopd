@@ -68,6 +68,7 @@ assets.register('css',
                 output='css/global.min.css', filters='cssmin')
 
 ########################################################################################################################
-# jinja2 filters
+# jinja2 configuration
 ########################################################################################################################
+app.jinja_env.globals['geopd'] = config
 app.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')

@@ -16,3 +16,8 @@ def name2key(name):
 def to_underscore(camel_case):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', camel_case)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+def titlecase(s):
+    return re.sub(re.compile(r"[\w]+('[\w]+)?", flags=re.UNICODE),
+                  lambda mo: mo.group(0)[0].upper() + mo.group(0)[1:].lower(), s)

@@ -1,20 +1,91 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid">
-    {% for core in cores %}
-    <div class="row">
-        <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
-            <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
+    <div class="container-fluid">
+        <div class="row text-center">
+            <div class="col-md-offset-1 col-md-9">
+                <div class="btn-group">
+                    {% for c in cores %}
+                        <a type="button"
+                           href="{% if c.id == core.id %}#{% else %}{{ url_for('web.show_core', id=c.id) }}{% endif %}"
+                           class="btn {% if c.id == core.id %}btn-primary{% else %}btn-default{% endif %}">
+                            {{ c.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-        <div class="col-md-7">
-            <ul class="list-group">
-                <li class="list-group-item list-group-item-heading">{{ core.name }} Core</li>
-                {% include 'cores/' + core.key + '.html' %}
-            </ul>
+        <div class="row">
+            <div class="col-md-offset-1 col-md-9">
+                <h1 class="page-header text-primary">{{ core.name }} Core</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
+            </div>
+            <div class="col-md-7">
+                {% if current_user.is_authenticated %}
+                    <form action="" method="post">
+                        {{ form.csrf_token() }}
+                        <div class="form-group">
+                            {{ form.body(class="form-control", placeholder=form.body.label.text) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                {% else %}
+                    <ul class="list-group">
+                        {% include 'cores/' + core.key + '.html' %}
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-offset-1 col-md-9">
+                <hr/>
+                <p class="text-muted">Core Leaders:
+                    {% for user in core.leaders %}
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('web.show_user', id=user.id) }}">{{ user.name }}</a>
+                        {% else %}
+                            {{ user.name }}
+                        {% endif %}
+                        {%- if not loop.last -%},{%- endif -%}
+                    {% endfor %}
+                </p>
+            </div>
         </div>
     </div>
-    <br/>
-    {% endfor %}
-</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            tinymce.init({
+                selector: '#body',
+                height: 200,
+                theme: 'modern',
+                plugins: [
+                    'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+                    'searchreplace wordcount visualblocks visualchars code fullscreen',
+                    'insertdatetime media nonbreaking save table contextmenu directionality',
+                    'emoticons template paste textcolor colorpicker textpattern imagetools'
+                ],
+                toolbar1: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+                toolbar2: 'print preview media | forecolor backcolor emoticons',
+                image_advtab: true,
+                templates: [
+                    {title: 'Test template 1', content: 'Test 1'},
+                    {title: 'Test template 2', content: 'Test 2'}
+                ],
+                content_css: [
+                    '//fast.fonts.net/cssapi/e6dc9b99-64fe-4292-ad98-6974f93cd2a2.css',
+                    '//www.tinymce.com/css/codepen.min.css'
+                ]
+            });
+        });
+    </script>
 {% endblock %}

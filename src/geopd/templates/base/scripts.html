@@ -21,6 +21,12 @@
         src="//cdn.datatables.net/buttons/1.1.2/js/buttons.colVis.min.js"></script>
 <script type="text/javascript" charset="utf8"
         src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+<script type="text/javascript" src="//cdn.tinymce.com/4/tinymce.min.js"></script>
 {% assets "js" %}
-<script type="text/javascript" charset="utf8" src="{{ ASSET_URL }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ ASSET_URL }}"></script>
 {% endassets %}
+<script type="text/javascript">
+    var GOOGLE_API_KEY = '{{ geopd.get('google.api', 'key') }}';
+    var GOOGLE_MAP_URL = '{{ geopd.get('google.api', 'map_url') }}';
+    var GOOGLE_PLACE_URL = '{{ geopd.get('google.api', 'place_url') }}';
+</script>

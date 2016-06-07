@@ -22,47 +22,37 @@ def init_db():
     db.add(UserStatus(USER_STATUS_ACTIVE, 'Active'))
     db.add(UserStatus(USER_STATUS_DISABLED, 'Disabled'))
 
-    institutions = dict()
-    institutions_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'institutions.tsv'))
-    for row in csv.DictReader(institutions_stream, delimiter='\t'):
-        institution = Institution(row['name'], city=row['city'], latitude=row['latitude'], longitude=row['longitude'])
-        institutions[row['name']] = institution
-        db.add(institution)
-
-    users = dict()
     users_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'users.tsv'))
     for row in csv.DictReader(users_stream, delimiter='\t'):
-        user = User(row['email'], config.get('db.init', 'password'), row['name'])
-        user.institution = institutions[row['institution']]
+        user = User(row['email'], config.get('db.init', 'password'), row['last'], row['given'])
         user.status_id = USER_STATUS_ACTIVE
         user.confirmed = True
         user.force_password_reset = True
-        users[row['name']] = user
+        user.address.institution = row['institution']
         db.add(user)
-        db.flush()
-        user.info = UserInfo(user.id)
-        user.avatar = UserAvatar(user.id)
+    db.flush()
 
     clinical_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'clinical.tsv'))
     for row in csv.DictReader(clinical_stream, delimiter='\t'):
-        clinical = ClinicalInfo(row['name'])
+        clinical = ClinicalSurvey(row['name'])
         db.add(clinical)
 
     epidemiologic_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'epidemiologic.tsv'))
     for row in csv.DictReader(epidemiologic_stream, delimiter='\t'):
-        epidemiologic = EpidemiologicInfo(row['name'])
+        epidemiologic = EpidemiologicSurvey(row['name'])
         db.add(epidemiologic)
 
     biospecimen_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'biospecimen.tsv'))
     for row in csv.DictReader(biospecimen_stream, delimiter='\t'):
-        biospecimen = BiospecimenInfo(row['name'])
+        biospecimen = BiospecimenSurvey(row['name'])
         db.add(biospecimen)
 
     projects_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'projects.tsv'))
     for row in csv.DictReader(projects_stream, delimiter='\t'):
         project = Project(row['name'], row['description'])
-        for name in row['investigators'].split(','):
-            project.investigators.append(users[name])
+        if row['investigators']:
+            for name in row['investigators'].split(','):
+                project.investigators.append(User.query.filter(User.name == name).one())
         db.add(project)
 
     publications = dict()
@@ -108,8 +98,9 @@ def init_db():
     cores_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'cores.tsv'))
     for row in csv.DictReader(cores_stream, delimiter='\t'):
         core = Core(row['name'], key=row['key'])
-        for name in row['leaders'].split(','):
-            core.leaders.append(users[name])
+        if row['leaders']:
+            for name in row['leaders'].split(','):
+                core.leaders.append(User.query.filter(User.name == name).one())
         db.add(core)
 
     db.commit()

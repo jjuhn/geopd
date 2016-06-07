@@ -10,10 +10,12 @@ from urllib import quote_plus
 from geopd.orm import db
 from geopd.orm import Base
 from geopd.util import name2key
+from geopd.util import titlecase
 from flask import request
 from flask import current_app
 from flask import url_for
 from flask_login import UserMixin
+from flask_login import current_user
 from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from werkzeug.security import generate_password_hash
@@ -34,6 +36,7 @@ from sqlalchemy.types import String
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import false
+from sqlalchemy.ext.hybrid import hybrid_property
 
 ########################################################################################################################
 # Constants
@@ -57,18 +60,18 @@ GRAVATAR_DEFAULT_URL = 'http://www.can.ubc.ca/avatar.png'
 ########################################################################################################################
 
 
-clinical_user_info = Table('clinical_user_info', Base.metadata,
-                           Column('user_id', Integer, ForeignKey('user_info.user_id'), primary_key=True),
-                           Column('clinical_id', Integer, ForeignKey('clinical_info.id'), primary_key=True))
+user_survey_clinical_table = Table('user_survey_clinical', Base.metadata,
+                           Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                           Column('clinical_id', Integer, ForeignKey('clinical_survey.id'), primary_key=True))
 
-epidemiologic_user_info = Table('epidemiologic_user_info', Base.metadata,
-                                Column('user_id', Integer, ForeignKey('user_info.user_id'), primary_key=True),
-                                Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_info.id'),
+user_survey_epidemiologic_table = Table('user_survey_epidemiologic', Base.metadata,
+                                Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                                Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_survey.id'),
                                        primary_key=True))
 
-biospecimen_user_info = Table('biospecimen_user_info', Base.metadata,
-                              Column('user_id', Integer, ForeignKey('user_info.user_id'), primary_key=True),
-                              Column('biospecimen_id', Integer, ForeignKey('biospecimen_info.id'), primary_key=True))
+user_survey_biospecimen_table = Table('user_survey_biospecimen', Base.metadata,
+                              Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                              Column('biospecimen_id', Integer, ForeignKey('biospecimen_survey.id'), primary_key=True))
 
 project_investigator_table = Table('project_investigator', Base.metadata,
                                    Column('project_id', Integer, ForeignKey('project.id'), primary_key=True),
@@ -90,10 +93,11 @@ class User(UserMixin, Base):
 
     id = Column(Integer, primary_key=True)
     email = Column(Text, unique=True, nullable=False)
-    name = Column(Text, nullable=False)
+    last_name = Column(Text, nullable=False)
+    given_names = Column(Text, nullable=False)
     status_id = Column(Integer, ForeignKey('user_status.id'), nullable=False,
                        default=USER_STATUS_PENDING, server_default=str(USER_STATUS_PENDING))
-    institution_id = Column(Integer, ForeignKey('institution.id'), nullable=False)
+
     created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_seen = Column(DateTime)
     confirmed = Column(Boolean, nullable=False, default=False, server_default=false())
@@ -104,15 +108,31 @@ class User(UserMixin, Base):
     _avatar_hash = Column('avatar_hash', String(32), nullable=False)
 
     status = relationship('UserStatus', foreign_keys=[status_id])
-    institution = relationship('Institution', foreign_keys=[institution_id], back_populates='users')
-    info = relationship('UserInfo', primaryjoin="User.id == UserInfo.user_id", uselist=False)
+
+    bio = relationship('UserBio', primaryjoin="User.id == UserBio.user_id", uselist=False)
+    address = relationship('UserAddress', primaryjoin="User.id == UserAddress.user_id", uselist=False)
+    survey = relationship('UserSurvey', primaryjoin="User.id == UserSurvey.user_id", uselist=False)
     avatar = relationship('UserAvatar', primaryjoin="User.id == UserAvatar.user_id", uselist=False)
 
-    def __init__(self, email, password, name):
+    core_posts = relationship('CorePost', back_populates='author')
+
+    def __init__(self, email, password, last_name, given_names):
+
         self.email = email
         self.password = password
-        self.name = name.title()
+        self.last_name = titlecase(last_name)
+        self.given_names = titlecase(given_names)
         self._avatar_hash = hashlib.md5(email).hexdigest()
+
+        db.flush()
+        self.avatar = UserAvatar(self.id)
+        self.bio = UserBio(self.id)
+        self.address = UserAddress(self.id)
+        self.survey = UserSurvey(self.id)
+
+    @hybrid_property
+    def name(self):
+        return self.given_names + ' ' + self.last_name
 
     @property
     def password(self):
@@ -223,11 +243,55 @@ class UserAvatar(Base):
         self.user_id = user_id
 
 
-class UserInfo(Base):
+class UserAddress(Base):
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    institution = Column(Text)
+    street = Column(Text)
+    city = Column(Text)
+    region = Column(Text)
+    postal = Column(Text)
+    country = Column(Text)
+    latitude = Column(Float)
+    longitude = Column(Float)
 
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+    def load(self, form):
+        self.street = form.get('street', None)
+        self.city = form.get('city', None)
+        self.region = form.get('region', None)
+        self.postal = form.get('postal', None)
+        self.country = form.get('country', None)
+        self.institution = form.get('institution', None)
+        self.latitude = form.get('lat', None)
+        self.longitude = form.get('lng', None)
+
+    def __repr__(self):
+        return "<UserAddress({0})>".format(self.user_id)
+
+    def __str__(self):
+        if current_user.is_authenticated:
+            region = "{0} {1}".format(self.region, self.postal) if self.postal else self.region
+            return ', '.join([s for s in self.street, self.city, region, self.country if s])
+
+        return ', '.join([s for s in self.city, self.region, self.country if s])
+
+
+class UserBio(Base):
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
     research_interests = Column(Text)
     research_experience = Column(Text)
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+    def __repr__(self):
+        return "<UserBio({0})>".format(self.user_id)
+
+
+class UserSurvey(Base):
+    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
 
     ethical = Column(Boolean)
     ethical_explain = Column(Text)
@@ -235,16 +299,20 @@ class UserInfo(Base):
     consent_explain = Column(Text)
     consent_sharing = Column(Boolean)
     sample = Column(Boolean)
+    completed_on = Column(DateTime)
 
-    clinical = relationship('ClinicalInfo', secondary=clinical_user_info)
-    epidemiologic = relationship('EpidemiologicInfo', secondary=epidemiologic_user_info)
-    biospecimen = relationship('BiospecimenInfo', secondary=biospecimen_user_info)
+    clinical = relationship('ClinicalSurvey', secondary=user_survey_clinical_table)
+    epidemiologic = relationship('EpidemiologicSurvey', secondary=user_survey_epidemiologic_table)
+    biospecimen = relationship('BiospecimenSurvey', secondary=user_survey_biospecimen_table)
 
     def __init__(self, user_id):
         self.user_id = user_id
 
+    def __repr__(self):
+        return "<UserSurvey({0})>".format(self.user_id)
 
-class ClinicalInfo(Base):
+
+class ClinicalSurvey(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
 
@@ -252,13 +320,13 @@ class ClinicalInfo(Base):
         self.name = name
 
     def __repr__(self):
-        return '<ClinicalInfo({0})>'.format(self.name)
+        return '<ClinicalSurvey({0})>'.format(self.name)
 
     def __str__(self):
         return self.name
 
 
-class EpidemiologicInfo(Base):
+class EpidemiologicSurvey(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
 
@@ -266,13 +334,13 @@ class EpidemiologicInfo(Base):
         self.name = name
 
     def __repr__(self):
-        return '<EpidemiologicInfo({0})>'.format(self.name)
+        return '<EpidemiologicSurvey({0})>'.format(self.name)
 
     def __str__(self):
         return self.name
 
 
-class BiospecimenInfo(Base):
+class BiospecimenSurvey(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
 
@@ -280,34 +348,7 @@ class BiospecimenInfo(Base):
         self.name = name
 
     def __repr__(self):
-        return '<BiospecimenInfo({0})>'.format(self.name)
-
-    def __str__(self):
-        return self.name
-
-
-class Institution(Base):
-    __jsonapi_type__ = 'institutions'
-    __jsonapi_fields__ = ['name', 'url']
-
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, unique=True, nullable=False)
-    url = Column(Text)
-    city = Column(Text)
-    longitude = Column(Float)
-    latitude = Column(Float)
-
-    users = relationship('User', back_populates='institution')
-
-    def __init__(self, name, city=None, latitude=None, longitude=None, url=None):
-        self.name = name
-        self.city = city
-        self.latitude = latitude
-        self.longitude = longitude
-        self.url = url
-
-    def __repr__(self):
-        return "<Institution(name='{0}')>".format(self.name)
+        return '<BiospecimenSurvey({0})>'.format(self.name)
 
     def __str__(self):
         return self.name
@@ -412,6 +453,7 @@ class Core(Base):
     key = Column(Text, nullable=False, unique=True)
 
     leaders = relationship('User', secondary=core_leader_table)
+    posts = relationship('CorePost', back_populates='core')
 
     def __init__(self, name, key):
         self.name = name
@@ -426,3 +468,27 @@ class Core(Base):
 
     def __str__(self):
         return self.name
+
+
+class CorePost(Base):
+    __jsonapi_type__ = 'core-posts'
+    __jsonapi_fields__ = ['body', 'created_on']
+
+    id = Column(Integer, primary_key=True)
+    body = Column(Text, nullable=False)
+    created_on = Column(Text, nullable=False, default=datetime.utcnow)
+    author_id = Column(Integer, ForeignKey('user.id'))
+    core_id = Column(Integer, ForeignKey('core.id'))
+
+    author = relationship('User', foreign_keys=[author_id], back_populates='core_posts')
+    core = relationship('Core', foreign_keys=[core_id], back_populates='posts')
+
+    def __init__(self, body, author=current_user):
+        self.body = body
+        self.author = author
+
+    def __repr__(self):
+        return "<Core({0})>".format(self.id)
+
+    def __str__(self):
+        return "Core Post #{0}".format(self.id)

@@ -1,26 +1,26 @@
 from functools import wraps
+from random import randint
 
-from geopd import app
-from geopd.orm.model import *
-from geopd.email import send_email
+from flask import Markup
+from flask import flash
 from flask import redirect
 from flask import render_template
-from flask import flash
-from flask import request
-from flask import url_for
-from flask import Markup
 from flask_login import LoginManager
+from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
-from flask_login import current_user
-from flask_login import current_app
-from flask_login import login_required
 from flask_wtf import Form
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm.exc import NoResultFound
-from wtforms import StringField, BooleanField, PasswordField, SubmitField
+from wtforms import StringField
+from wtforms import BooleanField
+from wtforms import PasswordField
+from wtforms import SubmitField
 from wtforms import ValidationError
-from random import randint
+
+from geopd import app
+from geopd.form import AddressMixin
+from geopd.email import send_email
+from geopd.orm.model import *
 
 ########################################################################################################################
 # login manager
@@ -77,18 +77,17 @@ def before_request():
             form = ChangePasswordForm()
             return render_template('auth/change_password.html', form=form)
 
-        elif request.blueprint == 'web':
-            if request.endpoint != 'web.show_user' or (
-                    'id' in request.view_args and request.view_args['id'] != current_user.id):
+        elif request.blueprint == 'web' and not current_user.survey.completed_on:
+            if request.endpoint != 'web.show_user' or request.view_args['id'] != current_user.id:
                 if 1 == randint(1, 5):
-                    if not current_user.info.research_interests or not current_user.info.research_experience:
+                    if not current_user.bio.research_interests or not current_user.bio.research_experience:
                         flash(Markup(
                             'Your biography is not up to date. '
                             '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
                                 url_for('web.show_user', id=current_user.id))), category='warning')
-                    elif not current_user.info.clinical or not current_user.info.epidemiologic \
-                            or not current_user.info.biospecimen or current_user.info.ethical == None \
-                            or current_user.info.consent == None:
+                    elif not current_user.survey.clinical or not current_user.survey.epidemiologic \
+                            or not current_user.survey.biospecimen or current_user.survey.ethical == None \
+                            or current_user.survey.consent == None:
                         flash(Markup(
                             'You have not completed the survey. Please complete the survey '
                             '<a href="{0}#survey" class="alert-link">here</a>.'.format(
@@ -107,13 +106,15 @@ class LoginForm(Form):
     login = SubmitField('Login')
 
 
-class RegistrationForm(Form):
-    email = StringField('Email address')
-    name = StringField('Full name')
+class RegistrationForm(Form, AddressMixin):
+    email = StringField('Email Address')
+    last_name = StringField('Last Name')
+    given_names = StringField('Given Name(s)')
     password = PasswordField('Password')
-    confirm = PasswordField('Confirm password')
-    institution = StringField('Institution name')
+    confirm = PasswordField('Confirm Password')
+
     accept = BooleanField('Accept Terms')
+
     register = SubmitField('Register')
 
     def validate_email(self, field):
@@ -160,7 +161,7 @@ def login():
                 flash('This account is has been disabled.', 'warning')
             elif user.check_password(form.password.data):
                 login_user(user, form.remember_me.data)
-                return redirect(request.args.get('next') or request.referrer or url_for('index'))
+                return redirect(request.args.get('next') or request.referrer or url_for('web.index'))
             else:
                 flash('Invalid username or password provided.', 'warning')
         else:
@@ -169,9 +170,9 @@ def login():
     for field_name, errors in form.errors.items():
         for error in errors:
             flash("{field}: {message}".format(field=field_name, message=error), 'warning')
-            return redirect(request.args.get('next') or url_for('index'))
+            return redirect(request.args.get('next') or url_for('web.index'))
 
-    return redirect(request.args.get('next') or request.referrer or url_for('index'))
+    return redirect(request.args.get('next') or request.referrer or url_for('web.index'))
 
 
 @app.route('/logout/')
@@ -179,48 +180,43 @@ def login():
 def logout():
     logout_user()
     flash('You have logged out successfully.', 'success')
-    return redirect(url_for('index'))
+    return redirect(url_for('web.index'))
 
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('web.index'))
 
     form = RegistrationForm()
 
     if form.validate_on_submit():
 
-        # initialize user record
-        user = User(email=form.email.data, name=form.name.data, password=form.password.data)
-
-        # assign institution
-        try:
-            user.institution = Institution.query.filter_by(name=form.institution.data).one()
-        except NoResultFound:
-            user.institution = Institution(form.institution.data)
+        user = User(email=form.email.data, password=form.password.data,
+                    last_name=form.last_name.data,
+                    given_names=form.given_names.data)
+        user.address.load(request.form)
         db.add(user)
 
-        # create account (and institution if necessary)
         try:
             db.flush()
+
         except SQLAlchemyError:
             db.rollback()
             flash('Error while processing request. Please try again later', 'warning')
+
         else:
-            user.info = UserInfo(user.id)  # create empty user info record
-            user.avatar = UserAvatar(user.id)  # create empty avatar record
             token = user.generate_confirmation_token()
             send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
             flash('A confirmation email has been sent to your email address', 'success')
             db.commit()
-            return redirect(url_for('index'))
+            return redirect(url_for('web.index'))
 
     # flash form errors if necessary
     if form.errors and 'email' in form.errors:
         flash(form.errors['email'][0], 'warning')
 
-    return render_template('auth/register.html', form=form, institutions=Institution.query.all())
+    return render_template('auth/register.html', form=form)
 
 
 @app.route('/confirm/<token>')
@@ -231,6 +227,7 @@ def confirm(token):
 
     else:
         if current_user.confirm(token):
+            db.commit()
             flash('You have confirmed your account. Thanks!', 'success')
         else:
             flash('The confirmation link is invalid or has expired.', 'warning')
@@ -238,7 +235,7 @@ def confirm(token):
         if not current_user.is_active():
             logout_user()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('web.index'))
 
 
 @app.route('/confirm/')
@@ -247,7 +244,7 @@ def resend_confirmation():
     token = current_user.generate_confirmation_token()
     send_email(current_user.email, 'Confirm Your Account', 'auth/email/confirm', user=current_user, token=token)
     flash('A new confirmation email has been sent to you by email.')
-    return redirect(url_for('index'))
+    return redirect(url_for('web.index'))
 
 
 @app.route('/password/', methods=['GET', 'POST'])
@@ -261,7 +258,7 @@ def change_password():
             db.add(current_user)
             db.commit()
             flash('Your password has been updated.', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('web.index'))
         else:
             flash('The old password you provided is invalid. Please try again.', 'warning')
     return render_template("auth/change_password.html", form=form)
@@ -270,7 +267,7 @@ def change_password():
 @app.route('/reset/', methods=['GET', 'POST'])
 def reset_password_request():
     if not current_user.is_anonymous:
-        return redirect(url_for('index'))
+        return redirect(url_for('web.index'))
 
     form = PasswordResetRequestForm()
     if form.validate_on_submit():
@@ -282,20 +279,20 @@ def reset_password_request():
                        user=user, token=token,
                        next=request.args.get('next'))
         flash('An email with instructions to reset your password has been sent to you.', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('web.index'))
     return render_template('auth/reset_password_request.html', form=form)
 
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if not current_user.is_anonymous:
-        return redirect(url_for('index'))
+        return redirect(url_for('web.index'))
 
     form = PasswordResetForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user.reset_password(token, form.password.data):
             flash('Your password has been updated.', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('web.index'))
 
     return render_template('auth/reset_password.html', form=form)

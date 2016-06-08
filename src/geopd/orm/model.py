@@ -487,17 +487,19 @@ class CorePost(Base):
     __jsonapi_fields__ = ['body', 'created_on']
 
     id = Column(Integer, primary_key=True)
+    title = Column(Text, nullable=False)
     body = Column(Text, nullable=False)
-    created_on = Column(Text, nullable=False, default=datetime.utcnow)
+    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
     author_id = Column(Integer, ForeignKey('user.id'))
     core_id = Column(Integer, ForeignKey('core.id'))
 
     author = relationship('User', foreign_keys=[author_id], back_populates='core_posts')
     core = relationship('Core', foreign_keys=[core_id], back_populates='posts')
 
-    def __init__(self, body, author=current_user):
+    def __init__(self, title, body):
+        self.title = title
         self.body = body
-        self.author = author
+        self.author = current_user
 
     def __repr__(self):
         return "<Core({0})>".format(self.id)

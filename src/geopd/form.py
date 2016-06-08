@@ -37,5 +37,6 @@ class ChangeAddressForm(Form, AddressMixin):
 
 
 class PostForm(Form):
-    body = TextAreaField("What's on our mind?")
+    title = StringField('Title')
+    body = TextAreaField('Content ...')
     submit = SubmitField('Post')

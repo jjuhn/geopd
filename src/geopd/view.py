@@ -8,6 +8,7 @@ from flask import render_template
 from flask import send_from_directory
 from flask_login import login_required
 from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import noload
 
 from geopd import app
 from geopd.config import config
@@ -85,20 +86,29 @@ def show_cores():
     return redirect(url_for('web.show_core', id=1))
 
 
-@web.route('/cores/<int:id>', methods=['GET', 'POST'])
+@web.route('/cores/<int:id>')
 def show_core(id):
-    form = PostForm()
-    core = Core.query.get(id)
-    if form.validate_on_submit():
-        if not current_user.is_authenticated:
-            abort(403)
-        post = CorePost(body=request.form.get('body', ''))
-        core.posts.append(post)
-        db.commit()
     return render_template('cores/index.html',
-                           form=form,
-                           core=core,
+                           form=PostForm(),
+                           core=Core.query.get(id),
                            cores=Core.query.all())
+
+
+@login_required
+@web.route('/cores/<int:id>/post', methods=['POST'])
+def create_core_post(id):
+
+    form = PostForm()
+    if form.validate_on_submit():
+
+        core = Core.query.options(noload('posts')).get(id)
+        core.posts.append(CorePost(request.form.get('title'), request.form.get('body')))
+        try:
+            db.commit()
+        except:
+            flash('Error creating the post. Please try again later.', 'danger')
+
+        return redirect(url_for('web.show_core', id=id))
 
 
 ########################################################################################################################

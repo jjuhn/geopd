@@ -115,8 +115,13 @@ class RegistrationForm(Form, AddressMixin):
     register = SubmitField('Register')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
+        if User.query.filter(User.email == field.data).first():
             raise ValidationError("The email address: '{0}' is already registered.".format(field.data))
+
+    def validate_last_name(self, field):
+        last_name, given_names = self.last_name.data, self.given_names.data
+        if User.query.filter(User.last_name == last_name).filter(User.given_names == given_names).first():
+            raise ValidationError("The name: '{0} {1}' is already in use.".format(given_names, last_name))
 
 
 class ChangePasswordForm(Form):
@@ -182,6 +187,7 @@ def logout():
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
+
     if current_user.is_authenticated:
         return redirect(url_for('web.index'))
 
@@ -198,7 +204,7 @@ def register():
         try:
             db.flush()
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             db.rollback()
             flash('Error while processing request. Please try again later', 'warning')
 
@@ -210,8 +216,8 @@ def register():
             return redirect(url_for('web.index'))
 
     # flash form errors if necessary
-    if form.errors and 'email' in form.errors:
-        flash(form.errors['email'][0], 'warning')
+    for error in form.errors.values():
+        flash(error[0], 'danger')
 
     return render_template('auth/register.html', form=form)
 

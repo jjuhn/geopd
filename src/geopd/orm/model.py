@@ -24,6 +24,7 @@ from werkzeug.security import check_password_hash
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ForeignKey
+from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.types import Boolean
 from sqlalchemy.types import DateTime
 from sqlalchemy.types import Date
@@ -90,6 +91,8 @@ core_leader_table = Table('core_leader', Base.metadata,
 class User(UserMixin, Base):
     __jsonapi_type__ = 'users'
     __jsonapi_fields__ = ['email', 'name', 'status', 'created_on', 'last_seen']
+
+    __table_args__ = UniqueConstraint('last_name', 'given_names'),
 
     id = Column(Integer, primary_key=True)
     email = Column(Text, unique=True, nullable=False)

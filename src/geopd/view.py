@@ -1,23 +1,22 @@
 from flask import Blueprint
-from flask import render_template
 from flask import abort
-from flask import redirect
-from flask import flash
 from flask import escape
+from flask import flash
 from flask import make_response
+from flask import redirect
+from flask import render_template
 from flask import send_from_directory
 from flask_login import login_required
+from sqlalchemy.orm import joinedload
 
 from geopd import app
 from geopd.config import config
-from geopd.orm.model import *
-from geopd.form import ContactForm
-from geopd.form import CompleteSurveyForm
-from geopd.form import ChangeAddressForm
-from geopd.form import PostForm
 from geopd.email import send_email
-
-from sqlalchemy.orm import joinedload
+from geopd.form import ChangeAddressForm
+from geopd.form import CompleteSurveyForm
+from geopd.form import ContactForm
+from geopd.form import PostForm
+from geopd.orm.model import *
 
 web = Blueprint('web', __name__)
 ajax = Blueprint('ajax', __name__)  # todo:: to be replaced with api blueprint
@@ -169,6 +168,7 @@ def update_user_survey(id):
             flash('Survey marked as complete.', category='success')
 
     return redirect(url_for('web.show_user', id=id))
+
 
 @web.route('/users/<int:id>/avatar')
 @login_required

@@ -77,21 +77,18 @@ def before_request():
             form = ChangePasswordForm()
             return render_template('auth/change_password.html', form=form)
 
-        elif request.blueprint == 'web' and not current_user.survey.completed_on:
-            if request.endpoint != 'web.show_user' or request.view_args['id'] != current_user.id:
-                if 1 == randint(1, 5):
-                    if not current_user.bio.research_interests or not current_user.bio.research_experience:
-                        flash(Markup(
-                            'Your biography is not up to date. '
-                            '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
-                                url_for('web.show_user', id=current_user.id))), category='warning')
-                    elif not current_user.survey.clinical or not current_user.survey.epidemiologic \
-                            or not current_user.survey.biospecimen or current_user.survey.ethical == None \
-                            or current_user.survey.consent == None:
-                        flash(Markup(
-                            'You have not completed the survey. Please complete the survey '
-                            '<a href="{0}#survey" class="alert-link">here</a>.'.format(
-                                url_for('web.show_user', id=current_user.id))), category='warning')
+        if request.endpoint == 'web.show_core':
+            if 1 == randint(1, 2):
+                if not current_user.bio.research_interests or not current_user.bio.research_experience:
+                    flash(Markup(
+                        'Your biography is not up to date. '
+                        '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
+                            url_for('web.show_user', id=current_user.id))), category='warning')
+                elif not current_user.survey.completed_on:
+                    flash(Markup(
+                        'You have not completed the survey. Please complete the survey '
+                        '<a href="{0}#survey" class="alert-link">here</a>.'.format(
+                            url_for('web.show_user', id=current_user.id))), category='warning')
 
 
 ########################################################################################################################

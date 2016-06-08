@@ -265,11 +265,11 @@ class UserAddress(Base):
     def load(self, form):
         self.institution = form.get('institution', None)
         self.department = form.get('department', None)
+        self.country = form.get('country', None)
         self.street = form.get('street', None)
         self.city = form.get('city', None)
-        self.region = form.get('region', None)
+        self.region = form.get('region', None) if self.country in ('Canada', 'United States') else None
         self.postal = form.get('postal', None)
-        self.country = form.get('country', None)
         self.latitude = form.get('lat', None)
         self.longitude = form.get('lng', None)
 
@@ -277,15 +277,17 @@ class UserAddress(Base):
     def institution_full(self):
         return "{0}, {1}".format(self.department, self.institution) if self.department else self.institution
 
-    def __repr__(self):
-        return "<UserAddress({0})>".format(self.user_id)
-
-    def __str__(self):
+    @property
+    def long(self):
         if current_user.is_authenticated:
             region = "{0} {1}".format(self.region, self.postal) if self.postal else self.region
             return ', '.join([s for s in self.street, self.city, region, self.country if s])
 
         return ', '.join([s for s in self.city, self.region, self.country if s])
+
+    def __repr__(self):
+        return "<UserAddress({0})>".format(self.user_id)
+
 
 
 class UserBio(Base):

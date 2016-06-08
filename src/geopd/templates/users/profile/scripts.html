@@ -127,13 +127,8 @@
                     main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{remove}\n{upload}\n{browse}\n',
                 },
             });
-
-
         });
     </script>
-    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initAutocomplete"
-            async defer></script>
-
 {% else %}
 
     <script>

@@ -34,9 +34,18 @@
                     </div>
 
                     {% if user.id == current_user.id %}
-                    <div id="address-pane" class="tab-pane fade">
-                        {% include 'users/profile/address.html' with context %}
-                    </div>
+                        <div id="address-pane" class="tab-pane fade">
+                            <form action="{{ url_for('web.update_user_address', id=current_user.id) }}"
+                                  method="post" data-toggle="validator">
+                                {{ address_form.csrf_token }}
+                                {% with form=address_form %}
+                                    {% include 'util/address.html' with context %}
+                                {% endwith %}
+                                <div class="form-group">
+                                    {{ address_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
                     {% endif %}
 
                     <div id="survey-pane" class="tab-pane fade">
@@ -52,5 +61,6 @@
 
 {% block scripts %}
     {{ super() }}
+    <script type="javascript">{% block js_address %}{% endblock %}</script>
     {% include 'users/profile/scripts.html' with context %}
 {% endblock %}

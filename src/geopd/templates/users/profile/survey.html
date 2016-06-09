@@ -1,10 +1,7 @@
 <div class="row">
     <div class="col-md-12">
         <p class="help-block">
-            In order to best serve your interests and those of the general usership, please
-            spend a minute completing the following questionnaire. Briefly, we seek to learn
-            what clinical tools you use, what epidemiologic exposures you measure, and what
-            types of biospecimens you currently have.
+            Please complete the following survey.
         </p>
     </div>
 </div>
@@ -148,10 +145,10 @@
 
 {% if user.id == current_user.id and not user.survey.completed_on %}
     <h4 class="page-header text-primary">Complete Survey</h4>
-    <p>
+    <div class="form-group">
     <form action="{{ url_for('web.update_user_survey', id=current_user.id) }}" method="post">
         {{ survey_form.csrf_token }}
         {{ survey_form.submit(class="btn btn-primary") }}
     </form>
-    </p>
+    </div>
 {% endif %}

@@ -198,3 +198,7 @@ input[readonly] {
     color: #999999 !important;
     background-color: #ffffff !important;
 }
+
+.md-editor textarea, .md-preview {
+    padding: 6px 12px;
+}

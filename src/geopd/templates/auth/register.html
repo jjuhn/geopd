@@ -138,4 +138,6 @@
             });
         });
     </script>
+    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initAutocomplete"
+        async defer></script>
 {% endblock %}

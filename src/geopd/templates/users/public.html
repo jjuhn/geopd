@@ -8,8 +8,6 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&callback=initMap"
-            async defer></script>
     <script>
 
         function create_info_window_html(user) {
@@ -57,4 +55,6 @@
             {%- endfor -%}
         }
     </script>
+    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initMap"
+        async defer></script>
 {% endblock %}

@@ -39,4 +39,4 @@ class ChangeAddressForm(Form, AddressMixin):
 class PostForm(Form):
     title = StringField('Title')
     body = TextAreaField('Content ...')
-    submit = SubmitField('Post')
+    submit = SubmitField('Publish')

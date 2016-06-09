@@ -23,6 +23,7 @@ setup(name='geopd',
           'jsmin',
           'psycopg2',
           'biopython',
+          'markdown'
       ],
       include_package_data=True,
       zip_safe=False,

@@ -26,7 +26,7 @@
             </div>
             <div class="col-md-8">
                 {% if current_user.is_authenticated %}
-                    {% include 'cores/post.html' %}
+                    {% include 'cores/posts/list.html' %}
                 {% else %}
                     <ul class="list-group">
                         {% include 'cores/' + core.key + '.html' %}
@@ -57,6 +57,10 @@
     <script>
         $(document).ready(function () {
 
+            $('#post-new').click(function () {
+                $('#post-new').hide();
+                $('#post-form').collapse('show');
+            });
         });
     </script>
 {% endblock %}

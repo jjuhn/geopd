@@ -55,6 +55,9 @@ assets.register('js',
                 'js/validator.js',
                 'js/fileinput.js',
                 'js/jquery.jeditable.js',
+                'js/markdown.js',
+                'js/to-markdown.js',
+                'js/bootstrap-markdown.js',
                 'js/geopd.js',
                 output='js/global.js')  # jsmin?
 
@@ -64,6 +67,7 @@ assets.register('css',
                 'css/fileinput.css',
                 'css/event-list.css',
                 'css/funkyradio.css',
+                'css/bootstrap-markdown.css',
                 'css/geopd.css',
                 output='css/global.min.css', filters='cssmin')
 

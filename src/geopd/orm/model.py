@@ -3,41 +3,41 @@ Operational database interface.
 """
 import hashlib
 import os.path
-import pkg_resources
 from datetime import datetime
 from urllib import quote_plus
 
-from geopd.orm import db
-from geopd.orm import Base
-from geopd.util import name2key
-from geopd.util import titlecase
-from flask import request
+import pkg_resources
 from flask import current_app
+from flask import request
 from flask import url_for
 from flask_login import UserMixin
 from flask_login import current_user
 from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from werkzeug.security import generate_password_hash
-from werkzeug.security import check_password_hash
-
-from sqlalchemy.schema import Table
+from markdown import markdown
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ForeignKey
+from sqlalchemy.schema import Table
 from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.types import Boolean
-from sqlalchemy.types import DateTime
-from sqlalchemy.types import Date
-from sqlalchemy.types import LargeBinary
-from sqlalchemy.types import Integer
-from sqlalchemy.types import BigInteger
-from sqlalchemy.types import Float
-from sqlalchemy.types import Text
-from sqlalchemy.types import String
-
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import false
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.types import BigInteger
+from sqlalchemy.types import Boolean
+from sqlalchemy.types import Date
+from sqlalchemy.types import DateTime
+from sqlalchemy.types import Float
+from sqlalchemy.types import Integer
+from sqlalchemy.types import LargeBinary
+from sqlalchemy.types import String
+from sqlalchemy.types import Text
+from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
+
+from geopd.orm import Base
+from geopd.orm import db
+from geopd.util import name2key
+from geopd.util import titlecase
 
 ########################################################################################################################
 # Constants
@@ -289,7 +289,6 @@ class UserAddress(Base):
         return "<UserAddress({0})>".format(self.user_id)
 
 
-
 class UserBio(Base):
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
     research_interests = Column(Text)
@@ -483,13 +482,14 @@ class Core(Base):
 
 
 class CorePost(Base):
-    __jsonapi_type__ = 'core-posts'
+    __jsonapi_type__ = 'posts'
     __jsonapi_fields__ = ['body', 'created_on']
 
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
     body = Column(Text, nullable=False)
     created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = Column(DateTime)
     author_id = Column(Integer, ForeignKey('user.id'))
     core_id = Column(Integer, ForeignKey('core.id'))
 
@@ -500,6 +500,10 @@ class CorePost(Base):
         self.title = title
         self.body = body
         self.author = current_user
+
+    @property
+    def html(self):
+        return markdown(self.body)
 
     def __repr__(self):
         return "<Core({0})>".format(self.id)

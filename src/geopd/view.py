@@ -7,6 +7,8 @@ from flask import redirect
 from flask import render_template
 from flask import send_from_directory
 from flask_login import login_required
+
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
 
@@ -19,8 +21,8 @@ from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.orm.model import *
 
+
 web = Blueprint('web', __name__)
-ajax = Blueprint('ajax', __name__)  # todo:: to be replaced with api blueprint
 
 
 ########################################################################################################################
@@ -105,10 +107,26 @@ def create_core_post(id):
         core.posts.append(CorePost(request.form.get('title'), request.form.get('body')))
         try:
             db.commit()
-        except:
+        except SQLAlchemyError:
             flash('Error creating the post. Please try again later.', 'danger')
 
         return redirect(url_for('web.show_core', id=id))
+
+
+@login_required
+@web.route('/posts/<int:id>')
+def show_post(id):
+    return render_template('/cores/posts/post.html', post=CorePost.query.get(id))
+
+
+@login_required
+@web.route('/posts/<int:id>', methods=['POST'])
+def update_post(id):
+    post = CorePost.query.get(id)
+    post.body = request.form.get('body')
+    post.updated_on = datetime.utcnow()
+    db.commit()
+    return '', 204
 
 
 ########################################################################################################################
@@ -192,7 +210,7 @@ def get_user_avatar(id):
     return response
 
 
-@ajax.route('/users/<int:id>/info/', methods=['POST'])
+@web.route('/users/<int:id>/info/', methods=['POST'])
 @login_required
 def update_user_info(id):
     if id != current_user.id:
@@ -294,7 +312,6 @@ def favicon():
 
 
 ########################################################################################################################
-# register blueprints
+# register blueprint
 ########################################################################################################################
 app.register_blueprint(web)
-app.register_blueprint(ajax)

@@ -51,16 +51,3 @@
         </div>
     </div>
 {% endblock %}
-
-{% block scripts %}
-    {{ super() }}
-    <script>
-        $(document).ready(function () {
-
-            $('#post-new').click(function () {
-                $('#post-new').hide();
-                $('#post-form').collapse('show');
-            });
-        });
-    </script>
-{% endblock %}

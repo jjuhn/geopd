@@ -1,53 +1,66 @@
-<p class="text-right">
-    <button id="post-new" class="btn btn-default btn-sm">New Post</button>
-</p>
+<ul class="nav nav-tabs">
+    <li role="presentation">
+        <a id="list-tab" href="#list-pane" data-toggle="tab">Posts</a>
+    </li>
+    <li role="presentation" class="active">
+        <a id="post-tab" href="#post-pane" data-toggle="tab">Create new post</a>
+    </li>
+</ul>
 
-<form id="post-form" class="collapse"
-      action="{{ url_for('web.create_core_post', id=core.id) }}"
-      method="post" data-toggle="validator">
-    {{ form.csrf_token() }}
-    <div class="form-group">
-        <input class="form-control" type="text"
-               placeholder="{{ form.title.label.text }}"
-               value="{{ request.form.title }}"
-               id="{{ form.title.id }}" name="{{ form.title.name }}"
-               required="required"/>
-        <div class="help-block with-errors"></div>
+
+<div class="tab-content">
+    <div class="tab-pane fade" id="list-pane">
+        <ul class="media-list">
+            {% for post in core.posts %}
+                <li class="media">
+                    <div class="media-left">
+                        <a href="{{ url_for('web.show_user', id=post.author.id) }}">
+                            <img class="media-object thumbnail"
+                                 width="100px" height="100px"
+                                 src="{{ url_for('web.get_user_avatar', id=post.author.id) }}"
+                                 alt="{{ post.author.name }}">
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <h4 class="media-heading"><a
+                                href="{{ url_for('web.show_post', id=post.id) }}">{{ post.title }}</a>
+                        </h4>
+                        <p class="text-muted">
+                            <em>Created
+                                <time class="moment">{{ post.created_on.isoformat() }}Z</time>
+                                by
+                                <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
+                            </em>
+                        </p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
     </div>
-    <div class="form-group">
+    <div class="tab-pane fade in active" id="post-pane">
+        <form role="form" action="{{ url_for('web.create_core_post', id=core.id) }}"
+              method="post" data-toggle="validator">
+            {{ form.csrf_token() }}
+            <div class="form-group">
+                <input class="form-control" type="text"
+                       placeholder="{{ form.title.label.text }}"
+                       value="{{ request.form.title }}"
+                       id="{{ form.title.id }}" name="{{ form.title.name }}"
+                       required="required"/>
+                <div class="help-block with-errors"></div>
+            </div>
+            <div class="form-group">
         <textarea class="form-control"
                   placeholder="{{ form.body.label.text }}"
                   id="{{ form.body.id }}" name="{{ form.body.name }}"
                   rows="10"
                   required="required"
                   data-provide="markdown">{{ request.form.body }}</textarea>
-        <div class="help-block with-errors"></div>
-    </div>
-    <div class="form-group text-right">
-        {{ form.submit(class="btn btn-primary btn-sm") }}
-    </div>
-</form>
-
-<ul class="media-list">
-    {% for post in core.posts %}
-        <li class="media">
-            <div class="media-left">
-                <a href="{{ url_for('web.show_user', id=post.author.id) }}">
-                    <img class="media-object thumbnail"
-                         width="100px" height="100px"
-                         src="{{ url_for('web.get_user_avatar', id=post.author.id) }}"
-                         alt="{{ post.author.name }}">
-                </a>
+                <div class="help-block with-errors"></div>
             </div>
-            <div class="media-body">
-                <h4 class="media-heading"><a href="{{ url_for('web.show_post', id=post.id) }}">{{ post.title }}</a></h4>
-                <p class="text-muted">
-                    <em>Created
-                        <time class="moment">{{ post.created_on.isoformat() }}Z</time>
-                        by <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
-                    </em>
-                </p>
+            <div class="form-group text-right">
+                {{ form.submit(class="btn btn-primary btn-sm") }}
             </div>
-        </li>
-    {% endfor %}
-</ul>
+        </form>
+    </div>
+</div>

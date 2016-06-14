@@ -89,7 +89,7 @@
                             name: '{{ user.name }}',
                             email: '{{ user.email }}',
                             institution: '{{ user.address.institution }}',
-                            address: '{{ user.address }}',
+                            address: '{{ user.address.long }}',
                         })
                     }).open(map, marker{{ loop.index }});
                 });

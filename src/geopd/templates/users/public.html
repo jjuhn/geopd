@@ -47,7 +47,7 @@
                                 profile: '{{ url_for("web.show_user", id=user.id) }}',
                                 name: '{{ user.name }}',
                                 institution: '{{ user.address.institution }}',
-                                address: '{{ user.address }}',
+                                address: '{{ user.address.long }}',
                             })
                         }).open(map, marker{{ loop.index }});
                     });

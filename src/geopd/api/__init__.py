@@ -6,5 +6,6 @@ api_blueprint = Blueprint('api', __name__)
 
 import users
 import cores
+import posts
 
 app.register_blueprint(api_blueprint, url_prefix='/api')

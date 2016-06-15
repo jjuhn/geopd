@@ -16,14 +16,26 @@
                 <p>
                     <em>Created
                         <time class="moment">{{ post.created_on.isoformat() }}Z</time>
-                        by <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
+                        by
+                        {% if post.author.id == current_user.id %}
+                            you
+                        {% else %}
+                            <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
+                        {% endif %}
                     </em>
                     {% if post.updated_on %}
-                    <span class="label label-primary pull-right">Edited
+                        <span class="label label-primary pull-right">Edited
                         <time class="moment">{{ post.updated_on.isoformat() }}Z</time>
                     </span>
                     {% endif %}
                 </p>
+
+                {% if post.author.id == current_user.id %}
+                    <p class="text-muted">
+                        <span class="glyphicon glyphicon-question-sign"></span>
+                        Double click on the post to edit in place.
+                    </p>
+                {% endif %}
 
                 <div id="post-message"></div>
                 <div id="post">{{ post.html|safe }}</div>
@@ -49,7 +61,7 @@
                         onBlur: function (e) {
                             $.ajax('{{ url_for('web.update_post', id=post.id) }}', {
                                 method: 'post',
-                                data: { body: e.getContent() },
+                                data: {body: e.getContent()},
                                 success: function () {
                                     $('#post-message').html($('<div class="alert alert-success"></div>')
                                             .text('Changes saved successfully.').append(close));

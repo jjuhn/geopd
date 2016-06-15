@@ -25,6 +25,10 @@
     <script type="text/javascript" charset="utf8" src="{{ ASSET_URL }}"></script>
 {% endassets %}
 <script type="text/javascript">
+
+    var USERS_URL = '{{ url_for('web.show_users') }}';
+    var POSTS_URL = '/posts/';
+
     var GOOGLE_API_KEY = '{{ geopd.get('google.api', 'key') }}';
     var GOOGLE_MAP_URL = '{{ geopd.get('google.api', 'map_url') }}';
     var GOOGLE_PLACE_URL = '{{ geopd.get('google.api', 'place_url') }}';

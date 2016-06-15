@@ -51,3 +51,42 @@
         </div>
     </div>
 {% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+
+            var url = URI('/api/posts/');
+            url.addQuery('included', 'author');
+            // url.addQuery('fields[projects]', 'name');
+
+            $.getJSON(url.readable(), function (json) {
+                var table = $('#post-table').DataTable({
+                    data: jsonapi.parse_response(json),
+                    columns: [
+                        {
+                            data: function (post) {
+                                return geopd.dom.post(post);
+                            }
+                        },
+                        {
+                            data: function (post) {
+                                return geopd.dom.user(post.author);
+                            }
+                        },
+                        {
+                            data: 'created_on',
+                            render: geopd.dom.datetime,
+                        },
+                        {
+                            data: 'updated_on',
+                            render: geopd.dom.datetime,
+                        },
+                    ],
+                });
+            });
+
+        });
+    </script>
+{% endblock %}

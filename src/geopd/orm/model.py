@@ -90,7 +90,7 @@ core_leader_table = Table('core_leader', Base.metadata,
 
 class User(UserMixin, Base):
     __jsonapi_type__ = 'users'
-    __jsonapi_fields__ = ['email', 'name', 'status', 'created_on', 'last_seen']
+    __jsonapi_fields__ = ['email', 'last_name', 'given_names', 'created_on', 'last_seen']
 
     __table_args__ = UniqueConstraint('last_name', 'given_names'),
 
@@ -483,7 +483,7 @@ class Core(Base):
 
 class CorePost(Base):
     __jsonapi_type__ = 'posts'
-    __jsonapi_fields__ = ['body', 'created_on']
+    __jsonapi_fields__ = ['title', 'created_on', 'updated_on']
 
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)

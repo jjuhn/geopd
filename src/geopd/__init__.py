@@ -58,6 +58,7 @@ assets.register('js',
                 'js/markdown.js',
                 'js/to-markdown.js',
                 'js/bootstrap-markdown.js',
+                'js/jsonapi.js',
                 'js/geopd.js',
                 output='js/global.js')  # jsmin?
 

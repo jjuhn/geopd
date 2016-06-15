@@ -10,32 +10,16 @@
 
 <div class="tab-content">
     <div class="tab-pane fade" id="list-pane">
-        <ul class="media-list">
-            {% for post in core.posts %}
-                <li class="media">
-                    <div class="media-left">
-                        <a href="{{ url_for('web.show_user', id=post.author.id) }}">
-                            <img class="media-object thumbnail"
-                                 width="100px" height="100px"
-                                 src="{{ url_for('web.get_user_avatar', id=post.author.id) }}"
-                                 alt="{{ post.author.name }}">
-                        </a>
-                    </div>
-                    <div class="media-body">
-                        <h4 class="media-heading"><a
-                                href="{{ url_for('web.show_post', id=post.id) }}">{{ post.title }}</a>
-                        </h4>
-                        <p class="text-muted">
-                            <em>Created
-                                <time class="moment">{{ post.created_on.isoformat() }}Z</time>
-                                by
-                                <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
-                            </em>
-                        </p>
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
+        <table id="post-table" class="table" width="100%">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Created</th>
+                <th>Modified</th>
+            </tr>
+            </thead>
+        </table>
     </div>
     <div class="tab-pane fade in active" id="post-pane">
         <form role="form" action="{{ url_for('web.create_core_post', id=core.id) }}"

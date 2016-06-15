@@ -42,6 +42,20 @@ geopd.dom.create_label = function (content, title, type, pad) {
         .attr('data-toggle', 'tooltip');
 }
 
+
+geopd.dom.user = function (user, link, avatar) {
+    var name = user.last_name + ', ' + user.given_names
+    if (link) {
+        return geopd.dom.link(USERS_URL + user.id, name);
+    } else {
+        return name
+    }
+}
+
+geopd.dom.post = function (post) {
+    return geopd.dom.link(POSTS_URL + post.id, post.title);
+}
+
 geopd.dom.label = function (content, title, type) {
     return geopd.dom.html(geopd.dom.create_label(content, title, type));
 }

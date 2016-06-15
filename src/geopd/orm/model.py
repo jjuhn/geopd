@@ -274,7 +274,7 @@ class UserAddress(Base):
 
     @property
     def institution_full(self):
-        return "{0}, {1}".format(self.department, self.institution) if self.department else self.institution
+        return u"{0}, {1}".format(self.department, self.institution) if self.department else self.institution
 
     @property
     def long(self):

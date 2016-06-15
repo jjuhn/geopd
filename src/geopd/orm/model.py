@@ -14,7 +14,6 @@ from flask_login import UserMixin
 from flask_login import current_user
 from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from markdown import markdown
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column
@@ -500,10 +499,6 @@ class CorePost(Base):
         self.title = title
         self.body = body
         self.author = current_user
-
-    @property
-    def html(self):
-        return markdown(self.body)
 
     def __repr__(self):
         return "<Core({0})>".format(self.id)

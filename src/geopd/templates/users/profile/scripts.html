@@ -64,9 +64,28 @@
                 });
             });
 
-            $('.edit-biography').editable(info_update_url, {
-                type: 'textarea',
-                rows: 10,
+            var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
+
+            $('.edit-biography').dblclick(function () {
+                $(this).find('p').markdown({
+                    hideable: true,
+                    height: 300,
+                    onBlur: function (e) {
+                        console.log();
+                        $.ajax(info_update_url, {
+                            method: 'post',
+                            data: {name: e.$element[0].id, value: e.getContent()},
+                            success: function () {
+                                $('#profile-message').html($('<div class="alert alert-success"></div>')
+                                        .text('Changes saved successfully.').append(close));
+                            },
+                            error: function () {
+                                $('#profile-message').html($('<div class="alert alert-danger"></div>')
+                                        .text('Error: failed to save changes.').append(close));
+                            }
+                        });
+                    },
+                });
             });
 
             $('.explain').each(function (i, explain) {

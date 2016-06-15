@@ -265,14 +265,12 @@ def update_user_info(id):
         current_user.survey.sample = False if request.form['value'] == 'no' else True
 
     elif name == 'interest':
-        value = escape(request.form['value'])
+        value = request.form['value']
         current_user.bio.research_interests = value
-        return value
 
     elif name == 'experience':
-        value = escape(request.form['value'])
+        value = request.form['value']
         current_user.bio.research_experience = value
-        return value
 
     elif name == 'avatar':
         current_user.avatar.data = request.files[name].stream.read()

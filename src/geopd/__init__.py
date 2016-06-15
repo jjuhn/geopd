@@ -4,6 +4,7 @@ from flask import Flask
 from flask_assets import Environment
 from flask_bootstrap import Bootstrap
 from flask_wtf import CsrfProtect
+from markdown import markdown
 
 from geopd.config import config
 
@@ -77,3 +78,5 @@ assets.register('css',
 ########################################################################################################################
 app.jinja_env.globals['geopd'] = config
 app.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')
+app.jinja_env.filters['md2html'] = lambda x: markdown(x)
+

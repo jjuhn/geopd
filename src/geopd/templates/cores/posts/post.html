@@ -38,7 +38,10 @@
                 {% endif %}
 
                 <div id="post-message"></div>
-                <div id="post">{{ post.html|safe }}</div>
+                <div id="post-edit">
+                    <div id="post">{{ post.body|md2html|safe }}</div>
+                </div>
+
 
             </div>
         </div>
@@ -54,7 +57,7 @@
 
                 var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
 
-                $('#post').dblclick(function () {
+                $('#post-edit').dblclick(function () {
                     $('#post').markdown({
                         hideable: true,
                         height: 400,

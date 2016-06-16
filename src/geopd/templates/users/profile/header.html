@@ -30,9 +30,9 @@
             <a href="mailto:{{ user.email }}?Subject=[GEoPD]%20" target="_top">{{ user.email }}</a>
         </p>
         <p class="text-muted">Member since
-            <time class="moment">{{ user.created_on|datetime }}</time>.
+            <time data-moment="{{ user.created_on|moment }}"></time>.
             {% if user.last_seen %}
-                Last Seen <time class="moment">{{ user.last_seen|datetime }}</time>.
+                Last Seen <time data-moment="{{ user.last_seen|moment }}"></time>.
             {% endif %}
         </p>
     </div>

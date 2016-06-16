@@ -30,6 +30,11 @@ from sqlalchemy.types import Integer
 from sqlalchemy.types import LargeBinary
 from sqlalchemy.types import String
 from sqlalchemy.types import Text
+from sqlalchemy.types import TypeDecorator
+from sqlalchemy_jsonapi import Permissions
+from sqlalchemy_jsonapi import permission_test
+from sqlalchemy_jsonapi import ALL_PERMISSIONS, INTERACTIVE_PERMISSIONS
+from sqlalchemy_jsonapi import attr_descriptor, AttributeActions
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
@@ -61,17 +66,18 @@ GRAVATAR_DEFAULT_URL = 'http://www.can.ubc.ca/avatar.png'
 
 
 user_survey_clinical_table = Table('user_survey_clinical', Base.metadata,
-                           Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                           Column('clinical_id', Integer, ForeignKey('clinical_survey.id'), primary_key=True))
+                                   Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                                   Column('clinical_id', Integer, ForeignKey('clinical_survey.id'), primary_key=True))
 
 user_survey_epidemiologic_table = Table('user_survey_epidemiologic', Base.metadata,
-                                Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                                Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_survey.id'),
-                                       primary_key=True))
+                                        Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                                        Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_survey.id'),
+                                               primary_key=True))
 
 user_survey_biospecimen_table = Table('user_survey_biospecimen', Base.metadata,
-                              Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                              Column('biospecimen_id', Integer, ForeignKey('biospecimen_survey.id'), primary_key=True))
+                                      Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
+                                      Column('biospecimen_id', Integer, ForeignKey('biospecimen_survey.id'),
+                                             primary_key=True))
 
 project_investigator_table = Table('project_investigator', Base.metadata,
                                    Column('project_id', Integer, ForeignKey('project.id'), primary_key=True),
@@ -88,9 +94,6 @@ core_leader_table = Table('core_leader', Base.metadata,
 
 
 class User(UserMixin, Base):
-    __jsonapi_type__ = 'users'
-    __jsonapi_fields__ = ['email', 'last_name', 'given_names', 'created_on', 'last_seen']
-
     __table_args__ = UniqueConstraint('last_name', 'given_names'),
 
     id = Column(Integer, primary_key=True)
@@ -116,7 +119,7 @@ class User(UserMixin, Base):
     survey = relationship('UserSurvey', primaryjoin="User.id == UserSurvey.user_id", uselist=False)
     avatar = relationship('UserAvatar', primaryjoin="User.id == UserAvatar.user_id", uselist=False)
 
-    core_posts = relationship('CorePost', back_populates='author')
+    posts = relationship('Post', back_populates='author')
 
     def __init__(self, email, password, last_name, given_names):
 
@@ -136,6 +139,10 @@ class User(UserMixin, Base):
     def name(self):
         return self.given_names + ' ' + self.last_name
 
+    @hybrid_property
+    def formal_name(self):
+        return self.last_name + ', ' + self.given_names
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -151,6 +158,10 @@ class User(UserMixin, Base):
     @last_ip.setter
     def last_ip(self, ip_addr):
         self._last_ip = int(ip_address(unicode(ip_addr)))
+
+    @permission_test(ALL_PERMISSIONS, '_password', '_last_ip', '_avatar_hash')
+    def jsonapi_no_access(self):
+        return False
 
     def is_active(self):
         return self.status_id == USER_STATUS_ACTIVE
@@ -220,8 +231,6 @@ class User(UserMixin, Base):
 
 
 class UserStatus(Base):
-    __jsonapi_fields__ = ['name']
-
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True, nullable=False)
 
@@ -387,9 +396,6 @@ class Project(Base):
 
 
 class Publication(Base):
-    __jsonapi_type__ = 'publications'
-    __jsonapi_fields__ = ['title', 'source', 'issue', 'volume', 'pages', 'authors', 'published_on', 'epublished_on']
-
     id = Column(Integer, primary_key=True, autoincrement=False)  # PubMed
     title = Column(Text, nullable=False)
     source = Column(Text, nullable=False)
@@ -420,9 +426,6 @@ class Publication(Base):
 
 
 class Meeting(Base):
-    __jsonapi_type__ = 'meetings'
-    __jsonapi_fields__ = ['city', 'year']
-
     id = Column(Integer, primary_key=True)
     city = Column(Text(convert_unicode=True), nullable=False)
     year = Column(Integer, nullable=False, unique=True)
@@ -455,15 +458,12 @@ class Meeting(Base):
 
 
 class Core(Base):
-    __jsonapi_type__ = 'cores'
-    __jsonapi_fields__ = ['name', 'key']
-
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False, unique=True)
     key = Column(Text, nullable=False, unique=True)
 
     leaders = relationship('User', secondary=core_leader_table)
-    posts = relationship('CorePost', back_populates='core')
+    posts = relationship('Post', back_populates='core')
 
     def __init__(self, name, key):
         self.name = name
@@ -480,10 +480,7 @@ class Core(Base):
         return self.name
 
 
-class CorePost(Base):
-    __jsonapi_type__ = 'posts'
-    __jsonapi_fields__ = ['title', 'created_on', 'updated_on']
-
+class Post(Base):
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
     body = Column(Text, nullable=False)
@@ -492,7 +489,7 @@ class CorePost(Base):
     author_id = Column(Integer, ForeignKey('user.id'))
     core_id = Column(Integer, ForeignKey('core.id'))
 
-    author = relationship('User', foreign_keys=[author_id], back_populates='core_posts')
+    author = relationship('User', foreign_keys=[author_id], back_populates='posts')
     core = relationship('Core', foreign_keys=[core_id], back_populates='posts')
 
     def __init__(self, title, body):

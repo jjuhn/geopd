@@ -104,7 +104,7 @@ def create_core_post(id):
     if form.validate_on_submit():
 
         core = Core.query.options(noload('posts')).get(id)
-        core.posts.append(CorePost(request.form.get('title'), request.form.get('body')))
+        core.posts.append(Post(request.form.get('title'), request.form.get('body')))
         try:
             db.commit()
         except SQLAlchemyError:
@@ -116,13 +116,13 @@ def create_core_post(id):
 @login_required
 @web.route('/posts/<int:id>')
 def show_post(id):
-    return render_template('/cores/posts/post.html', post=CorePost.query.get(id))
+    return render_template('/cores/posts/post.html', post=Post.query.get(id))
 
 
 @login_required
 @web.route('/posts/<int:id>', methods=['POST'])
 def update_post(id):
-    post = CorePost.query.get(id)
+    post = Post.query.get(id)
     post.body = request.form.get('body')
     post.updated_on = datetime.utcnow()
     db.commit()

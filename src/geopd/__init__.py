@@ -1,10 +1,12 @@
 import os
 
 from flask import Flask
+from flask.json import JSONEncoder
 from flask_assets import Environment
 from flask_bootstrap import Bootstrap
 from flask_wtf import CsrfProtect
 from markdown import markdown
+from datetime import datetime
 
 from geopd.config import config
 
@@ -44,6 +46,27 @@ import geopd.api
 bootstrap = Bootstrap(app)
 csrf = CsrfProtect(app)
 
+
+########################################################################################################################
+# json encoder
+########################################################################################################################
+class CustomJSONEncoder(JSONEncoder):
+
+    def default(self, obj):
+        try:
+            if isinstance(obj, datetime):
+                # convert all dates to the ISO format (assume UTC without timezone)
+                return obj.isoformat() + 'Z'
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
+app.json_encoder = CustomJSONEncoder
+
+
 ########################################################################################################################
 # web assets
 ########################################################################################################################
@@ -77,6 +100,6 @@ assets.register('css',
 # jinja2 configuration
 ########################################################################################################################
 app.jinja_env.globals['geopd'] = config
-app.jinja_env.filters['datetime'] = lambda x: x.strftime('%a, %d %b %Y %X GMT')
+app.jinja_env.filters['moment'] = lambda x: x.isoformat() + 'Z'
 app.jinja_env.filters['md2html'] = lambda x: markdown(x)
 

@@ -44,8 +44,6 @@
 
 {% block scripts %}
     {{ super() }}
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8-PS6246ge-nX02b-B9vst_3SF909Jis&callback=initMap"
-            async defer></script>
     <script>
 
         function create_info_window_html(user) {
@@ -96,7 +94,7 @@
                 {%- endif -%}
             {%- endfor -%}
         }
-
+        
         var users = [];
         {% for user in users %}
             users.push({

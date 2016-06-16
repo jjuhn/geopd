@@ -1,16 +1,20 @@
+from flask import request
+from flask import jsonify
 from flask_login import login_required
 from geopd.api import api_blueprint as api
-from geopd.jsonapi import get_resource, get_collection
-from geopd.orm.model import User
+from geopd.api import jsonapi
+from geopd.orm import db
 
 
 @api.route('/users/')
 @login_required
 def get_users():
-    return get_collection(User.query)
+    response = jsonapi.get_collection(db, request.args, 'users')
+    return jsonify(response.data)
 
 
-@api.route('/users/<int:id>')
+@api.route('/users/<int:user_id>')
 @login_required
-def get_user(id):
-    return get_resource(User.query.filter(User.id == id))
+def get_user(user_id):
+    response = jsonapi.get_resource(db, request.args, 'users', user_id)
+    return jsonify(response.data)

@@ -58,7 +58,7 @@
         $(document).ready(function () {
 
             var url = URI('/api/posts/');
-            url.addQuery('included', 'author');
+            url.addQuery('include', 'author');
             // url.addQuery('fields[projects]', 'name');
 
             $.getJSON(url.readable(), function (json) {
@@ -76,11 +76,11 @@
                             }
                         },
                         {
-                            data: 'created_on',
+                            data: 'created-on',
                             render: geopd.dom.datetime,
                         },
                         {
-                            data: 'updated_on',
+                            data: 'updated-on',
                             render: geopd.dom.datetime,
                         },
                     ],

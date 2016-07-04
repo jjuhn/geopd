@@ -59,7 +59,8 @@
 
             var url = URI('/api/posts/');
             url.addQuery('include', 'author');
-            // url.addQuery('fields[projects]', 'name');
+            url.addQuery('fields[posts]', 'title,created-on,updated-on,author');
+            url.addQuery('fields[users]', 'formal-name');
 
             $.getJSON(url.readable(), function (json) {
                 var table = $('#post-table').DataTable({

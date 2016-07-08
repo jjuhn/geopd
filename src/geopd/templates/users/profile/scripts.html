@@ -67,7 +67,7 @@
             var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
 
             $('.edit-biography').dblclick(function () {
-                $(this).find('p').markdown({
+                $(this).find('p.markdown').markdown({
                     hideable: true,
                     height: 300,
                     onBlur: function (e) {

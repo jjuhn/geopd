@@ -1,13 +1,13 @@
 <h3 class="page-header text-primary">Research Interests</h3>
 <div class="edit-biography">
-    <p id="interest">
+    <p id="interest" class="markdown">
         {{ user.bio.research_interests|md2html|safe if user.bio.research_interests else 'Double click to edit.' }}
     </p>
 </div>
 
 <h3 class="page-header text-primary">Research Experience</h3>
 <div class="edit-biography">
-    <p id="experience">
+    <p id="experience" class="markdown">
         {{ user.bio.research_experience|md2html|safe if user.bio.research_experience else 'Double click to edit.' }}
     </p>
 </div>

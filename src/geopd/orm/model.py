@@ -4,17 +4,17 @@ Operational database interface.
 import hashlib
 import os.path
 from datetime import datetime
-from urllib import quote_plus
 
 import pkg_resources
-from flask import current_app
 from flask import request
+from flask import current_app
 from flask import url_for
 from flask_login import UserMixin
 from flask_login import current_user
 from ipaddress import ip_address
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import backref
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import ForeignKey
@@ -30,11 +30,8 @@ from sqlalchemy.types import Integer
 from sqlalchemy.types import LargeBinary
 from sqlalchemy.types import String
 from sqlalchemy.types import Text
-from sqlalchemy.types import TypeDecorator
-from sqlalchemy_jsonapi import Permissions
+from sqlalchemy_jsonapi import ALL_PERMISSIONS
 from sqlalchemy_jsonapi import permission_test
-from sqlalchemy_jsonapi import ALL_PERMISSIONS, INTERACTIVE_PERMISSIONS
-from sqlalchemy_jsonapi import attr_descriptor, AttributeActions
 from werkzeug.security import check_password_hash
 from werkzeug.security import generate_password_hash
 
@@ -58,34 +55,33 @@ USER_STATUS_PENDING = 0
 USER_STATUS_ACTIVE = 1
 USER_STATUS_DISABLED = 2
 
-GRAVATAR_DEFAULT_URL = 'http://www.can.ubc.ca/avatar.png'
-
 ########################################################################################################################
 # Tables
 ########################################################################################################################
 
 
-user_survey_clinical_table = Table('user_survey_clinical', Base.metadata,
-                                   Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                                   Column('clinical_id', Integer, ForeignKey('clinical_survey.id'), primary_key=True))
+user_survey_clinical_table = Table('user_survey_clinicals', Base.metadata,
+                                   Column('user_id', Integer, ForeignKey('user_surveys.id'), primary_key=True),
+                                   Column('clinical_id', Integer, ForeignKey('clinical_surveys.id'), primary_key=True))
 
-user_survey_epidemiologic_table = Table('user_survey_epidemiologic', Base.metadata,
-                                        Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                                        Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_survey.id'),
+user_survey_epidemiologic_table = Table('user_survey_epidemiologics', Base.metadata,
+                                        Column('user_id', Integer, ForeignKey('user_surveys.id'),
+                                               primary_key=True),
+                                        Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_surveys.id'),
                                                primary_key=True))
 
-user_survey_biospecimen_table = Table('user_survey_biospecimen', Base.metadata,
-                                      Column('user_id', Integer, ForeignKey('user_survey.user_id'), primary_key=True),
-                                      Column('biospecimen_id', Integer, ForeignKey('biospecimen_survey.id'),
+user_survey_biospecimen_table = Table('user_survey_biospecimens', Base.metadata,
+                                      Column('user_id', Integer, ForeignKey('user_surveys.id'), primary_key=True),
+                                      Column('biospecimen_id', Integer, ForeignKey('biospecimen_surveys.id'),
                                              primary_key=True))
 
-project_investigator_table = Table('project_investigator', Base.metadata,
-                                   Column('project_id', Integer, ForeignKey('project.id'), primary_key=True),
-                                   Column('investigator_id', Integer, ForeignKey('user.id'), primary_key=True))
+project_investigator_table = Table('project_investigators', Base.metadata,
+                                   Column('project_id', Integer, ForeignKey('projects.id'), primary_key=True),
+                                   Column('investigator_id', Integer, ForeignKey('users.id'), primary_key=True))
 
-core_leader_table = Table('core_leader', Base.metadata,
-                          Column('core_id', Integer, ForeignKey('core.id'), primary_key=True),
-                          Column('leader_id', Integer, ForeignKey('user.id'), primary_key=True))
+core_leader_table = Table('core_leaders', Base.metadata,
+                          Column('core_id', Integer, ForeignKey('cores.id'), primary_key=True),
+                          Column('leader_id', Integer, ForeignKey('users.id'), primary_key=True))
 
 
 ########################################################################################################################
@@ -100,7 +96,7 @@ class User(UserMixin, Base):
     email = Column(Text, unique=True, nullable=False)
     last_name = Column(Text, nullable=False)
     given_names = Column(Text, nullable=False)
-    status_id = Column(Integer, ForeignKey('user_status.id'), nullable=False,
+    status_id = Column(Integer, ForeignKey('user_statuses.id'), nullable=False,
                        default=USER_STATUS_PENDING, server_default=str(USER_STATUS_PENDING))
 
     created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
@@ -110,16 +106,8 @@ class User(UserMixin, Base):
 
     _last_ip = Column('last_ip', BigInteger)
     _password = Column('password', String(PASSWORD_HASH_LENGTH), nullable=False)
-    _avatar_hash = Column('avatar_hash', String(32), nullable=False)
 
     status = relationship('UserStatus', foreign_keys=[status_id])
-
-    bio = relationship('UserBio', primaryjoin="User.id == UserBio.user_id", uselist=False)
-    address = relationship('UserAddress', primaryjoin="User.id == UserAddress.user_id", uselist=False)
-    survey = relationship('UserSurvey', primaryjoin="User.id == UserSurvey.user_id", uselist=False)
-    avatar = relationship('UserAvatar', primaryjoin="User.id == UserAvatar.user_id", uselist=False)
-
-    posts = relationship('Post', back_populates='author')
 
     def __init__(self, email, password, last_name, given_names):
 
@@ -159,7 +147,7 @@ class User(UserMixin, Base):
     def last_ip(self, ip_addr):
         self._last_ip = int(ip_address(unicode(ip_addr)))
 
-    @permission_test(ALL_PERMISSIONS, '_password', '_last_ip', '_avatar_hash')
+    @permission_test(ALL_PERMISSIONS, '_password', '_last_ip')
     def jsonapi_no_access(self):
         return False
 
@@ -191,15 +179,6 @@ class User(UserMixin, Base):
         self.password = new_password
         db.add(self)
         return True
-
-    def gravatar(self, size=50, default=quote_plus(GRAVATAR_DEFAULT_URL), rating='g'):
-
-        if request.is_secure:
-            url = 'https://secure.gravatar.com/avatar'
-        else:
-            url = 'http://www.gravatar.com/avatar'
-        return '{url}/{hash}.png?s={size}&d={default}&r={rating}'.format(url=url, hash=self._avatar_hash,
-                                                                         size=size, default=default, rating=rating)
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
@@ -246,16 +225,18 @@ class UserStatus(Base):
 
 
 class UserAvatar(Base):
-    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
     data = Column(LargeBinary)
     mimetype = Column(Text)
 
+    user = relationship('User', foreign_keys=[id], backref=backref('avatar', uselist=False))
+
     def __init__(self, user_id):
-        self.user_id = user_id
+        self.id = user_id
 
 
 class UserAddress(Base):
-    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
     institution = Column(Text)
     department = Column(Text)
     website = Column(Text)
@@ -267,8 +248,10 @@ class UserAddress(Base):
     latitude = Column(Float)
     longitude = Column(Float)
 
+    user = relationship('User', foreign_keys=[id], backref=backref('address', uselist=False))
+
     def __init__(self, user_id):
-        self.user_id = user_id
+        self.id = user_id
 
     def load(self, form):
         self.institution = form.get('institution', None)
@@ -298,9 +281,11 @@ class UserAddress(Base):
 
 
 class UserBio(Base):
-    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
     research_interests = Column(Text)
     research_experience = Column(Text)
+
+    user = relationship('User', foreign_keys=[id], backref=backref('bio', uselist=False))
 
     def __init__(self, user_id):
         self.user_id = user_id
@@ -310,7 +295,7 @@ class UserBio(Base):
 
 
 class UserSurvey(Base):
-    user_id = Column(Integer, ForeignKey('user.id'), primary_key=True, autoincrement=False)
+    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
 
     ethical = Column(Boolean)
     ethical_explain = Column(Text)
@@ -319,6 +304,8 @@ class UserSurvey(Base):
     consent_sharing = Column(Boolean)
     sample = Column(Boolean)
     completed_on = Column(DateTime)
+
+    user = relationship('User', foreign_keys=[id], backref=backref('survey', uselist=False))
 
     clinical = relationship('ClinicalSurvey', secondary=user_survey_clinical_table)
     epidemiologic = relationship('EpidemiologicSurvey', secondary=user_survey_epidemiologic_table)
@@ -374,9 +361,6 @@ class BiospecimenSurvey(Base):
 
 
 class Project(Base):
-    __jsonapi_type__ = 'projects'
-    __jsonapi_fields__ = ['name', 'description']
-
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True, nullable=False)
     description = Column(Text, unique=True, nullable=False)
@@ -463,7 +447,7 @@ class Core(Base):
     key = Column(Text, nullable=False, unique=True)
 
     leaders = relationship('User', secondary=core_leader_table)
-    posts = relationship('Post', back_populates='core')
+    posts = relationship('CorePost', back_populates='core')
 
     def __init__(self, name, key):
         self.name = name
@@ -480,16 +464,16 @@ class Core(Base):
         return self.name
 
 
-class Post(Base):
+class CorePost(Base):
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
     body = Column(Text, nullable=False)
     created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
     updated_on = Column(DateTime)
-    author_id = Column(Integer, ForeignKey('user.id'))
-    core_id = Column(Integer, ForeignKey('core.id'))
+    author_id = Column(Integer, ForeignKey('users.id'))
+    core_id = Column(Integer, ForeignKey('cores.id'))
 
-    author = relationship('User', foreign_keys=[author_id], back_populates='posts')
+    author = relationship('User', foreign_keys=[author_id], backref=backref('core_posts'))
     core = relationship('Core', foreign_keys=[core_id], back_populates='posts')
 
     def __init__(self, title, body):

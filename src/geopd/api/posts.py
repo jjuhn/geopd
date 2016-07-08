@@ -6,15 +6,15 @@ from geopd.api import jsonapi
 from geopd.orm import db
 
 
-@api.route('/posts/')
+@api.route('/core-posts/')
 @login_required
 def get_posts():
-    response = jsonapi.get_collection(db, request.args, 'posts')
+    response = jsonapi.get_collection(db, request.args, 'core-posts')
     return jsonify(response.data)
 
 
-@api.route('/posts/<int:post_id>')
+@api.route('/core-posts/<int:post_id>')
 @login_required
 def get_post(post_id):
-    response = jsonapi.get_resource(db, request.args, 'posts', post_id)
+    response = jsonapi.get_resource(db, request.args, 'core-posts', post_id)
     return jsonify(response.data)

@@ -57,9 +57,9 @@
     <script>
         $(document).ready(function () {
 
-            var url = URI('/api/posts/');
+            var url = URI('/api/core-posts/');
             url.addQuery('include', 'author');
-            url.addQuery('fields[posts]', 'title,created-on,updated-on,author');
+            url.addQuery('fields[core-posts]', 'title,created-on,updated-on,author');
             url.addQuery('fields[users]', 'formal-name');
             url.addQuery('filter[core.id.eq]', {{ core.id }});
 

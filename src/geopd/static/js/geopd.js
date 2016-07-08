@@ -53,7 +53,7 @@ geopd.dom.user = function (user, link, avatar) {
 }
 
 geopd.dom.post = function (post) {
-    return geopd.dom.link(POSTS_URL + post.id, post.title);
+    return geopd.dom.link(POSTS_URL + post.id, (post.title) ? post.title : 'Untitled');
 }
 
 geopd.dom.label = function (content, title, type) {

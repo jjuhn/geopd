@@ -2,9 +2,9 @@ import logging.handlers
 import os.path
 
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from inflection import tableize
 
 from geopd import app
-from geopd.util import to_underscore
 from geopd.config import config
 from geopd.orm.conn import create_scoped_session
 from geopd.orm.conn import db_conn_dict
@@ -20,7 +20,7 @@ def shutdown_session(exception=None):
 class Base(object):
     @declared_attr
     def __tablename__(cls):
-        return to_underscore(cls.__name__)
+        return tableize(cls.__name__)
 
 
 Base = declarative_base(cls=Base)

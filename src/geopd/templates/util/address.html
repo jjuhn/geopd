@@ -132,7 +132,6 @@
                 $('#' + key).val(value);
             });
 
-            console.log(address['country']);
             if ($.inArray(address['country'], ['Canada', 'United States']) == -1) {
                 $('#region').parents('.input-group').css('visibility', 'hidden');
             }

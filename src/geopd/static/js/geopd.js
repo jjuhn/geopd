@@ -100,8 +100,6 @@ $(document).ready(function () {
 
     $('time[data-moment]').each(function (i, time) {
         var data = moment($(time).attr('data-moment'));
-        console.log($(time).attr('data-moment'))
-        console.log(data)
         $(time).html(data.fromNow()).attr('title', data.format('MMMM D YYYY h:mm A')).addClass('tip-auto').tooltip();
     });
 

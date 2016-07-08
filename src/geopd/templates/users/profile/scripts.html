@@ -54,7 +54,7 @@
 
             var info_update_url = '{{ url_for('web.update_user_info', id=current_user.id) }}';
 
-            $('#survey input[type=checkbox], #survey input[type=radio]').click(function (e) {
+            $('#survey-pane input[type=checkbox], #survey-pane input[type=radio]').click(function (e) {
                 $.post(info_update_url, {
                     'name': $(e.target).attr('name'),
                     'value': $(e.target).attr('value'),
@@ -71,7 +71,6 @@
                     hideable: true,
                     height: 300,
                     onBlur: function (e) {
-                        console.log();
                         $.ajax(info_update_url, {
                             method: 'post',
                             data: {name: e.$element[0].id, value: e.getContent()},

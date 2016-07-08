@@ -61,6 +61,7 @@
             url.addQuery('include', 'author');
             url.addQuery('fields[posts]', 'title,created-on,updated-on,author');
             url.addQuery('fields[users]', 'formal-name');
+            url.addQuery('filter[core.id.eq]', {{ core.id }});
 
             $.getJSON(url.readable(), function (json) {
                 var table = $('#post-table').DataTable({

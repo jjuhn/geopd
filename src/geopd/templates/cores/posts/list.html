@@ -1,15 +1,15 @@
 <ul class="nav nav-tabs">
-    <li role="presentation">
+    <li role="presentation" class="active">
         <a id="list-tab" href="#list-pane" data-toggle="tab">Posts</a>
     </li>
-    <li role="presentation" class="active">
+    <li role="presentation">
         <a id="post-tab" href="#post-pane" data-toggle="tab">Create new post</a>
     </li>
 </ul>
 
 
 <div class="tab-content">
-    <div class="tab-pane fade" id="list-pane">
+    <div class="tab-pane fade in active" id="list-pane">
         <table id="post-table" class="table" width="100%">
             <thead>
             <tr>
@@ -21,7 +21,7 @@
             </thead>
         </table>
     </div>
-    <div class="tab-pane fade in active" id="post-pane">
+    <div class="tab-pane fade" id="post-pane">
         <form role="form" action="{{ url_for('web.create_core_post', id=core.id) }}"
               method="post" data-toggle="validator">
             {{ form.csrf_token() }}

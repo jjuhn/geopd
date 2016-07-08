@@ -1,0 +1,105 @@
+--- sqlalchemy_jsonapi/serializer.py	2016-04-22 21:26:48.000000000 -0700
++++ sqlalchemy_jsonapi/serializer.py	2016-07-06 12:17:40.000000000 -0700
+@@ -11,6 +11,8 @@
+ from sqlalchemy.exc import IntegrityError
+ from sqlalchemy.orm.interfaces import MANYTOONE
+ from sqlalchemy.util.langhelpers import iterate_attributes
++from sqlalchemy.sql import operators
++from sqlalchemy.orm import joinedload
+ from pprint import pprint
+ 
+ from .errors import (BadRequestError, InvalidTypeForEndpointError,
+@@ -303,6 +305,21 @@
+         check_permission(resource, relationship.key, permission)
+         return relationship
+ 
++    def _apply_filter(self, collection, model, attr_path, op, value):
++
++        col = None
++
++        for attr in attr_path.split('.'):
++            col = getattr(model, attr)
++            if hasattr(col.prop, 'mapper'):
++                model = col.prop.mapper.class_
++                collection = collection.join(model)
++
++        if col:
++            collection = collection.filter(getattr(operators, op)(col, value))
++
++        return collection
++
+     def _check_json_data(self, json_data):
+         """
+         Ensure that the request body is both a hash and has a data key.
+@@ -374,7 +391,7 @@
+             except PermissionDeniedError:
+                 continue
+ 
+-            if relationship.direction == MANYTOONE:
++            if relationship.direction == MANYTOONE or not relationship.uselist:
+                 if key in local_fields:
+                     to_ret['relationships'][api_key] = {
+                         'links': self._lazy_relationship(api_type, instance.id,
+@@ -466,7 +483,7 @@
+         field_args = {
+             k: v
+             for k, v in query.items() if k.startswith('fields[')
+-        }
++            }
+ 
+         fields = {}
+ 
+@@ -475,6 +492,24 @@
+ 
+         return fields
+ 
++    def _parse_filter(self, query):
++        """
++        Parse the querystring args for filters.
++
++        :param query: Dict of query args
++        """
++        filter_args = {
++            k: v
++            for k, v in query.items() if k.startswith('filter[')
++            }
++
++        filters = {}
++        for k, v in filter_args.items():
++            attr, op = k[7:-1].rsplit('.', 1)
++            filters[attr] = op, v
++
++        return filters
++
+     def _parse_include(self, include):
+         """
+         Parse the querystring args or parent includes for includes.
+@@ -614,12 +649,28 @@
+         model = self._fetch_model(api_key)
+         include = self._parse_include(query.get('include', '').split(','))
+         fields = self._parse_fields(query)
++        filter = self._parse_filter(query)
+         included = {}
+         sorts = query.get('sort', '').split(',')
+         order_by = []
+ 
+         collection = session.query(model)
+ 
++        for local in include.keys():
++            if local:
++                loader = joinedload(local)
++                for remote in include[local]:
++                    if '.' in remote:
++                        for r in remote.split('.'):
++                            loader.joinedload(r)
++                    else:
++                        loader.joinedload(remote)
++                collection = collection.options(loader)
++
++        if filter:
++            for attr_path, expr in filter.items():
++                collection = self._apply_filter(collection, model, attr_path, expr[0], expr[1])
++
+         for attr in sorts:
+             if attr == '':
+                 break

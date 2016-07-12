@@ -1,59 +1,14 @@
 """
 Operational database interface.
 """
-import hashlib
 import os.path
-from datetime import datetime
 
 import pkg_resources
-from flask import request
-from flask import current_app
 from flask import url_for
-from flask_login import UserMixin
-from flask_login import current_user
-from ipaddress import ip_address
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import backref
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column
-from sqlalchemy.schema import ForeignKey
-from sqlalchemy.schema import Table
-from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.sql.expression import false
-from sqlalchemy.types import BigInteger
-from sqlalchemy.types import Boolean
 from sqlalchemy.types import Date
-from sqlalchemy.types import DateTime
-from sqlalchemy.types import Float
-from sqlalchemy.types import Integer
-from sqlalchemy.types import LargeBinary
-from sqlalchemy.types import String
-from sqlalchemy.types import Text
-from sqlalchemy_jsonapi import ALL_PERMISSIONS
-from sqlalchemy_jsonapi import permission_test
-from werkzeug.security import check_password_hash
-from werkzeug.security import generate_password_hash
 
-from geopd.orm import Base
-from geopd.orm import db
+from can.web.orm.model import *
 from geopd.util import name2key
-from geopd.util import titlecase
-
-########################################################################################################################
-# Constants
-########################################################################################################################
-
-
-PASSWORD_HASH_LENGTH = 128
-
-GENDER_UNKNOWN = 0
-GENDER_FEMALE = 1
-GENDER_MALE = 2
-
-USER_STATUS_PENDING = 0
-USER_STATUS_ACTIVE = 1
-USER_STATUS_DISABLED = 2
 
 ########################################################################################################################
 # Tables
@@ -87,197 +42,6 @@ core_leader_table = Table('core_leaders', Base.metadata,
 ########################################################################################################################
 # Models
 ########################################################################################################################
-
-
-class User(UserMixin, Base):
-    __table_args__ = UniqueConstraint('last_name', 'given_names'),
-
-    id = Column(Integer, primary_key=True)
-    email = Column(Text, unique=True, nullable=False)
-    last_name = Column(Text, nullable=False)
-    given_names = Column(Text, nullable=False)
-    status_id = Column(Integer, ForeignKey('user_statuses.id'), nullable=False,
-                       default=USER_STATUS_PENDING, server_default=str(USER_STATUS_PENDING))
-
-    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_seen = Column(DateTime)
-    confirmed = Column(Boolean, nullable=False, default=False, server_default=false())
-    force_password_reset = Column(Boolean, nullable=False, default=False, server_default=false())
-
-    _last_ip = Column('last_ip', BigInteger)
-    _password = Column('password', String(PASSWORD_HASH_LENGTH), nullable=False)
-
-    status = relationship('UserStatus', foreign_keys=[status_id])
-
-    def __init__(self, email, password, last_name, given_names):
-
-        self.email = email
-        self.password = password
-        self.last_name = titlecase(last_name)
-        self.given_names = titlecase(given_names)
-        self._avatar_hash = hashlib.md5(email).hexdigest()
-
-        db.flush()
-        self.avatar = UserAvatar(self.id)
-        self.bio = UserBio(self.id)
-        self.address = UserAddress(self.id)
-        self.survey = UserSurvey(self.id)
-
-    @hybrid_property
-    def name(self):
-        return self.given_names + ' ' + self.last_name
-
-    @hybrid_property
-    def formal_name(self):
-        return self.last_name + ', ' + self.given_names
-
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute')
-
-    @password.setter
-    def password(self, password):
-        self._password = generate_password_hash(password)
-
-    @property
-    def last_ip(self):
-        return str(ip_address(self._last_ip))
-
-    @last_ip.setter
-    def last_ip(self, ip_addr):
-        self._last_ip = int(ip_address(unicode(ip_addr)))
-
-    @permission_test(ALL_PERMISSIONS, '_password', '_last_ip')
-    def jsonapi_no_access(self):
-        return False
-
-    def is_active(self):
-        return self.status_id == USER_STATUS_ACTIVE
-
-    def check_password(self, password):
-        """
-        Check password against stored hash.
-
-        :param str password: password (in clear text)
-        :rtype: bool
-        :return: True on success, otherwise False
-        """
-        return check_password_hash(self._password, password)
-
-    def generate_reset_token(self, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'reset': self.id})
-
-    def reset_password(self, token, new_password):
-        s = Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except:
-            return False
-        if data.get('reset') != self.id:
-            return False
-        self.password = new_password
-        db.add(self)
-        return True
-
-    def generate_confirmation_token(self, expiration=3600):
-        s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id})
-
-    def confirm(self, token):
-        s = Serializer(current_app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except:
-            return False
-        else:
-            if data.get('confirm') != self.id:
-                return False
-            self.confirmed = True
-            db.add(self)
-            return True
-
-    def ping(self):
-        from flask import request
-        self.last_ip = request.remote_addr
-        self.last_seen = datetime.utcnow()
-
-    def __repr__(self):
-        return "<User({0})>".format(self.name)
-
-    def __str__(self):
-        return self.name
-
-
-class UserStatus(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, unique=True, nullable=False)
-
-    def __init__(self, status_id, name):
-        self.id = status_id
-        self.name = name
-
-    def __repr__(self):
-        return "<UserStatus({0})>".format(self.name)
-
-    def __str__(self):
-        return self.name
-
-
-class UserAvatar(Base):
-    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
-    data = Column(LargeBinary)
-    mimetype = Column(Text)
-
-    user = relationship('User', foreign_keys=[id], backref=backref('avatar', uselist=False))
-
-    def __init__(self, user_id):
-        self.id = user_id
-
-
-class UserAddress(Base):
-    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
-    institution = Column(Text)
-    department = Column(Text)
-    website = Column(Text)
-    street = Column(Text)
-    city = Column(Text)
-    region = Column(Text)
-    postal = Column(Text)
-    country = Column(Text)
-    latitude = Column(Float)
-    longitude = Column(Float)
-
-    user = relationship('User', foreign_keys=[id], backref=backref('address', uselist=False))
-
-    def __init__(self, user_id):
-        self.id = user_id
-
-    def load(self, form):
-        self.institution = form.get('institution', None)
-        self.department = form.get('department', None)
-        self.country = form.get('country', None)
-        self.street = form.get('street', None)
-        self.city = form.get('city', None)
-        self.region = form.get('region', None) if self.country in ('Canada', 'United States') else None
-        self.postal = form.get('postal', None)
-        self.latitude = form.get('lat', None)
-        self.longitude = form.get('lng', None)
-
-    @property
-    def institution_full(self):
-        return u"{0}, {1}".format(self.department, self.institution) if self.department else self.institution
-
-    @property
-    def long(self):
-        if current_user.is_authenticated:
-            region = "{0} {1}".format(self.region, self.postal) if self.postal else self.region
-            return ', '.join([s for s in self.street, self.city, region, self.country if s])
-
-        return ', '.join([s for s in self.city, self.region, self.country if s])
-
-    def __repr__(self):
-        return "<UserAddress({0})>".format(self.user_id)
 
 
 class UserBio(Base):
@@ -367,7 +131,7 @@ class Project(Base):
 
     investigators = relationship('User', secondary=project_investigator_table)
 
-    def __init__(self, name, description, investigators=[]):
+    def __init__(self, name, description, investigators=list()):
         self.name = name
         self.description = description
         self.investigators = investigators

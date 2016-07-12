@@ -1,4 +1,4 @@
-from geopd import config
+from can.web import app
 from geopd.orm.model import *
 
 import csv
@@ -24,7 +24,7 @@ def init_db():
 
     users_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'users.tsv'))
     for row in csv.DictReader(users_stream, delimiter='\t'):
-        user = User(row['email'], config.get('db.init', 'password'), row['last'], row['given'])
+        user = User(row['email'], app.config['DEFAULT_PASSWORD'], row['last'], row['given'])
         user.status_id = USER_STATUS_ACTIVE
         user.confirmed = True
         user.force_password_reset = True

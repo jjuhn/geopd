@@ -146,7 +146,7 @@
 {% if user.id == current_user.id and not user.survey.completed_on %}
     <h4 class="page-header text-primary">Complete Survey</h4>
     <div class="form-group">
-    <form action="{{ url_for('web.update_user_survey', id=current_user.id) }}" method="post">
+    <form action="{{ url_for('web.update_user_survey', user_id=current_user.id) }}" method="post">
         {{ survey_form.csrf_token }}
         {{ survey_form.submit(class="btn btn-primary") }}
     </form>

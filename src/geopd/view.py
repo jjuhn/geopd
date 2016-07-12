@@ -1,4 +1,3 @@
-from flask import Blueprint
 from flask import abort
 from flask import escape
 from flask import flash
@@ -7,22 +6,18 @@ from flask import redirect
 from flask import render_template
 from flask import send_from_directory
 from flask_login import login_required
-
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
 
-from geopd import app
-from geopd.config import config
-from geopd.email import send_email
+from can.web import app
+from can.web import web_blueprint as web
+from can.web.email import send_email
 from geopd.form import ChangeAddressForm
 from geopd.form import CompleteSurveyForm
 from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.orm.model import *
-
-
-web = Blueprint('web', __name__)
 
 
 ########################################################################################################################
@@ -31,7 +26,7 @@ web = Blueprint('web', __name__)
 @web.route('/')
 def index():
     if not current_user.is_anonymous:
-        return redirect(url_for('web.show_user', id=current_user.id))
+        return redirect(url_for('web.show_user', user_id=current_user.id))
 
     return render_template('welcome.html', cores=Core.query.all(),
                            meetings=Meeting.query.filter(Meeting.carousel).order_by(Meeting.year.desc()).all())
@@ -139,9 +134,9 @@ def show_users():
     return render_template(tpl, users=users)
 
 
-@web.route('/users/<int:id>')
+@web.route('/users/<int:user_id>')
 @login_required
-def show_user(id):
+def show_user(user_id):
     return render_template('users/profile.html',
                            user=User.query.options(joinedload('avatar'),
                                                    joinedload('bio'),
@@ -149,7 +144,7 @@ def show_user(id):
                                                    joinedload('survey'),
                                                    joinedload('survey', 'clinical'),
                                                    joinedload('survey', 'epidemiologic'),
-                                                   joinedload('survey', 'biospecimen')).filter(User.id == id).one(),
+                                                   joinedload('survey', 'biospecimen')).filter(User.id == user_id).one(),
                            survey_form=CompleteSurveyForm(),
                            address_form=ChangeAddressForm(),
                            clinical=ClinicalSurvey.query.all(),
@@ -157,15 +152,15 @@ def show_user(id):
                            biospecimen=BiospecimenSurvey.query.all())
 
 
-@web.route('/users/<int:id>/address', methods=['POST'])
+@web.route('/users/<int:user_id>/address', methods=['POST'])
 @login_required
-def update_user_address(id):
-    if id != current_user.id:
+def update_user_address(user_id):
+    if user_id != current_user.id:
         abort(403)
 
     address_form = ChangeAddressForm()
     if address_form.validate_on_submit():
-        address = UserAddress.query.get(id)
+        address = UserAddress.query.get(user_id)
         address.load(request.form)
         try:
             db.commit()
@@ -174,18 +169,18 @@ def update_user_address(id):
         else:
             flash('New address saved.', category='success')
 
-        return redirect(url_for('web.show_user', id=id))
+        return redirect(url_for('web.show_user', user_id=user_id))
 
 
-@web.route('/users/<int:id>/survey', methods=['POST'])
+@web.route('/users/<int:user_id>/survey', methods=['POST'])
 @login_required
-def update_user_survey(id):
-    if id != current_user.id:
+def update_user_survey(user_id):
+    if user_id != current_user.id:
         abort(403)
 
     address_form = ChangeAddressForm()
     if address_form.validate_on_submit():
-        survey = UserSurvey.query.get(id)
+        survey = UserSurvey.query.get(user_id)
         survey.completed_on = datetime.utcnow()
 
         try:
@@ -195,13 +190,13 @@ def update_user_survey(id):
         else:
             flash('Survey marked as complete.', category='success')
 
-    return redirect(url_for('web.show_user', id=id))
+    return redirect(url_for('web.show_user', user_id=user_id))
 
 
-@web.route('/users/<int:id>/avatar')
+@web.route('/users/<int:user_id>/avatar')
 @login_required
-def get_user_avatar(id):
-    avatar = UserAvatar.query.get(id)
+def get_user_avatar(user_id):
+    avatar = UserAvatar.query.get(user_id)
     if not avatar.data:
         return app.send_static_file('images/avatar.png')
 
@@ -210,10 +205,10 @@ def get_user_avatar(id):
     return response
 
 
-@web.route('/users/<int:id>/info/', methods=['POST'])
+@web.route('/users/<int:user_id>/info/', methods=['POST'])
 @login_required
-def update_user_info(id):
-    if id != current_user.id:
+def update_user_info(user_id):
+    if user_id != current_user.id:
         abort(403)  # unauthorized
 
     name = request.form.get('name', None)
@@ -248,6 +243,7 @@ def update_user_info(id):
     elif name == 'ethical-explain':
         value = escape(request.form['value'])
         current_user.survey.ethical_explain = value
+        db.commit()
         return value
 
     elif name == 'consent':
@@ -256,6 +252,7 @@ def update_user_info(id):
     elif name == 'consent-explain':
         value = escape(request.form['value'])
         current_user.survey.consent_explain = value
+        db.commit()
         return value
 
     elif name == 'sharing':
@@ -294,7 +291,7 @@ def show_contact():
 
     form = ContactForm()
     if form.validate_on_submit():
-        send_email(config.get('mail', 'contact'), 'Contact Form', 'auth/email/contact', form=form.data)
+        send_email(app.config['APP_CONTACT'], 'Contact Form', 'auth/email/contact', form=form.data)
         flash('Your message has been submitted. Someone will contact you by email soon.', 'success')
         return redirect(url_for('web.index'))
     return render_template('contact.html', form=form)

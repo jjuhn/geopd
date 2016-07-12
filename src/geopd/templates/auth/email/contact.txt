@@ -1,5 +1,0 @@
-Name: {{ form.name }}
-Email: {{ form.email }}
-Subject: {{ form.subject }}
-
-{{ form.message }}

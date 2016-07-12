@@ -1,9 +1,10 @@
-from flask import request
 from flask import jsonify
+from flask import request
 from flask_login import login_required
-from geopd.api import api_blueprint as api
-from geopd.api import jsonapi
-from geopd.orm import db
+
+from can.web.api import api_blueprint as api
+from can.web.api import jsonapi
+from can.web.orm import db
 
 
 @api.route('/users/')

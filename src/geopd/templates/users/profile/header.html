@@ -11,7 +11,7 @@
                 <input id="avatar" name="avatar" type="file" class="file-loading center-block">
             </div>
         {% else %}
-            <img src="{{ url_for('web.get_user_avatar', id=user.id) }}" alt="{{ user.name }}"
+            <img src="{{ url_for('web.get_user_avatar', user_id=user.id) }}" alt="{{ user.name }}"
                  class="img-rounded img-responsive thumbnail center-block"/>
         {% endif %}
     </div>

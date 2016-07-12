@@ -9,3 +9,4 @@ parts
 .webassets-cache
 global.*
 users.tsv
+config.py

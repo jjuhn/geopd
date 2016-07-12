@@ -52,7 +52,7 @@
 
         $(document).ready(function () {
 
-            var info_update_url = '{{ url_for('web.update_user_info', id=current_user.id) }}';
+            var info_update_url = '{{ url_for('web.update_user_info', user_id=current_user.id) }}';
 
             $('#survey-pane input[type=checkbox], #survey-pane input[type=radio]').click(function (e) {
                 $.post(info_update_url, {
@@ -110,7 +110,7 @@
             });
 
             $("#avatar").fileinput({
-                uploadUrl: "{{ url_for('web.update_user_info', id=current_user.id) }}",
+                uploadUrl: "{{ url_for('web.update_user_info', user_id=current_user.id) }}",
                 uploadAsync: true,
                 uploadExtraData: {
                     name: 'avatar'
@@ -135,7 +135,7 @@
                 defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
                         .attr('alt', "{{ user.name }}")
                         .attr('title', "{{ user.name }}")
-                        .attr('src', "{{ url_for('web.get_user_avatar', id=current_user.id) }}")),
+                        .attr('src', "{{ url_for('web.get_user_avatar', user_id=current_user.id) }}")),
                 removeFromPreviewOnError: true,
                 allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
                 layoutTemplates: {
@@ -145,7 +145,7 @@
             });
         });
     </script>
-    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initAutocomplete"
+    <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initAutocomplete"
         async defer></script>
 {% else %}
 

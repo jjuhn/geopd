@@ -44,7 +44,7 @@
                     marker{{ loop.index }}.addListener('click', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
-                                profile: '{{ url_for("web.show_user", id=user.id) }}',
+                                profile: '{{ url_for("web.show_user", user_id=user.id) }}',
                                 name: '{{ user.name }}',
                                 institution: '{{ user.address.institution }}',
                                 address: '{{ user.address.long }}',
@@ -55,6 +55,6 @@
             {%- endfor -%}
         }
     </script>
-    <script src="{{ geopd.get('google.api', 'map_url') }}?key={{ geopd.get('google.api', 'key') }}&libraries=places&callback=initMap"
+    <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initMap"
         async defer></script>
 {% endblock %}

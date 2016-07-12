@@ -44,11 +44,11 @@
                                 Start by typing the institution name, then choose from the dropdown menu.
                             </p>
 
-                            <form action="{{ url_for('web.update_user_address', id=current_user.id) }}"
+                            <form action="{{ url_for('web.update_user_address', user_id=current_user.id) }}"
                                   method="post" data-toggle="validator">
                                 {{ address_form.csrf_token }}
                                 {% with form=address_form %}
-                                    {% include 'util/address.html' with context %}
+                                    {% include 'form/address.html' with context %}
                                 {% endwith %}
                                 <div class="form-group">
                                     {{ address_form.submit(class="btn btn-primary") }}

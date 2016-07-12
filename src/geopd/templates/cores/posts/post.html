@@ -20,7 +20,7 @@
                         {% if post.author.id == current_user.id %}
                             you
                         {% else %}
-                            <a href="{{ url_for('web.show_user', id=post.author.id) }}">{{ post.author.name }}</a>
+                            <a href="{{ url_for('web.show_user', user_id=post.author.id) }}">{{ post.author.name }}</a>
                         {% endif %}
                     </em>
                     {% if post.updated_on %}

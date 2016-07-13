@@ -7,13 +7,13 @@
 
                 <ol class="breadcrumb">
                     <li><a href="{{ url_for('web.show_cores') }}">Cores</a></li>
-                    <li><a href="{{ url_for('web.show_core', id=post.core.id) }}">{{ post.core.name }}</a></li>
+                    <li><a href="{{ url_for('web.show_core', core_id=post.core.id) }}">{{ post.core.name }}</a></li>
                     <li>{{ post.title }}</li>
                 </ol>
 
                 <h1 class="page-header text-primary">{{ post.title }}</h1>
 
-                <p>
+                <p class="well well-sm text-muted">
                     <em>Created
                         <time class="moment">{{ post.created_on.isoformat() }}Z</time>
                         by
@@ -31,8 +31,8 @@
                 </p>
 
                 {% if post.author.id == current_user.id %}
-                    <p class="text-muted">
-                        <span class="glyphicon glyphicon-question-sign"></span>
+                    <p class="alert alert-info alert-dismissible" role="alert">
+                        <span class="close" data-dismiss="alert">&times;</span>
                         Double click on the post to edit in place.
                     </p>
                 {% endif %}
@@ -62,7 +62,7 @@
                         hideable: true,
                         height: 400,
                         onBlur: function (e) {
-                            $.ajax('{{ url_for('web.update_post', id=post.id) }}', {
+                            $.ajax('{{ url_for('web.update_core_post', core_id=post.core_id, post_id=post.id) }}', {
                                 method: 'post',
                                 data: {body: e.getContent()},
                                 success: function () {

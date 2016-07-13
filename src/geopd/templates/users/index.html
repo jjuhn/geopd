@@ -116,7 +116,7 @@
                 columns: [
                     {
                         data: function (user) {
-                            return geopd.dom.link(user.profile, user.last_name + ', ' + user.given_names);
+                            return can.dom.link(user.profile, user.formal_name);
                         }
                     },
                     {
@@ -127,12 +127,12 @@
                     },
                     {
                         data: function (user) {
-                            return geopd.dom.datetime(user.member_since);
+                            return can.dom.datetime(user.member_since);
                         }
                     },
                     {
                         data: function (user) {
-                            return geopd.dom.datetime(user.last_seen);
+                            return can.dom.datetime(user.last_seen);
                         }
                     },
                 ],

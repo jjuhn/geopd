@@ -2,53 +2,74 @@
 
 {% block content %}
     <div class="container-fluid">
-        <div class="row text-center">
-            <div class="col-md-offset-1 col-md-10">
-                <div class="btn-group">
-                    {% for c in cores %}
-                        <a type="button"
-                           href="{% if c.id == core.id %}#{% else %}{{ url_for('web.show_core', id=c.id) }}{% endif %}"
-                           class="btn {% if c.id == core.id %}btn-primary{% else %}btn-default{% endif %}">
-                            {{ c.name }}
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-offset-1 col-md-10">
-                <h1 class="page-header text-primary">{{ core.name }} Core</h1>
-            </div>
-        </div>
+
+        {% include "cores/header.html" %}
+
         <div class="row">
             <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
                 <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
             </div>
             <div class="col-md-8">
-                {% if current_user.is_authenticated %}
-                    {% include 'cores/posts/list.html' %}
-                {% else %}
-                    <ul class="list-group">
-                        {% include 'cores/' + core.key + '.html' %}
-                    </ul>
-                {% endif %}
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs">
+                    <li role="presentation" class="active">
+                        <a id="list-tab" href="#list-pane" role="tab" data-toggle="tab">Posts</a>
+                    </li>
+                    <li role="presentation">
+                        <a id="post-tab" href="#post-pane" role="tab" data-toggle="tab">Create new post</a>
+                    </li>
+                </ul>
+
+
+                <div class="tab-content">
+
+                    <!-- List -->
+                    <div role="tabpanel" class="tab-pane fade in active" id="list-pane">
+                        <table id="post-table" class="table" width="100%">
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Created</th>
+                                <th>Modified</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                    <!-- Form -->
+                    <div role="tabpanel" class="tab-pane fade" id="post-pane">
+                        <form id="post-form" role="form"
+                              action="{{ url_for('web.create_core_post', core_id=core.id) }}"
+                              method="post">
+                            {{ form.csrf_token() }}
+                            <div class="form-group">
+                                <input class="form-control" type="text"
+                                       placeholder="{{ form.title.label.text }}"
+                                       value="{{ request.form.title }}"
+                                       id="{{ form.title.id }}" name="{{ form.title.name }}"
+                                       required="required"/>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <div class="form-group">
+                <textarea class="form-control"
+                          placeholder="{{ form.body.label.text }}"
+                          id="{{ form.body.id }}" name="{{ form.body.name }}"
+                          rows="10"
+                          required="required"
+                          data-provide="markdown">{{ request.form.body }}</textarea>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                            <div class="form-group">
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-offset-1 col-md-10">
-                <hr/>
-                <p class="text-muted">Core Leaders:
-                    {% for user in core.leaders %}
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('web.show_user', user_id=user.id) }}">{{ user.name }}</a>
-                        {% else %}
-                            {{ user.name }}
-                        {% endif %}
-                        {%- if not loop.last -%},{%- endif -%}
-                    {% endfor %}
-                </p>
-            </div>
-        </div>
+        {% include "cores/leaders.html" %}
     </div>
 {% endblock %}
 
@@ -69,21 +90,22 @@
                     columns: [
                         {
                             data: function (post) {
-                                return geopd.dom.post(post);
+                                return can.dom.link('{{ url_for('web.show_core', core_id=core.id) }}/posts/' + post.id,
+                                        post.title);
                             }
                         },
                         {
                             data: function (post) {
-                                return geopd.dom.user(post.author);
+                                return post.author.formal_name;
                             }
                         },
                         {
                             data: 'created-on',
-                            render: geopd.dom.datetime,
+                            render: can.dom.datetime,
                         },
                         {
                             data: 'updated-on',
-                            render: geopd.dom.datetime,
+                            render: can.dom.datetime,
                         },
                     ],
                 });

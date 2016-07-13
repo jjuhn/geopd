@@ -82,44 +82,60 @@ def show_publications():
 ########################################################################################################################
 @web.route('/cores/')
 def show_cores():
-    return redirect(url_for('web.show_core', id=1))
+    return show_core(core_id=1)
 
 
-@web.route('/cores/<int:id>')
-def show_core(id):
-    return render_template('cores/index.html',
-                           form=PostForm(),
-                           core=Core.query.get(id),
+@web.route('/cores/<int:core_id>')
+def show_core(core_id):
+    if current_user.is_authenticated:
+        return render_template('cores/index.html',
+                               form=PostForm(),
+                               core=Core.query.get(core_id),
+                               cores=Core.query.all())
+    return render_template('cores/public/index.html',
+                           core=Core.query.get(core_id),
                            cores=Core.query.all())
 
 
 @login_required
-@web.route('/cores/<int:id>/post', methods=['POST'])
-def create_core_post(id):
-
+@web.route('/cores/<int:core_id>/posts/', methods=['POST'])
+def create_core_post(core_id):
     form = PostForm()
     if form.validate_on_submit():
 
-        core = Core.query.options(noload('posts')).get(id)
-        core.posts.append(CorePost(request.form.get('title'), request.form.get('body')))
-        try:
-            db.commit()
-        except SQLAlchemyError:
-            flash('Error creating the post. Please try again later.', 'danger')
+        core = Core.query.options(noload('posts')).get(core_id)
+        title, body = (request.form.get(key) for key in ('title', 'body'))
 
-        return redirect(url_for('web.show_core', id=id))
+        if not title:
+            flash('Please provide a post title', 'danger')
+        elif not body:
+            flash('Please provide post content', 'danger')
+        else:
+            core.posts.append(CorePost(title, body))
+            try:
+                db.commit()
+            except SQLAlchemyError:
+                flash('Error creating the post. Please try again later.', 'danger')
+
+    return redirect(url_for('web.show_core', core_id=core_id))
 
 
 @login_required
-@web.route('/posts/<int:id>')
-def show_post(id):
-    return render_template('/cores/posts/post.html', post=CorePost.query.get(id))
+@web.route('/cores/<int:core_id>/posts/<int:post_id>')
+def show_core_post(core_id, post_id):
+    post = CorePost.query.get(post_id)
+    if not post or post.core_id != core_id:
+        abort(404)
+    return render_template('/cores/post.html', post=post)
 
 
 @login_required
-@web.route('/posts/<int:id>', methods=['POST'])
-def update_post(id):
-    post = CorePost.query.get(id)
+@web.route('/cores/<int:core_id>/posts/<int:post_id>', methods=['POST'])
+def update_core_post(core_id, post_id):
+    post = CorePost.query.get(post_id)
+    if not post or post.core_id != core_id:
+        abort(404)
+
     post.body = request.form.get('body')
     post.updated_on = datetime.utcnow()
     db.commit()
@@ -146,7 +162,8 @@ def show_user(user_id):
                                                    joinedload('survey'),
                                                    joinedload('survey', 'clinical'),
                                                    joinedload('survey', 'epidemiologic'),
-                                                   joinedload('survey', 'biospecimen')).filter(User.id == user_id).one(),
+                                                   joinedload('survey', 'biospecimen')).filter(
+                               User.id == user_id).one(),
                            survey_form=CompleteSurveyForm(),
                            address_form=ChangeAddressForm(),
                            clinical=ClinicalSurvey.query.all(),

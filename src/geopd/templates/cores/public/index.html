@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        {% include 'cores/header.html' %}
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
+            </div>
+            <div class="col-md-8">
+                <ul class="list-group">
+                    {% include 'cores/public/' + core.key + '.html' %}
+                </ul>
+            </div>
+        </div>
+        {% include "cores/leaders.html" %}
+    </div>
+{% endblock %}

@@ -1,0 +1,18 @@
+<div class="row text-center">
+    <div class="col-md-offset-1 col-md-10">
+        <div class="btn-group">
+            {% for c in cores %}
+                <a type="button"
+                   href="{% if c.id == core.id %}#{% else %}{{ url_for('web.show_core', core_id=c.id) }}{% endif %}"
+                   class="btn {% if c.id == core.id %}btn-primary{% else %}btn-default{% endif %}">
+                    {{ c.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-offset-1 col-md-10">
+        <h1 class="page-header text-primary">{{ core.name }} Core</h1>
+    </div>
+</div>

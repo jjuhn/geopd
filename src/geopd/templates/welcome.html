@@ -61,7 +61,7 @@
                 <div class="row">
                     {% for core in cores %}
                     <div class="geopd-core col-md-2">
-                        <a href="{{ url_for('web.show_core', id=core.id) }}">
+                        <a href="{{ url_for('web.show_core', core_id=core.id) }}">
                             <img src="{{ core.image_url }}" alt="{{ core.name }}" class="img-circle">
                             <div class="geopd-label"><span>{{ core.name }}</span></div>
                         </a>

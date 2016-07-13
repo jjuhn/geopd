@@ -132,7 +132,7 @@
 
                 elErrorContainer: '#kv-avatar-errors',
                 msgErrorClass: 'alert alert-block alert-danger',
-                defaultPreviewContent: geopd.dom.html($('<img/>').addClass('file-preview-image')
+                defaultPreviewContent: can.dom.html($('<img/>').addClass('file-preview-image')
                         .attr('alt', "{{ user.name }}")
                         .attr('title', "{{ user.name }}")
                         .attr('src', "{{ url_for('web.get_user_avatar', user_id=current_user.id) }}")),

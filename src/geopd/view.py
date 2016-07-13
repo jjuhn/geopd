@@ -1,10 +1,12 @@
+from random import randint
+
+from flask import Markup
 from flask import abort
 from flask import escape
 from flask import flash
 from flask import make_response
 from flask import redirect
 from flask import render_template
-from flask import send_from_directory
 from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
@@ -297,13 +299,21 @@ def show_contact():
     return render_template('contact.html', form=form)
 
 
-########################################################################################################################
-# favicon
-########################################################################################################################
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+@web.before_request
+def before_request():
+    if current_user.is_authenticated:
+        if request.endpoint == 'web.show_core':
+            if 1 == randint(1, 2):
+                if not current_user.bio.research_interests or not current_user.bio.research_experience:
+                    flash(Markup(
+                        'Your biography is not up to date. '
+                        '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
+                            url_for('web.show_user', user_id=current_user.id))), category='warning')
+                elif not current_user.survey.completed_on:
+                    flash(Markup(
+                        'You have not completed the survey. Please complete the survey '
+                        '<a href="{0}#survey" class="alert-link">here</a>.'.format(
+                            url_for('web.show_user', user_id=current_user.id))), category='warning')
 
 
 ########################################################################################################################

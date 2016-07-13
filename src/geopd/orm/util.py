@@ -22,14 +22,17 @@ def init_db():
     db.add(UserStatus(USER_STATUS_ACTIVE, 'Active'))
     db.add(UserStatus(USER_STATUS_DISABLED, 'Disabled'))
 
-    users_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'users.tsv'))
-    for row in csv.DictReader(users_stream, delimiter='\t'):
-        user = User(row['email'], app.config['DEFAULT_PASSWORD'], row['last'], row['given'])
-        user.status_id = USER_STATUS_ACTIVE
-        user.confirmed = True
-        user.force_password_reset = True
-        db.add(user)
-    db.flush()
+    users_fn = pkg_resources.resource_filename('geopd.orm', os.path.join('data', 'users.tsv'))
+    with open(users_fn, 'rU') as users_stream:
+        for row in csv.DictReader(users_stream, delimiter='\t'):
+            user = User(row['email'], app.config['DEFAULT_PASSWORD'], row['name'])
+            user.status_id = USER_STATUS_ACTIVE
+            user.confirmed = True
+            user.force_password_reset = True
+            user.bio = UserBio()
+            user.survey = UserSurvey()
+            db.add(user)
+        db.flush()
 
     clinical_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'clinical.tsv'))
     for row in csv.DictReader(clinical_stream, delimiter='\t'):
@@ -51,7 +54,7 @@ def init_db():
         project = Project(row['name'], row['description'])
         if row['investigators']:
             for name in row['investigators'].split(','):
-                project.investigators.append(User.query.filter(User.name == name).one())
+                project.investigators.append(User.query.join(UserName).filter(UserName.full == name).one())
         db.add(project)
 
     publications = dict()
@@ -99,7 +102,7 @@ def init_db():
         core = Core(row['name'], key=row['key'])
         if row['leaders']:
             for name in row['leaders'].split(','):
-                core.leaders.append(User.query.filter(User.name == name).one())
+                core.leaders.append(User.query.join(UserName).filter(UserName.full == name).one())
         db.add(core)
 
     db.commit()

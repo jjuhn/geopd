@@ -133,8 +133,8 @@
                 elErrorContainer: '#kv-avatar-errors',
                 msgErrorClass: 'alert alert-block alert-danger',
                 defaultPreviewContent: can.dom.html($('<img/>').addClass('file-preview-image')
-                        .attr('alt', "{{ user.name }}")
-                        .attr('title', "{{ user.name }}")
+                        .attr('alt', "{{ user.name.full }}")
+                        .attr('title', "{{ user.name.full }}")
                         .attr('src', "{{ url_for('web.get_user_avatar', user_id=current_user.id) }}")),
                 removeFromPreviewOnError: true,
                 allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],

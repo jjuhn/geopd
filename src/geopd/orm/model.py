@@ -5,6 +5,7 @@ import os.path
 
 import pkg_resources
 from flask import url_for
+from sqlalchemy.schema import Table
 from sqlalchemy.types import Date
 
 from can.web.orm.model import *
@@ -50,9 +51,6 @@ class UserBio(Base):
 
     user = relationship('User', foreign_keys=[id], backref=backref('bio', uselist=False))
 
-    def __init__(self, user_id):
-        self.user_id = user_id
-
     def __repr__(self):
         return "<UserBio({0})>".format(self.user_id)
 
@@ -73,9 +71,6 @@ class UserSurvey(Base):
     clinical = relationship('ClinicalSurvey', secondary=user_survey_clinical_table)
     epidemiologic = relationship('EpidemiologicSurvey', secondary=user_survey_epidemiologic_table)
     biospecimen = relationship('BiospecimenSurvey', secondary=user_survey_biospecimen_table)
-
-    def __init__(self, user_id):
-        self.user_id = user_id
 
     def __repr__(self):
         return "<UserSurvey({0})>".format(self.user_id)
@@ -249,3 +244,8 @@ class CorePost(Base):
 
     def __str__(self):
         return "Core Post #{0}".format(self.id)
+
+
+class CorePostComment(CommentMixin):
+    post_id = Column(Integer, ForeignKey('core_posts.id'), nullable=True)
+    post = relationship('Report', backref=backref('comments'))

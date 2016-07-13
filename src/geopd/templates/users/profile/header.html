@@ -11,13 +11,13 @@
                 <input id="avatar" name="avatar" type="file" class="file-loading center-block">
             </div>
         {% else %}
-            <img src="{{ url_for('web.get_user_avatar', user_id=user.id) }}" alt="{{ user.name }}"
+            <img src="{{ url_for('web.get_user_avatar', user_id=user.id) }}" alt="{{ user.name.full }}"
                  class="img-rounded img-responsive thumbnail center-block"/>
         {% endif %}
     </div>
     <div class="col-md-6 col-sm-12 col-xs-12">
         <br class="visible-sm visible-xs"/>
-        <h2>{{ user.name }}</h2>
+        <h2>{{ user.name.full }}</h2>
         {% if user.address.institution %}
         <p class="text-muted">
             <span class="glyphicon glyphicon-map-marker"></span>

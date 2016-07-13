@@ -38,14 +38,14 @@
                     var marker{{ loop.index }} = new google.maps.Marker({
                         position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
                         map: map,
-                        title: '{{ user.name }}',
+                        title: '{{ user.name.full }}',
                     });
 
                     marker{{ loop.index }}.addListener('click', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
                                 profile: '{{ url_for("web.show_user", user_id=user.id) }}',
-                                name: '{{ user.name }}',
+                                name: '{{ user.name.full }}',
                                 institution: '{{ user.address.institution }}',
                                 address: '{{ user.address.long }}',
                             })

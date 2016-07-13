@@ -8,7 +8,6 @@ from flask import url_for
 from sqlalchemy.types import Date
 
 from can.web.orm.model import *
-from geopd.util import name2key
 
 ########################################################################################################################
 # Tables
@@ -192,7 +191,7 @@ class Meeting(Base):
 
     @property
     def key(self):
-        return name2key(self.title)
+        return self.title.lower().replace(' ', '_')
 
     @property
     def image_url(self):

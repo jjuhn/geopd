@@ -164,7 +164,7 @@ class Publication(Base):
         filename = os.path.join('pubmed', '{0}.pdf'.format(self.id))
         fullpath = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
         if os.path.exists(fullpath):
-            return url_for('static', filename='pubmed/{0}.pdf'.format(self.id))
+            return url_for('web.static', filename='pubmed/{0}.pdf'.format(self.id))
 
     def __repr__(self):
         return "<Publication({0})>".format(self.id)
@@ -196,7 +196,7 @@ class Meeting(Base):
 
     @property
     def image_url(self):
-        return url_for('static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
+        return url_for('web.static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
 
     def __repr__(self):
         return "<Meeting({0})>".format(self.title)
@@ -219,7 +219,7 @@ class Core(Base):
 
     @property
     def image_url(self):
-        return url_for('static', filename='images/cores/{0}.jpg'.format(self.key))
+        return url_for('web.static', filename='images/cores/{0}.jpg'.format(self.key))
 
     def __repr__(self):
         return "<Core({0})>".format(self.name)

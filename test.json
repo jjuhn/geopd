@@ -1,58 +1,22 @@
 {
-  "data": [
-    {
-      "attributes": {
-        "created-on": "2016-07-14T15:48:50.931432Z",
-        "title": "test",
-        "updated-on": null
-      },
-      "id": 1,
-      "relationships": {
-        "author": {
-          "data": {
-            "id": 1,
-            "type": "users"
-          },
-          "links": {
-            "related": "/core-posts/1/author",
-            "self": "/core-posts/1/relationships/author"
-          }
-        }
-      },
-      "type": "core-posts"
-    }
-  ],
-  "included": [
-    {
-      "attributes": {
-        "formal": "Zabaneh, Omar"
-      },
-      "id": 1,
-      "relationships": {},
-      "type": "user-names"
+  "data": {
+    "type": "core-post-comments",
+    "attributes": {
+      "body": "hello"
     },
-    {
-      "attributes": {},
-      "id": 1,
-      "relationships": {
-        "name": {
-          "data": {
-            "id": 1,
-            "type": "user-names"
-          },
-          "links": {
-            "related": "/users/1/name",
-            "self": "/users/1/relationships/name"
-          }
+    "relationships": {
+      "author": {
+        "data": {
+          "id": "1",
+          "type": "users"
         }
       },
-      "type": "users"
+      "core_post": {
+        "data": {
+          "type": "core-posts",
+          "id": "1"
+        }
+      }
     }
-  ],
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "meta": {
-    "sqlalchemy_jsonapi_version": "4.0.8"
   }
 }

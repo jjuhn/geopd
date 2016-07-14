@@ -41,8 +41,10 @@
                 <div id="post-edit">
                     <div id="post">{{ post.body|md2html|safe }}</div>
                 </div>
-
-
+                <hr/>
+                <h4 class="text-muted">User comments</h4>
+                <hr/>
+                <div id="post-comments"></div>
             </div>
         </div>
     </div>
@@ -78,6 +80,16 @@
                     });
                 });
             {% endif %}
+
+            jsonapi.comments('#post-comments', {
+                userID: '{{ current_user.id }}',
+                userName: '{{ current_user.name.full }}',
+                resourceID: '{{ post.id }}',
+                resourceType: 'core-posts',
+                commentResourceType: 'core-post-comments',
+                relName: 'core_post',
+            });
+
         })
     </script>
 {% endblock %}

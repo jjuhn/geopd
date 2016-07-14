@@ -7,6 +7,7 @@ import pkg_resources
 from flask import url_for
 from sqlalchemy.schema import Table
 from sqlalchemy.types import Date
+from sqlalchemy.orm import synonym
 
 from can.web.orm.model import *
 
@@ -240,12 +241,9 @@ class CorePost(Base):
         self.author = current_user
 
     def __repr__(self):
-        return "<Core({0})>".format(self.id)
-
-    def __str__(self):
-        return "Core Post #{0}".format(self.id)
+        return "<CorePost({0})>".format(self.id)
 
 
-class CorePostComment(CommentMixin):
-    post_id = Column(Integer, ForeignKey('core_posts.id'), nullable=True)
-    post = relationship('Report', backref=backref('comments'))
+class CorePostComment(CommentMixin, Base):
+    core_post_id = Column(Integer, ForeignKey('core_posts.id'), nullable=True)
+    core_post = relationship('CorePost', backref=backref('comments'))

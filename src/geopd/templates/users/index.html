@@ -57,9 +57,9 @@
                                     .append(user.email)));
             if (user.address) {
                 container.find('div.info-window').append($('<p/>')
-                                    .append($('<span/>').addClass('glyphicon glyphicon-map-marker'))
-                                    .append(' ')
-                                    .append(user.address));
+                        .append($('<span/>').addClass('glyphicon glyphicon-map-marker'))
+                        .append(' ')
+                        .append(user.address));
             }
 
             return container.html();
@@ -74,74 +74,71 @@
 
             {% for user in users %}
                 {%- if user.address.latitude is not none and user.address.longitude is not none -%}
-                var marker{{ loop.index }} = new google.maps.Marker({
-                    position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
-                    map: map,
-                    title: '{{ user.name.formal }}',
-                });
+                    var marker{{ loop.index }} = new google.maps.Marker({
+                        position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
+                        map: map,
+                        title: '{{ user.name.formal }}',
+                    });
 
-                marker{{ loop.index }}.addListener('click', function () {
-                    new google.maps.InfoWindow({
-                        content: create_info_window_html({
-                            profile: '{{ url_for("web.show_user", user_id=user.id) }}',
-                            name: '{{ user.name.formal }}',
-                            email: '{{ user.email }}',
-                            institution: '{{ user.address.institution }}',
-                            address: '{{ user.address.long }}',
-                        })
-                    }).open(map, marker{{ loop.index }});
-                });
+                    marker{{ loop.index }}.addListener('click', function () {
+                        new google.maps.InfoWindow({
+                            content: create_info_window_html({
+                                profile: '{{ url_for("web.show_user", user_id=user.id) }}',
+                                name: '{{ user.name.formal }}',
+                                email: '{{ user.email }}',
+                                institution: '{{ user.address.institution }}',
+                                address: '{{ user.address.long }}',
+                            })
+                        }).open(map, marker{{ loop.index }});
+                    });
                 {%- endif -%}
             {%- endfor -%}
         }
-        
-        var users = [];
-        {% for user in users %}
-            users.push({
-                profile: '{{ url_for('web.show_user', user_id=user.id) }}',
-                last_name: '{{ user.last_name }}',
-                given_names: '{{ user.given_names }}',
-                institution: {% if user.address.institution %}'{{ user.address.institution }}'{% else %}undefined{% endif %},
-                city: {% if user.address.city %}'{{ user.address.city }}'{% else %}undefined{% endif %},
-                member_since: '{{ user.created_on.isoformat() }}Z',
-                last_seen: {% if user.last_seen %}'{{ user.last_seen.isoformat() }}Z'{% else %}undefined{% endif %},
-            });
-        {% endfor %}
 
         $(document).ready(function () {
 
-            $('#users').DataTable({
+            var url = URI('/api/users/');
+            url.addQuery('include', 'name,address');
+            url.addQuery('fields[users]', 'name,address,created-on,last-seen');
+            url.addQuery('fields[user-names]', 'formal');
+            url.addQuery('fields[user-addresses]', 'institution,city,country');
 
-                data: users,
-                columns: [
-                    {
-                        data: function (user) {
-                            return can.dom.link(user.profile, user.formal_name);
-                        }
-                    },
-                    {
-                        data: 'institution'
-                    },
-                    {
-                        data: 'city'
-                    },
-                    {
-                        data: function (user) {
-                            return can.dom.datetime(user.member_since);
-                        }
-                    },
-                    {
-                        data: function (user) {
-                            return can.dom.datetime(user.last_seen);
-                        }
-                    },
-                ],
+            $.getJSON(url.readable(), function (json) {
+                $('#users').DataTable({
+                    data: jsonapi.parse_response(json),
+                    columns: [
+                        {
+                            data: function (user) {
+                                console.log(user);
+                                return can.dom.link('{{ url_for('web.show_users') }}/' + user.id, user.name.formal);
+                            }
+                        },
+                        {
+                            data: 'address.institution'
+                        },
+                        {
+                            data: function (user) {
+                                if (user.address.city) return user.address.city + ', ' + user.address.country
+                            }
+                        },
+                        {
+                            data: function (user) {
+                                return can.dom.datetime(user['created-on']);
+                            }
+                        },
+                        {
+                            data: function (user) {
+                                return can.dom.datetime(user['last-seen']);
+                            }
+                        },
+                    ],
 
-                paging: true,
-                ordering: true,
-                searching: true,
-                order: [[0, 'asc']],
-                deferRender: true,
+                    paging: true,
+                    ordering: true,
+                    searching: true,
+                    order: [[0, 'asc']],
+                    deferRender: true,
+                });
             });
 
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -150,5 +147,5 @@
         });
     </script>
     <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initMap"
-        async defer></script>
+            async defer></script>
 {% endblock %}

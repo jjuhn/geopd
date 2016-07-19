@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% import "form/address.html" as address %}
+
+{% block content %}
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <ol class="breadcrumb">
+                    <li><a href="{{ url_for('web.show_users') }}">Members</a></li>
+                    <li>{{ user.name.full }}</li>
+                </ol>
+            </div>
+        </div>
+
+        {% include 'users/profile/header.html' with context %}
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 col-sm-12 col-xs-12">
+
+                <hr/>
+
+                <div id="profile-message"></div>
+
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#biography-pane">Biography</a></li>
+                    {% if user.id == current_user.id %}
+                        <li><a data-toggle="tab" href="#address-pane">Address</a></li>
+                    {% endif %}
+                    <li><a data-toggle="tab" href="#survey-pane">Survey</a></li>
+                </ul>
+
+                <div class="tab-content">
+
+                    <!-- Biography -->
+                    <div id="biography-pane" class="tab-pane fade in active">
+                        {% include 'users/profile/biography.html' with context %}
+                    </div>
+
+                    <!-- Address (logged in users only) -->
+                    {% if user.id == current_user.id %}
+                        <div id="address-pane" class="tab-pane fade">
+
+                            <p class="help-block">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                                Use the following form to add or change your institution name, department, and address.
+                                Start by typing the institution name, then choose from the dropdown menu.
+                            </p>
+
+                            <form action="{{ url_for('web.update_user_address', user_id=current_user.id) }}"
+                                  method="post" data-toggle="validator">
+                                {{ address_form.csrf_token }}
+                                {{ address.field(address_form) }}
+                                <div class="form-group">
+                                    {{ address_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <!-- Survey -->
+                    <div id="survey-pane" class="tab-pane fade">
+                        {% from "survey.html" import render_question with context %}
+                        <form id="surveyForm" action="{{ url_for('web.update_user_survey',
+                                                                  user_id=current_user.id,
+                                                                  survey_id=survey.id) }}"
+                              method="post">
+                            {{ survey_form.csrf_token }}
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="help-block">Do you have the following?</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                {% for question in survey.questions.values()|sort(attribute='order') %}
+                                    {% if question.order <= 3 %}
+                                        <div class="col-md-4">
+                                            {{ render_question(question, survey.id) }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            {% for question in survey.questions.values()|sort(attribute='order') %}
+                                {% if question.order >= 4 %}
+                                    {{ render_question(question, survey.id) }}
+                                {% endif %}
+                            {% endfor %}
+
+
+                            <hr/>
+                            <div class="form-group">
+                                {% if survey.complete_on %}
+                                    {{ survey_form.update(class="btn btn-primary") }}
+                                {% else %}
+                                    {{ survey_form.complete(class="btn btn-primary") }}
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    {% if current_user.id == user.id %}
+
+        {{ address.script() }}
+
+        <script>
+            $(document).ready(function () {
+
+
+                $('.explain').each(function (i, explain) {
+                    var editable = $(explain).find('p.edit-explain').editable(function (value, settings) {
+                        var hidden = $('<input type="hidden"/>').val(value).attr('name', $(this).attr('id'));
+                        $(this).parents('form').first().append(hidden);
+                        return (value);
+                    }, {
+                        type: 'textarea',
+                        rows: 3,
+                    });
+                    $(explain).find('input[type=radio]').click(function (e) {
+                        if (e.target.value == 'no') {
+                            $(explain).find('.collapse').collapse('show');
+                        } else {
+                            $(explain).find('.collapse').collapse('hide');
+                        }
+                    });
+                });
+
+
+                var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
+
+                $('.edit-biography').dblclick(function () {
+                    $(this).find('div.markdown').markdown({
+                        hideable: true,
+                        height: 300,
+                        onBlur: function (e) {
+                            $.ajax('', {
+                                method: 'post',
+                                data: {name: e.$element[0].id, value: e.getContent()},
+                                success: function () {
+                                    $('#profile-message').html($('<div class="alert alert-success"></div>')
+                                            .text('Changes saved successfully.').append(close));
+                                },
+                                error: function () {
+                                    $('#profile-message').html($('<div class="alert alert-danger"></div>')
+                                            .text('Error: failed to save changes.').append(close));
+                                }
+                            });
+                        },
+                    });
+                });
+
+                $("#avatar").fileinput({
+                    uploadUrl: "{{ url_for('web.update_user_info', user_id=current_user.id) }}",
+                    uploadAsync: true,
+                    uploadExtraData: {
+                        name: 'avatar'
+                    },
+                    overwriteInitial: true,
+                    maxFileSize: 1500,
+
+                    showClose: false,
+                    showCaption: false,
+                    browseLabel: '',
+                    removeLabel: '',
+                    uploadLabel: 'Save',
+                    browseIcon: '<i class="glyphicon glyphicon-pencil"></i>',
+                    removeIcon: '<i class="glyphicon glyphicon-remove-circle"></i>',
+                    removeTitle: 'Cancel or reset changes',
+                    browseClass: 'btn btn-primary btn-sm',
+                    removeClass: 'btn btn-default btn-sm',
+                    uploadClass: 'btn btn-default btn-sm',
+
+                    elErrorContainer: '#kv-avatar-errors',
+                    msgErrorClass: 'alert alert-block alert-danger',
+                    defaultPreviewContent: can.dom.html($('<img/>').addClass('file-preview-image')
+                            .attr('alt', "{{ user.name.full }}")
+                            .attr('title', "{{ user.name.full }}")
+                            .attr('src', "{{ url_for('web.get_user_avatar', user_id=current_user.id) }}")),
+                    removeFromPreviewOnError: true,
+                    allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
+                    layoutTemplates: {
+                        footer: '',
+                        main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{remove}\n{upload}\n{browse}\n',
+                    },
+                });
+            });
+        </script>
+        <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initAutocomplete"
+                async defer></script>
+    {% else %}
+
+        <script>
+            $(document).ready(function () {
+                $('#survey-pane input').prop('disabled', true);
+            });
+        </script>
+
+    {% endif %}
+{% endblock %}

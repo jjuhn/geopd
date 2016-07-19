@@ -5,31 +5,25 @@ import os.path
 
 import pkg_resources
 from flask import url_for
+from inflection import titleize
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Table
 from sqlalchemy.types import Date
-from sqlalchemy.orm import synonym
 
 from can.web.orm.model import *
+
+########################################################################################################################
+# Constants
+########################################################################################################################
+QUESTION_TYPE_TEXT = 1
+QUESTION_TYPE_YESNO = 2
+QUESTION_TYPE_YESNO_EXPLAIN = 3
+QUESTION_TYPE_CHOICES = 4
 
 ########################################################################################################################
 # Tables
 ########################################################################################################################
 
-
-user_survey_clinical_table = Table('user_survey_clinicals', Base.metadata,
-                                   Column('user_id', Integer, ForeignKey('user_surveys.id'), primary_key=True),
-                                   Column('clinical_id', Integer, ForeignKey('clinical_surveys.id'), primary_key=True))
-
-user_survey_epidemiologic_table = Table('user_survey_epidemiologics', Base.metadata,
-                                        Column('user_id', Integer, ForeignKey('user_surveys.id'),
-                                               primary_key=True),
-                                        Column('epidemiologic_id', Integer, ForeignKey('epidemiologic_surveys.id'),
-                                               primary_key=True))
-
-user_survey_biospecimen_table = Table('user_survey_biospecimens', Base.metadata,
-                                      Column('user_id', Integer, ForeignKey('user_surveys.id'), primary_key=True),
-                                      Column('biospecimen_id', Integer, ForeignKey('biospecimen_surveys.id'),
-                                             primary_key=True))
 
 project_investigator_table = Table('project_investigators', Base.metadata,
                                    Column('project_id', Integer, ForeignKey('projects.id'), primary_key=True),
@@ -39,6 +33,11 @@ core_leader_table = Table('core_leaders', Base.metadata,
                           Column('core_id', Integer, ForeignKey('cores.id'), primary_key=True),
                           Column('leader_id', Integer, ForeignKey('users.id'), primary_key=True))
 
+user_response_choice_table = Table('user_response_choices', Base.metadata,
+                                   Column('response_id', Integer, ForeignKey('user_responses.id'), primary_key=True),
+                                   Column('choice_id', Integer, ForeignKey('survey_question_choices.id'),
+                                          primary_key=True))
+
 
 ########################################################################################################################
 # Models
@@ -46,77 +45,11 @@ core_leader_table = Table('core_leaders', Base.metadata,
 
 
 class UserBio(Base):
-    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
+    id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
     research_interests = Column(Text)
     research_experience = Column(Text)
 
-    user = relationship('User', foreign_keys=[id], backref=backref('bio', uselist=False))
-
-    def __repr__(self):
-        return "<UserBio({0})>".format(self.user_id)
-
-
-class UserSurvey(Base):
-    id = Column(Integer, ForeignKey('users.id'), primary_key=True, autoincrement=False)
-
-    ethical = Column(Boolean)
-    ethical_explain = Column(Text)
-    consent = Column(Boolean)
-    consent_explain = Column(Text)
-    consent_sharing = Column(Boolean)
-    sample = Column(Boolean)
-    completed_on = Column(DateTime)
-
-    user = relationship('User', foreign_keys=[id], backref=backref('survey', uselist=False))
-
-    clinical = relationship('ClinicalSurvey', secondary=user_survey_clinical_table)
-    epidemiologic = relationship('EpidemiologicSurvey', secondary=user_survey_epidemiologic_table)
-    biospecimen = relationship('BiospecimenSurvey', secondary=user_survey_biospecimen_table)
-
-    def __repr__(self):
-        return "<UserSurvey({0})>".format(self.user_id)
-
-
-class ClinicalSurvey(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False)
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '<ClinicalSurvey({0})>'.format(self.name)
-
-    def __str__(self):
-        return self.name
-
-
-class EpidemiologicSurvey(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False)
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '<EpidemiologicSurvey({0})>'.format(self.name)
-
-    def __str__(self):
-        return self.name
-
-
-class BiospecimenSurvey(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False)
-
-    def __init__(self, name):
-        self.name = name
-
-    def __repr__(self):
-        return '<BiospecimenSurvey({0})>'.format(self.name)
-
-    def __str__(self):
-        return self.name
+    user = relationship(User, foreign_keys=[id], backref=backref('bio', uselist=False))
 
 
 class Project(Base):
@@ -124,18 +57,12 @@ class Project(Base):
     name = Column(Text, unique=True, nullable=False)
     description = Column(Text, unique=True, nullable=False)
 
-    investigators = relationship('User', secondary=project_investigator_table)
+    investigators = relationship(User, secondary=project_investigator_table)
 
     def __init__(self, name, description, investigators=list()):
         self.name = name
         self.description = description
         self.investigators = investigators
-
-    def __repr__(self):
-        return "<Project(key='{0}')>".format(self.name)
-
-    def __str__(self):
-        return self.name
 
 
 class Publication(Base):
@@ -160,12 +87,6 @@ class Publication(Base):
         fullpath = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
         if os.path.exists(fullpath):
             return url_for('web.static', filename='pubmed/{0}.pdf'.format(self.id))
-
-    def __repr__(self):
-        return "<Publication({0})>".format(self.id)
-
-    def __str__(self):
-        return self.title
 
 
 class Meeting(Base):
@@ -193,20 +114,13 @@ class Meeting(Base):
     def image_url(self):
         return url_for('web.static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
 
-    def __repr__(self):
-        return "<Meeting({0})>".format(self.title)
-
-    def __str__(self):
-        return self.title
-
 
 class Core(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False, unique=True)
     key = Column(Text, nullable=False, unique=True)
 
-    leaders = relationship('User', secondary=core_leader_table)
-    posts = relationship('CorePost', back_populates='core')
+    leaders = relationship(User, secondary=core_leader_table)
 
     def __init__(self, name, key):
         self.name = name
@@ -215,12 +129,6 @@ class Core(Base):
     @property
     def image_url(self):
         return url_for('web.static', filename='images/cores/{0}.jpg'.format(self.key))
-
-    def __repr__(self):
-        return "<Core({0})>".format(self.name)
-
-    def __str__(self):
-        return self.name
 
 
 class CorePost(Base):
@@ -232,18 +140,109 @@ class CorePost(Base):
     author_id = Column(Integer, ForeignKey('users.id'))
     core_id = Column(Integer, ForeignKey('cores.id'))
 
-    author = relationship('User', foreign_keys=[author_id], backref=backref('core_posts'))
-    core = relationship('Core', foreign_keys=[core_id], back_populates='posts')
+    author = relationship(User, foreign_keys=[author_id], backref=backref('core_posts'))
+    core = relationship(Core, foreign_keys=[core_id], backref=backref('posts'))
 
     def __init__(self, title, body):
         self.title = title
         self.body = body
         self.author = current_user
 
-    def __repr__(self):
-        return "<CorePost({0})>".format(self.id)
-
 
 class CorePostComment(CommentMixin, Base):
-    core_post_id = Column(Integer, ForeignKey('core_posts.id'), nullable=True)
-    core_post = relationship('CorePost', backref=backref('comments'))
+    core_post_id = Column(Integer, ForeignKey(CorePost.id), nullable=True)
+    core_post = relationship(CorePost, backref=backref('comments'))
+
+
+class Survey(Base):
+    id = Column(Integer, primary_key=True)
+    title = Column(Text, nullable=False)
+    description = Column(Text)
+
+    def __init__(self, title, description=None):
+        self.title = titleize(title)
+        self.description = description
+
+
+class SurveyQuestionType(Base):
+    id = Column(Integer, primary_key=True, autoincrement=False)
+    name = Column(Text, nullable=False, unique=True)
+
+    def __init__(self, type_id, name):
+        self.id = type_id
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+
+class SurveyQuestion(Base):
+    __table_args__ = UniqueConstraint('id', 'name'),
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+    text = Column(Text, nullable=False)
+    order = Column(Integer)
+
+    survey_id = Column(Integer, ForeignKey(Survey.id), nullable=False)
+    survey = relationship(Survey, uselist=False,
+                          backref=backref('questions',
+                                          collection_class=attribute_mapped_collection('name')))
+
+    type_id = Column(Integer, ForeignKey(SurveyQuestionType.id), nullable=False)
+    type = relationship(SurveyQuestionType, uselist=False)
+
+    def __init__(self, name, text, type_object, order=None):
+        self.name = name
+        self.text = text
+        self.type = type_object
+        self.order = order
+
+
+class SurveyQuestionChoice(Base):
+    __table_args__ = UniqueConstraint('question_id', 'label'),
+
+    id = Column(Integer, primary_key=True)
+    label = Column(Text, nullable=False)
+
+    question_id = Column(Integer, ForeignKey(SurveyQuestion.id), nullable=False)
+    question = relationship(SurveyQuestion, uselist=False, backref=backref('choices'))
+
+    def __init__(self, label):
+        self.label = label
+
+
+class UserSurvey(Base):
+    __table_args__ = UniqueConstraint('user_id', 'survey_id'),
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
+    survey_id = Column(Integer, ForeignKey(Survey.id), nullable=False)
+    completed_on = Column(DateTime)
+    updated_on = Column(DateTime)
+
+    user = relationship(User, uselist=False,
+                        backref=backref('surveys', collection_class=attribute_mapped_collection('survey_id')))
+    survey = relationship(Survey, uselist=False)
+    responses = relationship('UserResponse', collection_class=attribute_mapped_collection('name'))
+
+    def __init__(self, user, survey):
+        self.user = user
+        self.survey = survey
+
+
+class UserResponse(Base):
+    __table_args__ = UniqueConstraint('user_survey_id', 'question_id'),
+
+    id = Column(Integer, primary_key=True)
+    user_survey_id = Column(Integer, ForeignKey(UserSurvey.id), nullable=False)
+    question_id = Column(Integer, ForeignKey(SurveyQuestion.id), nullable=False)
+    question = relationship(SurveyQuestion, uselist=False, lazy='joined')
+
+    @hybrid_property
+    def name(self):
+        return self.question.name
+
+    answer_text = Column(Text)
+    answer_yesno = Column(Boolean)
+    answer_choices = relationship(SurveyQuestionChoice, secondary=user_response_choice_table)

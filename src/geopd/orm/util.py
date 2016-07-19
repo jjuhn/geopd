@@ -2,6 +2,7 @@ from can.web import app
 from geopd.orm.model import *
 
 import csv
+import json
 import dateutil.parser
 import pkg_resources
 import os.path
@@ -30,24 +31,8 @@ def init_db():
             user.confirmed = True
             user.force_password_reset = True
             user.bio = UserBio()
-            user.survey = UserSurvey()
             db.add(user)
         db.flush()
-
-    clinical_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'clinical.tsv'))
-    for row in csv.DictReader(clinical_stream, delimiter='\t'):
-        clinical = ClinicalSurvey(row['name'])
-        db.add(clinical)
-
-    epidemiologic_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'epidemiologic.tsv'))
-    for row in csv.DictReader(epidemiologic_stream, delimiter='\t'):
-        epidemiologic = EpidemiologicSurvey(row['name'])
-        db.add(epidemiologic)
-
-    biospecimen_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'biospecimen.tsv'))
-    for row in csv.DictReader(biospecimen_stream, delimiter='\t'):
-        biospecimen = BiospecimenSurvey(row['name'])
-        db.add(biospecimen)
 
     projects_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'projects.tsv'))
     for row in csv.DictReader(projects_stream, delimiter='\t'):
@@ -104,6 +89,30 @@ def init_db():
             for name in row['leaders'].split(','):
                 core.leaders.append(User.query.join(UserName).filter(UserName.full == name).one())
         db.add(core)
+
+    # survey question types
+    question_types = dict()
+    question_types['text'] = SurveyQuestionType(QUESTION_TYPE_TEXT, 'text')
+    question_types['yesno'] = SurveyQuestionType(QUESTION_TYPE_YESNO, 'yesno')
+    question_types['yesno-explain'] = SurveyQuestionType(QUESTION_TYPE_YESNO_EXPLAIN, 'yesno-explain')
+    question_types['choices'] = SurveyQuestionType(QUESTION_TYPE_CHOICES, 'choices')
+
+    # import surveys
+    surveys_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'surveys.json'))
+    for data in json.load(surveys_stream)['data']:
+        survey = Survey(data['title'], data.get('description'))
+
+        for user in User.query.all():
+            UserSurvey(user, survey)
+
+        for order, field in enumerate(data['fields'], start=1):
+            if field['type'] in question_types.keys():
+                attrs = field['attributes']
+                question = SurveyQuestion(attrs['name'], attrs['text'], question_types[field['type']], order)
+                survey.questions[attrs['name']] = question
+                if field['type'] == 'choices' and 'choices' in attrs:
+                    for choice in attrs['choices']:
+                        question.choices.append(SurveyQuestionChoice(choice))
 
     db.commit()
 

@@ -1,0 +1,81 @@
+{
+  "data": [
+    {
+      "title": "Initial Member Survey",
+      "description": "Do you have the following?",
+      "fields": [
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "clinical",
+            "text": "Clinical Information",
+            "choices": [
+              "UPDRS",
+              "Hoehn & Yahr",
+              "MMSE or MoCA",
+              "BDI",
+              "SCOPA-AUT",
+              "Neuroimaging",
+              "Neuropathology"
+            ]
+          }
+        },
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "epidemiologic",
+            "text": "Epidemiologic Exposure",
+            "choices": [
+              "Smoking",
+              "Pesticides",
+              "Metals",
+              "Occupation"
+            ]
+          }
+        },
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "biospecimen",
+            "text": "Biospecimens",
+            "choices": [
+              "Blood",
+              "Fibroblasts",
+              "DNA",
+              "Cerebrospinal fluid",
+              "Brain"
+            ]
+          }
+        },
+        {
+          "type": "yesno-explain",
+          "attributes": {
+            "name": "ethical",
+            "text": "Was your study approved by an ethical committee?"
+          }
+        },
+        {
+          "type": "yesno-explain",
+          "attributes": {
+            "name": "consent",
+            "text": "Did the participants sign an informed consent form?"
+          }
+        },
+        {
+          "type": "yesno",
+          "attributes": {
+            "name": "sharing",
+            "text": "Does the informed consent permit sharing of de-identified data & DNA samples?"
+          }
+        },
+        {
+          "type": "yesno",
+          "attributes": {
+            "name": "sample",
+            "text": "Are you willing to send (to a centralized laboratory) a small number of DNA samples to assess genotyping accuracy?"
+          }
+        }
+      ]
+    }
+  ]
+}

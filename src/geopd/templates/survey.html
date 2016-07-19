@@ -1,0 +1,55 @@
+{% macro render_question(question, survey_id) -%}
+    <h4 class="page-header text-primary">{{ question.text }}</h4>
+    {% if current_user.id == user.id %}
+        <p class="text-muted">&#x2714 Check all that apply.</p>
+    {% endif %}
+    {% if question.type.name == 'choices' %}
+        {% with choices = user.surveys[survey_id].responses[question.name].answer_choices
+                if question.name in user.surveys[survey_id].responses else [] %}
+            <div class="funkyradio">
+                {% for choice in question.choices %}
+                    <div class="funkyradio-primary">
+                        <input type="checkbox" name="{{ question.name }}" id="{{ question.name }}-{{ choice.id }}"
+                               {% if choice in choices %}checked="checked"{% endif %}
+                               value="{{ choice.id }}" data-type="{{ question.type.name }}"/>
+                        <label for="{{ question.name }}-{{ choice.id }}">{{ choice.label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endwith %}
+    {% elif question.type.name.startswith('yesno') %}
+        {% with explain = question.type.name.endswith('explain') %}
+        <div class="funkyradio{% if explain %} explain{% endif %}">
+            {% with response = user.surveys[survey_id].responses[question.name]
+                if question.name in user.surveys[survey_id].responses else None %}
+                <div class="funkyradio-primary">
+                    <input type="radio" name="{{ question.name }}" id="{{ question.name }}-yes"
+                           {% if response and response.answer_yesno == True -%}
+                           checked="checked"
+                           {%- endif %}
+                           value="yes" data-type="yesno"/>
+                    <label for="{{ question.name }}-yes">Yes</label>
+                </div>
+                <div class="funkyradio-primary">
+                    <input type="radio" name="{{ question.name }}" id="{{ question.name }}-no"
+                           {% if response and response.answer_yesno == False -%}
+                           checked="checked"
+                           {%- endif %}
+                           value="no" data-type="{{ question.type.name }}"/>
+                    <label for="{{ question.name }}-no">No</label>
+                </div>
+                {% if explain %}
+                    <div class="collapse
+                         {%- if response and response.answer_yesno == False %} in{% endif %}"
+                         id="{{ question.name }}-explanation">
+                        <h5 class="text-primary">Explanation</h5>
+                        <p id="{{ question.name }}-explain" class="edit edit-explain">
+                            {{- response.answer_text if response and response.answer_text -}}
+                        </p>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% endwith %}
+    {% endif %}
+{%- endmacro %}

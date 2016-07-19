@@ -16,7 +16,7 @@ from can.web import app
 from can.web import web_blueprint as web
 from can.web.email import send_email
 from geopd.form import ChangeAddressForm
-from geopd.form import CompleteSurveyForm
+from geopd.form import UpdateSurveyForm
 from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.orm.model import *
@@ -143,7 +143,7 @@ def update_core_post(core_id, post_id):
 
 
 ########################################################################################################################
-# members
+# users
 ########################################################################################################################
 @web.route('/users/')
 def show_users():
@@ -155,20 +155,14 @@ def show_users():
 @web.route('/users/<int:user_id>')
 @login_required
 def show_user(user_id):
-    return render_template('users/profile.html',
+    survey = Survey.query.get(1)
+    return render_template('users/profile/index.html',
                            user=User.query.options(joinedload('avatar'),
                                                    joinedload('bio'),
-                                                   joinedload('address'),
-                                                   joinedload('survey'),
-                                                   joinedload('survey', 'clinical'),
-                                                   joinedload('survey', 'epidemiologic'),
-                                                   joinedload('survey', 'biospecimen')).filter(
-                               User.id == user_id).one(),
-                           survey_form=CompleteSurveyForm(),
+                                                   joinedload('address')).filter(User.id == user_id).one(),
                            address_form=ChangeAddressForm(),
-                           clinical=ClinicalSurvey.query.all(),
-                           epidemiologic=EpidemiologicSurvey.query.all(),
-                           biospecimen=BiospecimenSurvey.query.all())
+                           survey_form=UpdateSurveyForm(),
+                           survey=survey)
 
 
 @web.route('/users/<int:user_id>/address', methods=['POST'])
@@ -191,16 +185,21 @@ def update_user_address(user_id):
         return redirect(url_for('web.show_user', user_id=user_id))
 
 
-@web.route('/users/<int:user_id>/survey', methods=['POST'])
+@web.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
 @login_required
-def update_user_survey(user_id):
+def update_user_survey(user_id, survey_id):
+
+    survey_form = UpdateSurveyForm()
+
     if user_id != current_user.id:
         abort(403)
 
-    address_form = ChangeAddressForm()
-    if address_form.validate_on_submit():
-        survey = UserSurvey.query.get(user_id)
-        survey.completed_on = datetime.utcnow()
+    if survey_form.validate_on_submit():
+
+        user_survey = current_user.surveys[survey_id]
+
+
+        # survey.completed_on = datetime.utcnow()
 
         try:
             db.commit()

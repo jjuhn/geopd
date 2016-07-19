@@ -14,8 +14,9 @@ class ContactForm(Form):
     submit = SubmitField('Submit')
 
 
-class CompleteSurveyForm(Form):
-    submit = SubmitField('Complete Survey')
+class UpdateSurveyForm(Form):
+    complete = SubmitField('Complete Survey')
+    update = SubmitField('Update Survey')
 
 
 class ChangeAddressForm(Form, AddressMixin):

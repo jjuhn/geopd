@@ -68,7 +68,9 @@
                             {{ survey_form.csrf_token }}
                             <div class="row">
                                 <div class="col-md-12">
-                                    <p class="help-block">Do you have the following?</p>
+                                    <p class="help-block">
+                                        {{ survey.description }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -91,7 +93,7 @@
 
                             <hr/>
                             <div class="form-group">
-                                {% if survey.complete_on %}
+                                {% if survey.complete_on is not none %}
                                     {{ survey_form.update(class="btn btn-primary") }}
                                 {% else %}
                                     {{ survey_form.complete(class="btn btn-primary") }}

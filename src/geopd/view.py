@@ -198,17 +198,37 @@ def update_user_survey(user_id, survey_id):
 
         user_survey = current_user.surveys[survey_id]
 
+        for name in user_survey.survey.questions.keys():
 
-        # survey.completed_on = datetime.utcnow()
+            question = user_survey.survey.questions[name]
+            response = user_survey.responses[name] if name in user_survey.responses \
+                else UserResponse(user_survey, question)
+            db.add(response)
+
+            if question.type_id in (QUESTION_TYPE_YESNO, QUESTION_TYPE_YESNO_EXPLAIN):
+                if name in request.form.keys():
+                    response.answer_yesno = request.form[name] == 'yes'
+                    explain = request.form.get('{0}-explain'.format(name)) if not response.answer_yesno else None
+                    user_survey.responses[name].answer_text = explain.strip() if explain else None
+
+            elif question.type_id == QUESTION_TYPE_CHOICES:
+                response.answer_choices = list()
+                for choice_id in request.form.getlist(name):
+                    response.answer_choices.append(SurveyQuestionChoice.query.get(choice_id))
+
+        if 'complete' in request.form.keys():
+            user_survey.completed_on = datetime.utcnow()
+        elif 'update' in request.form.keys():
+            user_survey.updated_on = datetime.utcnow()
 
         try:
             db.commit()
-        except:
-            flash('Something went wrong. Try again later', category='danger')
+        except SQLAlchemyError:
+            raise
         else:
-            flash('Survey marked as complete.', category='success')
+            flash('Survey information updated.', category='success')
 
-    return redirect(url_for('web.show_user', user_id=user_id))
+    return redirect(url_for('web.show_user', user_id=current_user.id))
 
 
 @web.route('/users/<int:user_id>/avatar')

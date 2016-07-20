@@ -13,6 +13,7 @@
             </div>
         </div>
 
+        <!-- Profile Header -->
         {% include 'users/profile/header.html' with context %}
 
         <div class="row">
@@ -34,7 +35,21 @@
 
                     <!-- Biography -->
                     <div id="biography-pane" class="tab-pane fade in active">
-                        {% include 'users/profile/biography.html' with context %}
+                        <h3 class="page-header text-primary">Research Interests</h3>
+                        <div class="edit-biography">
+                            <div id="interest" class="markdown">
+                                {{ user.bio.research_interests|md2html|safe
+                                    if user.bio.research_interests else 'Double click to edit.' }}
+                            </div>
+                        </div>
+
+                        <h3 class="page-header text-primary">Research Experience</h3>
+                        <div class="edit-biography">
+                            <div id="experience" class="markdown">
+                                {{ user.bio.research_experience|md2html|safe
+                                    if user.bio.research_experience else 'Double click to edit.' }}
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Address (logged in users only) -->
@@ -61,8 +76,7 @@
                     <!-- Survey -->
                     <div id="survey-pane" class="tab-pane fade">
                         {% from "survey.html" import render_question with context %}
-                        <form id="surveyForm" action="{{ url_for('web.update_user_survey',
-                                                                  user_id=current_user.id,
+                        <form id="surveyForm" action="{{ url_for('web.update_user_survey', user_id=current_user.id,
                                                                   survey_id=survey.id) }}"
                               method="post">
                             {{ survey_form.csrf_token }}
@@ -119,7 +133,7 @@
         <script>
             $(document).ready(function () {
 
-
+                // todo:: make global
                 $('.explain').each(function (i, explain) {
                     var editable = $(explain).find('p.edit-explain').editable(function (value, settings) {
                         var hidden = $('<input type="hidden"/>').val(value).attr('name', $(this).attr('id'));
@@ -138,7 +152,6 @@
                     });
                 });
 
-
                 var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
 
                 $('.edit-biography').dblclick(function () {
@@ -146,9 +159,12 @@
                         hideable: true,
                         height: 300,
                         onBlur: function (e) {
-                            $.ajax('', {
+                            $.ajax('{{ url_for('web.update_user_biography', user_id=current_user.id) }}', {
                                 method: 'post',
-                                data: {name: e.$element[0].id, value: e.getContent()},
+                                data: {
+                                    name: e.$element[0].id,
+                                    value: e.getContent()
+                                },
                                 success: function () {
                                     $('#profile-message').html($('<div class="alert alert-success"></div>')
                                             .text('Changes saved successfully.').append(close));
@@ -163,7 +179,7 @@
                 });
 
                 $("#avatar").fileinput({
-                    uploadUrl: "{{ url_for('web.update_user_info', user_id=current_user.id) }}",
+                    uploadUrl: "{{ url_for('web.update_user_avatar', user_id=current_user.id) }}",
                     uploadAsync: true,
                     uploadExtraData: {
                         name: 'avatar'
@@ -173,15 +189,15 @@
 
                     showClose: false,
                     showCaption: false,
-                    browseLabel: '',
+                    browseLabel: 'Upload Image',
                     removeLabel: '',
                     uploadLabel: 'Save',
-                    browseIcon: '<i class="glyphicon glyphicon-pencil"></i>',
-                    removeIcon: '<i class="glyphicon glyphicon-remove-circle"></i>',
+                    browseIcon: '<i class="glyphicon glyphicon-upload"></i>',
+                    removeIcon: '&times',
                     removeTitle: 'Cancel or reset changes',
-                    browseClass: 'btn btn-primary btn-sm',
+                    browseClass: 'btn btn-default btn-sm',
                     removeClass: 'btn btn-default btn-sm',
-                    uploadClass: 'btn btn-default btn-sm',
+                    uploadClass: 'btn btn-primary btn-sm',
 
                     elErrorContainer: '#kv-avatar-errors',
                     msgErrorClass: 'alert alert-block alert-danger',
@@ -193,9 +209,16 @@
                     allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
                     layoutTemplates: {
                         footer: '',
-                        main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{remove}\n{upload}\n{browse}\n',
+                        main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{cancel}\n{upload}\n{browse}\n',
                     },
+                }).on('fileuploaded', function (event, data, previewId, index) {
+                    $('a.fileinput-upload-button').hide();
+                    $('#avatar').parents('div.btn.btn-file').first().show();
+                }).on('fileselect', function (event, numFiles, label) {
+                    $('a.fileinput-upload-button').show();
+                    $('#avatar').parents('div.btn.btn-file').first().hide();
                 });
+
             });
         </script>
         <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initAutocomplete"

@@ -173,7 +173,7 @@ def update_user_address(user_id):
 
     address_form = ChangeAddressForm()
     if address_form.validate_on_submit():
-        address = UserAddress.query.get(user_id)
+        address = UserAddress.query.get(current_user.id)
         address.load(request.form)
         try:
             db.commit()
@@ -182,17 +182,16 @@ def update_user_address(user_id):
         else:
             flash('New address saved.', category='success')
 
-        return redirect(url_for('web.show_user', user_id=user_id))
+        return redirect(url_for('web.show_user', user_id=current_user.id))
 
 
 @web.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
 @login_required
 def update_user_survey(user_id, survey_id):
-
-    survey_form = UpdateSurveyForm()
-
     if user_id != current_user.id:
         abort(403)
+
+    survey_form = UpdateSurveyForm()
 
     if survey_form.validate_on_submit():
 
@@ -243,76 +242,30 @@ def get_user_avatar(user_id):
     return response
 
 
-@web.route('/users/<int:user_id>/info/', methods=['POST'])
+@web.route('/users/<int:user_id>/avatar/', methods=['POST'])
 @login_required
-def update_user_info(user_id):
+def update_user_avatar(user_id):
     if user_id != current_user.id:
-        abort(403)  # unauthorized
+        abort(403)
 
-    name = request.form.get('name', None)
+    current_user.avatar.data = request.files['avatar'].stream.read()
+    current_user.avatar.mimetype = request.files['avatar'].mimetype
+    db.commit()
 
-    if name == 'clinical':
-        obj = ClinicalSurvey.query.get(request.form['value'])
-        if request.form['checked'] == 'no':
-            current_user.survey.clinical.remove(obj)
-        else:
-            if obj not in current_user.survey.clinical:
-                current_user.survey.clinical.append(obj)
+    return '', 204
 
-    elif name == 'epidemiologic':
-        obj = EpidemiologicSurvey.query.get(request.form['value'])
-        if request.form['checked'] == 'no':
-            current_user.survey.epidemiologic.remove(obj)
-        else:
-            if obj not in current_user.survey.epidemiologic:
-                current_user.survey.epidemiologic.append(obj)
 
-    elif name == 'biospecimen':
-        obj = BiospecimenSurvey.query.get(request.form['value'])
-        if request.form['checked'] == 'no':
-            current_user.survey.biospecimen.remove(obj)
-        else:
-            if obj not in current_user.survey.biospecimen:
-                current_user.survey.biospecimen.append(obj)
+@web.route('/users/<int:user_id>/biography/', methods=['POST'])
+@login_required
+def update_user_biography(user_id):
+    if user_id != current_user.id:
+        abort(403)
 
-    elif name == 'ethical':
-        current_user.survey.ethical = False if request.form['value'] == 'no' else True
-
-    elif name == 'ethical-explain':
-        value = escape(request.form['value'])
-        current_user.survey.ethical_explain = value
-        db.commit()
-        return value
-
-    elif name == 'consent':
-        current_user.survey.consent = False if request.form['value'] == 'no' else True
-
-    elif name == 'consent-explain':
-        value = escape(request.form['value'])
-        current_user.survey.consent_explain = value
-        db.commit()
-        return value
-
-    elif name == 'sharing':
-        current_user.survey.consent_sharing = False if request.form['value'] == 'no' else True
-
-    elif name == 'sample':
-        current_user.survey.sample = False if request.form['value'] == 'no' else True
-
-    elif name == 'interest':
-        value = request.form['value']
-        current_user.bio.research_interests = value
-
+    name = request.form.get('name')
+    if name == 'interest':
+        current_user.bio.research_interests = request.form['value'].strip()
     elif name == 'experience':
-        value = request.form['value']
-        current_user.bio.research_experience = value
-
-    elif name == 'avatar':
-        current_user.avatar.data = request.files[name].stream.read()
-        current_user.avatar.mimetype = request.files[name].mimetype
-
-    else:
-        abort(400)
+        current_user.bio.research_interests = request.form['value'].strip()
 
     db.commit()
 

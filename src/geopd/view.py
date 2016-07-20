@@ -177,7 +177,7 @@ def update_user_address(user_id):
         address.load(request.form)
         try:
             db.commit()
-        except:
+        except SQLAlchemyError:
             flash('Failed to save new address. Try again later', category='danger')
         else:
             flash('New address saved.', category='success')

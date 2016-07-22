@@ -2,7 +2,6 @@ from random import randint
 
 from flask import Markup
 from flask import abort
-from flask import escape
 from flask import flash
 from flask import make_response
 from flask import redirect
@@ -11,15 +10,19 @@ from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
+from inflection import singularize
 
 from can.web import app
 from can.web import web_blueprint as web
 from can.web.email import send_email
 from geopd.form import ChangeAddressForm
-from geopd.form import UpdateSurveyForm
 from geopd.form import ContactForm
 from geopd.form import PostForm
+from geopd.form import UpdateSurveyForm
 from geopd.orm.model import *
+
+SURVEY_PROFILE = 1
+SURVEY_BIOLOGY = 2
 
 
 ########################################################################################################################
@@ -90,6 +93,7 @@ def show_core(core_id):
     if current_user.is_authenticated:
         return render_template('cores/index.html',
                                form=PostForm(),
+                               survey_form=UpdateSurveyForm(),
                                core=Core.query.get(core_id),
                                cores=Core.query.all())
     return render_template('cores/public/index.html',
@@ -155,7 +159,7 @@ def show_users():
 @web.route('/users/<int:user_id>')
 @login_required
 def show_user(user_id):
-    survey = Survey.query.get(1)
+    survey = Survey.query.get(SURVEY_PROFILE)
     return render_template('users/profile/index.html',
                            user=User.query.options(joinedload('avatar'),
                                                    joinedload('bio'),
@@ -227,7 +231,7 @@ def update_user_survey(user_id, survey_id):
         else:
             flash('Survey information updated.', category='success')
 
-    return redirect(url_for('web.show_user', user_id=current_user.id))
+    return redirect(request.referrer or url_for('web.index'))
 
 
 @web.route('/users/<int:user_id>/avatar')
@@ -242,7 +246,7 @@ def get_user_avatar(user_id):
     return response
 
 
-@web.route('/users/<int:user_id>/avatar/', methods=['POST'])
+@web.route('/users/<int:user_id>/avatar', methods=['POST'])
 @login_required
 def update_user_avatar(user_id):
     if user_id != current_user.id:
@@ -255,7 +259,7 @@ def update_user_avatar(user_id):
     return '', 204
 
 
-@web.route('/users/<int:user_id>/biography/', methods=['POST'])
+@web.route('/users/<int:user_id>/biography', methods=['POST'])
 @login_required
 def update_user_biography(user_id):
     if user_id != current_user.id:
@@ -265,7 +269,7 @@ def update_user_biography(user_id):
     if name == 'interest':
         current_user.bio.research_interests = request.form['value'].strip()
     elif name == 'experience':
-        current_user.bio.research_interests = request.form['value'].strip()
+        current_user.bio.research_experience = request.form['value'].strip()
 
     db.commit()
 
@@ -298,11 +302,23 @@ def before_request():
                         'Your biography is not up to date. '
                         '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
                             url_for('web.show_user', user_id=current_user.id))), category='warning')
-                elif not current_user.survey.completed_on:
-                    flash(Markup(
-                        'You have not completed the survey. Please complete the survey '
-                        '<a href="{0}#survey" class="alert-link">here</a>.'.format(
-                            url_for('web.show_user', user_id=current_user.id))), category='warning')
+                else:
+                    for user_survey in current_user.surveys.values():
+                        if not user_survey.completed_on:
+                            parent_type, parent_id = user_survey.survey.parent_type, user_survey.survey.parent_id
+                            if parent_type and parent_id:
+                                endpoint = 'web.show_{0}'.format(singularize(parent_type))
+                                view_args = {'{0}_id'.format(singularize(parent_type)): parent_id}
+                                url = url_for(endpoint, **view_args)
+                            else:
+                                url = url_for('web.show_user', user_id=current_user.id)
+                            flash(Markup(
+                                'You have not completed the survey. Please complete the '
+                                '<a href="{href}#survey" class="alert-link">{title}</a>.'.format(
+                                    href=url,
+                                    title=user_survey.title
+                                )), category='warning')
+                            break
 
 
 ########################################################################################################################

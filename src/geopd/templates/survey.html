@@ -53,3 +53,13 @@
         {% endwith %}
     {% endif %}
 {%- endmacro %}
+
+{% macro render_submit(form, survey_id) -%}
+    <div class="form-group">
+        {% if current_user.surveys[survey_id].completed_on is none %}
+            {{ form.complete(class="btn btn-primary") }}
+        {% else %}
+            {{ form.update(class="btn btn-primary") }}
+        {% endif %}
+    </div>
+{%- endmacro %}

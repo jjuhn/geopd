@@ -1,7 +1,8 @@
 from flask_wtf import Form, RecaptchaField
 from wtforms import StringField
-from wtforms import TextAreaField
 from wtforms import SubmitField
+from wtforms import TextAreaField
+
 from can.web.form import AddressMixin
 
 

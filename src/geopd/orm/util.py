@@ -7,6 +7,7 @@ import dateutil.parser
 import pkg_resources
 import os.path
 import Bio.Entrez
+from inflection import singularize, underscore, camelize
 
 
 ########################################################################################################################
@@ -89,6 +90,7 @@ def init_db():
             for name in row['leaders'].split(','):
                 core.leaders.append(User.query.join(UserName).filter(UserName.full == name).one())
         db.add(core)
+    db.flush()
 
     # survey question types
     question_types = dict()
@@ -105,12 +107,23 @@ def init_db():
         for user in User.query.all():
             UserSurvey(user, survey)
 
-        for order, field in enumerate(data['fields'], start=1):
-            if field['type'] in question_types.keys():
-                attrs = field['attributes']
-                question = SurveyQuestion(attrs['name'], attrs['text'], question_types[field['type']], order)
+        if 'parent' in data:
+            models = dict([(c.__name__, c) for c in Base.__subclasses__()])
+            resource_type = data['parent']['type']
+            resource_id = data['parent']['id']
+            model_name = camelize(singularize(underscore(resource_type)))
+            if model_name in models.keys():
+                parent = models[model_name].query.get(resource_id)
+                parent.survey = survey
+                survey.parent_type = resource_type
+                survey.parent_id = resource_id
+
+        for order, row in enumerate(data['questions'], start=1):
+            if row['type'] in question_types.keys():
+                attrs = row['attributes']
+                question = SurveyQuestion(attrs['name'], attrs['text'], question_types[row['type']], order)
                 survey.questions[attrs['name']] = question
-                if field['type'] == 'choices' and 'choices' in attrs:
+                if row['type'] == 'choices' and 'choices' in attrs:
                     for choice in attrs['choices']:
                         question.choices.append(SurveyQuestionChoice(choice))
 

@@ -5,71 +5,92 @@
 
         {% include "cores/header.html" %}
 
-        <div class="row">
-            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
-                <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
-            </div>
-            <div class="col-md-8">
+        {% if core.survey and not current_user.surveys[core.survey.id].completed_on %}
 
-                <!-- Tabs -->
-                <ul class="nav nav-tabs">
-                    <li role="presentation" class="active">
-                        <a id="list-tab" href="#list-pane" role="tab" data-toggle="tab">Posts</a>
-                    </li>
-                    <li role="presentation">
-                        <a id="post-tab" href="#post-pane" role="tab" data-toggle="tab">Create new post</a>
-                    </li>
-                </ul>
+            {% include "cores/survey.html" %}
+
+        {% else %}
+
+            <div class="row">
+                <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                    <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
+                </div>
+                <div class="col-md-8">
+
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active">
+                            <a id="list-tab" href="#list-pane" role="tab" data-toggle="tab">Posts</a>
+                        </li>
+                        <li role="presentation">
+                            <a id="post-tab" href="#post-pane" role="tab" data-toggle="tab">Create new post</a>
+                        </li>
+                        {% if core.survey %}
+                            <li role="presentation">
+                                <a id="survey-tab" href="#survey-pane" role="tab" data-toggle="tab">Update survey</a>
+                            </li>
+                        {% endif %}
+                    </ul>
 
 
-                <div class="tab-content">
+                    <div class="tab-content">
 
-                    <!-- List -->
-                    <div role="tabpanel" class="tab-pane fade in active" id="list-pane">
-                        <table id="post-table" class="table" width="100%">
-                            <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Author</th>
-                                <th>Created</th>
-                                <th>Modified</th>
-                            </tr>
-                            </thead>
-                        </table>
-                    </div>
+                        <!-- Posts -->
+                        <div role="tabpanel" class="tab-pane fade in active" id="list-pane">
+                            <table id="post-table" class="table" width="100%">
+                                <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Created</th>
+                                    <th>Modified</th>
+                                </tr>
+                                </thead>
+                            </table>
+                        </div>
 
-                    <!-- Form -->
-                    <div role="tabpanel" class="tab-pane fade" id="post-pane">
-                        <form id="post-form" role="form"
-                              action="{{ url_for('web.create_core_post', core_id=core.id) }}"
-                              method="post">
-                            {{ form.csrf_token() }}
-                            <div class="form-group">
-                                <input class="form-control" type="text"
-                                       placeholder="{{ form.title.label.text }}"
-                                       value="{{ request.form.title }}"
-                                       id="{{ form.title.id }}" name="{{ form.title.name }}"
-                                       required="required"/>
-                                <div class="help-block with-errors"></div>
+                        <!-- Create new post -->
+                        <div role="tabpanel" class="tab-pane fade" id="post-pane">
+                            <form id="post-form" role="form"
+                                  action="{{ url_for('web.create_core_post', core_id=core.id) }}"
+                                  method="post">
+                                {{ form.csrf_token() }}
+                                <div class="form-group">
+                                    <input class="form-control" type="text"
+                                           placeholder="{{ form.title.label.text }}"
+                                           value="{{ request.form.title }}"
+                                           id="{{ form.title.id }}" name="{{ form.title.name }}"
+                                           required="required"/>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                <div class="form-group">
+                                <textarea class="form-control"
+                                          placeholder="{{ form.body.label.text }}"
+                                          id="{{ form.body.id }}" name="{{ form.body.name }}"
+                                          rows="10"
+                                          required="required"
+                                          data-provide="markdown">{{ request.form.body }}</textarea>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                <div class="form-group">
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+
+                        {% if core.survey %}
+                            <!-- Update survey -->
+                            <div role="tabpanel" class="tab-pane fade" id="survey-pane">
+                                {% include "cores/survey.html" with context %}
                             </div>
-                            <div class="form-group">
-                <textarea class="form-control"
-                          placeholder="{{ form.body.label.text }}"
-                          id="{{ form.body.id }}" name="{{ form.body.name }}"
-                          rows="10"
-                          required="required"
-                          data-provide="markdown">{{ request.form.body }}</textarea>
-                                <div class="help-block with-errors"></div>
-                            </div>
-                            <div class="form-group">
-                                {{ form.submit(class="btn btn-primary") }}
-                            </div>
-                        </form>
+                        {% endif %}
+
                     </div>
                 </div>
             </div>
-        </div>
-        {% include "cores/leaders.html" %}
+            {% include "cores/leaders.html" %}
+
+        {% endif %}
     </div>
 {% endblock %}
 

@@ -119,8 +119,10 @@ class Core(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False, unique=True)
     key = Column(Text, nullable=False, unique=True)
+    survey_id = Column(Integer, ForeignKey('surveys.id'))
 
     leaders = relationship(User, secondary=core_leader_table)
+    survey = relationship('Survey')
 
     def __init__(self, name, key):
         self.name = name
@@ -158,6 +160,9 @@ class Survey(Base):
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
     description = Column(Text)
+
+    parent_type = Column(Text)
+    parent_id = Column(Text)
 
     def __init__(self, title, description=None):
         self.title = titleize(title)
@@ -230,6 +235,10 @@ class UserSurvey(Base):
     def __init__(self, user, survey):
         self.user = user
         self.survey = survey
+
+    @hybrid_property
+    def title(self):
+        return self.survey.title
 
 
 class UserResponse(Base):

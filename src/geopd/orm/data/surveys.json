@@ -3,7 +3,7 @@
     {
       "title": "Initial Member Survey",
       "description": "Do you have the following?",
-      "fields": [
+      "questions": [
         {
           "type": "choices",
           "attributes": {
@@ -76,6 +76,54 @@
           }
         }
       ]
+    },
+    {
+      "title": "Biology Core Survey",
+      "description": "Do you employ the following in your research?",
+      "questions": [
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "mammals",
+            "text": "Mammalian models",
+            "choices": [
+              "Mouse",
+              "Rat",
+              "Primate"
+            ]
+          }
+        },
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "cells",
+            "text": "Cells",
+            "choices": [
+              "Fibroblasts",
+              "Immortalized cell lines (e.g. HEK293, HeLa, etc.)",
+              "Primary neuronal cultures",
+              "Inducible pluripotent cell lines"
+            ]
+          }
+        },
+        {
+          "type": "choices",
+          "attributes": {
+            "name": "nucleic",
+            "text": "Nucleic acid and protein",
+            "choices": [
+              "DNA",
+              "RNA",
+              "Plasmids",
+              "Antibodies and/or protein"
+            ]
+          }
+        }
+      ],
+      "parent": {
+        "type": "cores",
+        "id": "2"
+      }
     }
   ]
 }

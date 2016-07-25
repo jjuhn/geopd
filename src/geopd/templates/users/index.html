@@ -109,7 +109,6 @@
                     columns: [
                         {
                             data: function (user) {
-                                console.log(user);
                                 return can.dom.link('{{ url_for('web.show_users') }}/' + user.id, user.name.formal);
                             }
                         },

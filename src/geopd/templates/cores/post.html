@@ -15,17 +15,17 @@
 
                 <p class="well well-sm text-muted">
                     <em>Created
-                        <time class="moment">{{ post.created_on.isoformat() }}Z</time>
+                        <time data-moment="{{ post.created_on.isoformat() }}Z"></time>
                         by
                         {% if post.author.id == current_user.id %}
                             you
                         {% else %}
-                            <a href="{{ url_for('web.show_user', user_id=post.author.id) }}">{{ post.author.name }}</a>
+                            <a href="{{ url_for('web.show_user', user_id=post.author.id) }}">{{ post.author.name.full }}</a>
                         {% endif %}
                     </em>
                     {% if post.updated_on %}
                         <span class="label label-primary pull-right">Edited
-                        <time class="moment">{{ post.updated_on.isoformat() }}Z</time>
+                        <time data-moment="{{ post.updated_on.isoformat() }}Z"></time>
                     </span>
                     {% endif %}
                 </p>

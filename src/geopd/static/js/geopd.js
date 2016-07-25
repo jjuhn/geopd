@@ -34,19 +34,6 @@ $(document).ready(function () {
         indicator: 'Saving ...',
     });
 
-    var csrftoken = $('meta[name=csrf-token]').attr('content');
-
-    $.ajaxSetup({
-        headers: { 'X-CSRFToken': csrftoken }
-    });
-
-    $('[data-toggle="tooltip"]').addClass('tip-auto').tooltip();
-
-    $('time[data-moment]').each(function (i, time) {
-        var data = moment($(time).attr('data-moment'));
-        $(time).html(data.fromNow()).attr('title', data.format('MMMM D YYYY h:mm A')).addClass('tip-auto').tooltip();
-    });
-
     $('.collapse')
         .on('shown.bs.collapse', function () {
             $(this)

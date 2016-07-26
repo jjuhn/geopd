@@ -111,19 +111,15 @@
                             </div>
 
                             <div class="row">
-                                {% for question in survey.questions.values()|sort(attribute='order') %}
-                                    {% if question.order <= 3 %}
+                                {% for name in ('clinical', 'epidemiologic', 'biospecimen') %}
                                         <div class="col-md-4">
-                                            {{ render_question(question, survey.id, user) }}
+                                            {{ render_question(survey.questions[name], survey.id, user) }}
                                         </div>
-                                    {% endif %}
                                 {% endfor %}
                             </div>
 
-                            {% for question in survey.questions.values()|sort(attribute='order') %}
-                                {% if question.order >= 4 %}
-                                    {{ render_question(question, survey.id, user) }}
-                                {% endif %}
+                            {% for name in ('ethical', 'consent', 'sharing', 'sample') %}
+                                    {{ render_question(survey.questions[name], survey.id, user) }}
                             {% endfor %}
 
                             {% if current_user.id == user.id %}

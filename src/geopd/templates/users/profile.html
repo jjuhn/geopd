@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% import "form/address.html" as address %}
+{% import "macros/avatar.html" as avatar %}
+
 
 {% block content %}
     <div class="container-fluid">
@@ -14,7 +15,40 @@
         </div>
 
         <!-- Profile Header -->
-        {% include 'users/profile/header.html' with context %}
+        <div class="row">
+            <div class="col-md-offset-2 col-md-8">
+                <div id="kv-avatar-errors" class="center-block"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-2 col-md-offset-2 col-sm-12 col-xs-12">
+                {{ avatar.render(user, current_user.id) }}
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <br class="visible-sm visible-xs"/>
+                <h2>{{ user.name.full }}</h2>
+                {% if user.address.institution %}
+                    <p class="text-muted">
+                        <span class="glyphicon glyphicon-map-marker"></span>
+                        {{ user.address.institution_full }}<br/>
+                        <small><em>{{ user.address.long }}</em></small>
+                    </p>
+                {% endif %}
+                <p>
+                    <i class="glyphicon glyphicon-envelope"></i>
+                    <a href="mailto:{{ user.email }}?Subject=[GEoPD]%20" target="_top">{{ user.email }}</a>
+                </p>
+                <p class="text-muted">Member since
+                    <time data-moment="{{ user.created_on|moment }}"></time>
+                    .
+                    {% if user.last_seen %}
+                        Last Seen
+                        <time data-moment="{{ user.last_seen|moment }}"></time>.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-md-8 col-md-offset-2 col-sm-12 col-xs-12">
@@ -23,6 +57,7 @@
 
                 <div id="profile-message"></div>
 
+                <!-- Tabs -->
                 <ul class="nav nav-tabs">
                     <li class="active"><a data-toggle="tab" href="#biography-pane">Biography</a></li>
                     {% if user.id == current_user.id %}
@@ -54,22 +89,9 @@
 
                     <!-- Address (logged in users only) -->
                     {% if user.id == current_user.id %}
+                        {% import "macros/address.html" as address %}
                         <div id="address-pane" class="tab-pane fade">
-
-                            <p class="help-block">
-                                <span class="glyphicon glyphicon-question-sign"></span>
-                                Use the following form to add or change your institution name, department, and address.
-                                Start by typing the institution name, then choose from the dropdown menu.
-                            </p>
-
-                            <form action="{{ url_for('web.update_user_address', user_id=current_user.id) }}"
-                                  method="post" data-toggle="validator">
-                                {{ address_form.csrf_token }}
-                                {{ address.field(address_form) }}
-                                <div class="form-group">
-                                    {{ address_form.submit(class="btn btn-primary") }}
-                                </div>
-                            </form>
+                            {{ address.form(address_form, user.id) }}
                         </div>
                     {% endif %}
 
@@ -123,8 +145,6 @@
     {{ super() }}
     {% if current_user.id == user.id %}
 
-        {{ address.script() }}
-
         <script>
             $(document).ready(function () {
 
@@ -172,52 +192,9 @@
                         },
                     });
                 });
-
-                $("#avatar").fileinput({
-                    uploadUrl: "{{ url_for('web.update_user_avatar', user_id=current_user.id) }}",
-                    uploadAsync: true,
-                    uploadExtraData: {
-                        name: 'avatar'
-                    },
-                    overwriteInitial: true,
-                    maxFileSize: 1500,
-
-                    showClose: false,
-                    showCaption: false,
-                    browseLabel: 'Upload Image',
-                    removeLabel: '',
-                    uploadLabel: 'Save',
-                    browseIcon: '<i class="glyphicon glyphicon-upload"></i>',
-                    removeIcon: '&times',
-                    removeTitle: 'Cancel or reset changes',
-                    browseClass: 'btn btn-default btn-sm',
-                    removeClass: 'btn btn-default btn-sm',
-                    uploadClass: 'btn btn-primary btn-sm',
-
-                    elErrorContainer: '#kv-avatar-errors',
-                    msgErrorClass: 'alert alert-block alert-danger',
-                    defaultPreviewContent: can.dom.html($('<img/>').addClass('file-preview-image')
-                            .attr('alt', "{{ user.name.full }}")
-                            .attr('title', "{{ user.name.full }}")
-                            .attr('src', "{{ url_for('web.get_user_avatar', user_id=current_user.id) }}")),
-                    removeFromPreviewOnError: true,
-                    allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
-                    layoutTemplates: {
-                        footer: '',
-                        main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{cancel}\n{upload}\n{browse}\n',
-                    },
-                }).on('fileuploaded', function (event, data, previewId, index) {
-                    $('a.fileinput-upload-button').hide();
-                    $('#avatar').parents('div.btn.btn-file').first().show();
-                }).on('fileselect', function (event, numFiles, label) {
-                    $('a.fileinput-upload-button').show();
-                    $('#avatar').parents('div.btn.btn-file').first().hide();
-                });
-
             });
         </script>
-        <script src="{{ config.GOOGLE_API_MAP_URL }}?key={{ config.GOOGLE_API_KEY }}&libraries=places&callback=initAutocomplete"
-                async defer></script>
+
     {% else %}
 
         <script>

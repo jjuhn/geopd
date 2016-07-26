@@ -3,7 +3,6 @@ from random import randint
 from flask import Markup
 from flask import abort
 from flask import flash
-from flask import make_response
 from flask import redirect
 from flask import render_template
 from flask_login import login_required
@@ -15,7 +14,7 @@ from inflection import singularize
 from can.web import app
 from can.web import web_blueprint as web
 from can.web.email import send_email
-from geopd.form import ChangeAddressForm
+from can.web.form import ChangeAddressForm
 from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
@@ -160,33 +159,13 @@ def show_users():
 @login_required
 def show_user(user_id):
     survey = Survey.query.get(SURVEY_PROFILE)
-    return render_template('users/profile/index.html',
+    return render_template('users/profile.html',
                            user=User.query.options(joinedload('avatar'),
                                                    joinedload('bio'),
                                                    joinedload('address')).filter(User.id == user_id).one(),
                            address_form=ChangeAddressForm(),
                            survey_form=UpdateSurveyForm(),
                            survey=survey)
-
-
-@web.route('/users/<int:user_id>/address', methods=['POST'])
-@login_required
-def update_user_address(user_id):
-    if user_id != current_user.id:
-        abort(403)
-
-    address_form = ChangeAddressForm()
-    if address_form.validate_on_submit():
-        address = UserAddress.query.get(current_user.id)
-        address.load(request.form)
-        try:
-            db.commit()
-        except SQLAlchemyError:
-            flash('Failed to save new address. Try again later', category='danger')
-        else:
-            flash('New address saved.', category='success')
-
-        return redirect(url_for('web.show_user', user_id=current_user.id))
 
 
 @web.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
@@ -232,31 +211,6 @@ def update_user_survey(user_id, survey_id):
             flash('Survey information updated.', category='success')
 
     return redirect(request.referrer or url_for('web.index'))
-
-
-@web.route('/users/<int:user_id>/avatar')
-@login_required
-def get_user_avatar(user_id):
-    avatar = UserAvatar.query.get(user_id)
-    if not avatar.data:
-        return app.send_static_file('images/avatar.png')
-
-    response = make_response(avatar.data)
-    response.headers['Content-Type'] = avatar.mimetype
-    return response
-
-
-@web.route('/users/<int:user_id>/avatar', methods=['POST'])
-@login_required
-def update_user_avatar(user_id):
-    if user_id != current_user.id:
-        abort(403)
-
-    current_user.avatar.data = request.files['avatar'].stream.read()
-    current_user.avatar.mimetype = request.files['avatar'].mimetype
-    db.commit()
-
-    return '', 204
 
 
 @web.route('/users/<int:user_id>/biography', methods=['POST'])

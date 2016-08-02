@@ -16,7 +16,7 @@ setup(name='geopd',
       zip_safe=False,
       entry_points={
         'console_scripts': [
-            'geopd_web=geopd.server:run',
+            'geopd_web=geopd.web:run',
         ],
     },
 )

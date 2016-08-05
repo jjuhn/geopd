@@ -2,9 +2,9 @@ from flask import jsonify
 from flask import request
 from flask_login import login_required
 
+from can.web import db
 from can.web.api import api_blueprint as api
 from can.web.api import jsonapi
-from can.web.orm import db
 
 
 @api.route('/cores/')

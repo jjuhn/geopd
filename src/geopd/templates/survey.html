@@ -5,7 +5,7 @@
             <p class="text-muted">&#x2714 Check all that apply.</p>
         {% endif %}
         {% with choices = user.surveys[survey_id].responses[question.name].answer_choices
-                if question.name in user.surveys[survey_id].responses else [] %}
+                if user.surveys[survey_id] and question.name in user.surveys[survey_id].responses else [] %}
             <div class="funkyradio">
                 {% for choice in question.choices %}
                     <div class="funkyradio-primary">
@@ -21,7 +21,7 @@
         {% with explain = question.type.name.endswith('explain') %}
             <div class="funkyradio{% if explain %} explain{% endif %}">
                 {% with response = user.surveys[survey_id].responses[question.name]
-                if question.name in user.surveys[survey_id].responses else None %}
+                if user.surveys[survey_id] and question.name in user.surveys[survey_id].responses else None %}
                     <div class="funkyradio-primary">
                         <input type="radio" name="{{ question.name }}" id="{{ question.name }}-yes"
                                 {% if response and response.answer_yesno == True -%}

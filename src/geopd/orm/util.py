@@ -1,3 +1,4 @@
+from geopd.web import application
 from can.web import app
 from geopd.orm.model import *
 
@@ -20,15 +21,15 @@ def init_db():
     Base.metadata.drop_all(db.bind)
     Base.metadata.create_all(db.bind)
 
-    db.add(UserStatus(USER_STATUS_PENDING, 'Pending'))
-    db.add(UserStatus(USER_STATUS_ACTIVE, 'Active'))
-    db.add(UserStatus(USER_STATUS_DISABLED, 'Disabled'))
+    db.add(UserStatus(User.STATUS_PENDING, 'Pending'))
+    db.add(UserStatus(User.STATUS_ACTIVE, 'Active'))
+    db.add(UserStatus(User.STATUS_DISABLED, 'Disabled'))
 
     users_fn = pkg_resources.resource_filename('geopd.orm', os.path.join('data', 'users.tsv'))
     with open(users_fn, 'rU') as users_stream:
         for row in csv.DictReader(users_stream, delimiter='\t'):
             user = User(row['email'], app.config['DEFAULT_PASSWORD'], row['name'])
-            user.status_id = USER_STATUS_ACTIVE
+            user.status_id = User.STATUS_ACTIVE
             user.confirmed = True
             user.force_password_reset = True
             user.bio = UserBio()

@@ -1,5 +1,4 @@
 from geopd.web import application
-from can.web import app
 from geopd.orm.model import *
 
 import csv
@@ -28,11 +27,10 @@ def init_db():
     users_fn = pkg_resources.resource_filename('geopd.orm', os.path.join('data', 'users.tsv'))
     with open(users_fn, 'rU') as users_stream:
         for row in csv.DictReader(users_stream, delimiter='\t'):
-            user = User(row['email'], app.config['DEFAULT_PASSWORD'], row['name'])
+            user = User(row['email'], application.config['DEFAULT_PASSWORD'], row['name'])
             user.status_id = User.STATUS_ACTIVE
             user.confirmed = True
             user.force_password_reset = True
-            user.bio = UserBio()
             db.add(user)
         db.flush()
 
@@ -104,9 +102,7 @@ def init_db():
     surveys_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'surveys.json'))
     for data in json.load(surveys_stream)['data']:
         survey = Survey(data['title'], data.get('description'))
-
-        for user in User.query.all():
-            UserSurvey(user, survey)
+        survey.init_user_surveys()
 
         if 'parent' in data:
             models = dict([(c.__name__, c) for c in Base.__subclasses__()])

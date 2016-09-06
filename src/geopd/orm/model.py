@@ -44,6 +44,13 @@ user_response_choice_table = Table('user_response_choices', Base.metadata,
 ########################################################################################################################
 
 
+@User.setup
+def _user_setup(user):
+    user.bio = UserBio()
+    for survey in Survey.query:
+        user.surveys[survey.id] = UserSurvey(user, survey)
+
+
 class UserBio(Base):
     id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
     research_interests = Column(Text)
@@ -167,6 +174,10 @@ class Survey(Base):
     def __init__(self, title, description=None):
         self.title = titleize(title)
         self.description = description
+
+    def init_user_surveys(self):
+        for user in User.query:
+            user.surveys[self.id] = UserSurvey(user, self)
 
 
 class SurveyQuestionType(Base):

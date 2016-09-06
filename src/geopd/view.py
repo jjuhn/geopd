@@ -6,19 +6,19 @@ from flask import flash
 from flask import redirect
 from flask import render_template
 from flask_login import login_required
+from inflection import singularize
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
-from inflection import singularize
 
 from can.web import app
-from can.web import web_blueprint as web
 from can.web.email import send_email
 from can.web.form import ChangeAddressForm
 from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
 from geopd.orm.model import *
+from geopd.web import blueprint as web
 
 SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2

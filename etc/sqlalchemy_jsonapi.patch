@@ -1,15 +1,16 @@
 --- sqlalchemy_jsonapi/serializer.py	2016-04-22 21:26:48.000000000 -0700
-+++ sqlalchemy_jsonapi/serializer.py	2016-07-06 12:17:40.000000000 -0700
-@@ -11,6 +11,8 @@
++++ sqlalchemy_jsonapi/serializer.py	2016-08-31 11:09:00.000000000 -0700
+@@ -11,6 +11,9 @@
  from sqlalchemy.exc import IntegrityError
  from sqlalchemy.orm.interfaces import MANYTOONE
  from sqlalchemy.util.langhelpers import iterate_attributes
 +from sqlalchemy.sql import operators
 +from sqlalchemy.orm import joinedload
++from sqlalchemy.orm import RelationshipProperty
  from pprint import pprint
  
  from .errors import (BadRequestError, InvalidTypeForEndpointError,
-@@ -303,6 +305,21 @@
+@@ -303,6 +306,21 @@
          check_permission(resource, relationship.key, permission)
          return relationship
  
@@ -19,9 +20,9 @@
 +
 +        for attr in attr_path.split('.'):
 +            col = getattr(model, attr)
-+            if hasattr(col.prop, 'mapper'):
++            if isinstance(col.prop, RelationshipProperty):
 +                model = col.prop.mapper.class_
-+                collection = collection.join(model)
++                collection = collection.join(col)
 +
 +        if col:
 +            collection = collection.filter(getattr(operators, op)(col, value))
@@ -31,7 +32,7 @@
      def _check_json_data(self, json_data):
          """
          Ensure that the request body is both a hash and has a data key.
-@@ -374,7 +391,7 @@
+@@ -374,7 +392,7 @@
              except PermissionDeniedError:
                  continue
  
@@ -40,7 +41,7 @@
                  if key in local_fields:
                      to_ret['relationships'][api_key] = {
                          'links': self._lazy_relationship(api_type, instance.id,
-@@ -466,7 +483,7 @@
+@@ -466,7 +484,7 @@
          field_args = {
              k: v
              for k, v in query.items() if k.startswith('fields[')
@@ -49,7 +50,7 @@
  
          fields = {}
  
-@@ -475,6 +492,24 @@
+@@ -475,6 +493,24 @@
  
          return fields
  
@@ -74,7 +75,7 @@
      def _parse_include(self, include):
          """
          Parse the querystring args or parent includes for includes.
-@@ -614,12 +649,28 @@
+@@ -614,12 +650,28 @@
          model = self._fetch_model(api_key)
          include = self._parse_include(query.get('include', '').split(','))
          fields = self._parse_fields(query)
@@ -103,3 +104,55 @@
          for attr in sorts:
              if attr == '':
                  break
+@@ -775,7 +827,7 @@
+ 
+         return response
+ 
+-    def patch_relationship(self, session, json_data, api_type, obj_id,
++    def patch_relationship(self, session, query, json_data, api_type, obj_id,
+                            rel_key):
+         """
+         Replacement of relationship values.
+@@ -854,10 +906,10 @@
+         except KeyError:
+             raise ValidationError('Incompatible Type')
+ 
+-        return self.get_relationship(session, {}, model.__jsonapi_type__,
++        return self.get_relationship(session, query, model.__jsonapi_type__,
+                                      resource.id, rel_key)
+ 
+-    def patch_resource(self, session, json_data, api_type, obj_id):
++    def patch_resource(self, session, query, json_data, api_type, obj_id):
+         """
+         Replacement of resource values.
+ 
+@@ -905,7 +957,7 @@
+                     continue
+ 
+                 self.patch_relationship(
+-                    session, json_data['data']['relationships'][api_key],
++                    session, query, json_data['data']['relationships'][api_key],
+                     model.__jsonapi_type__, resource.id, api_key)
+ 
+             data_keys = set(map((lambda x: resource.__jsonapi_map_to_py__.get(x, None)), json_data['data']['attributes'].keys()))
+@@ -931,9 +983,9 @@
+             session.rollback()
+             raise ValidationError('Incompatible data type')
+         return self.get_resource(
+-            session, {}, model.__jsonapi_type__, resource.id)
++            session, query, model.__jsonapi_type__, resource.id)
+ 
+-    def post_collection(self, session, data, api_type):
++    def post_collection(self, session, query, data, api_type):
+         """
+         Create a new Resource.
+ 
+@@ -1067,7 +1119,7 @@
+             raise ValidationError('Incompatible data type')
+         session.refresh(resource)
+         response = self.get_resource(
+-            session, {}, model.__jsonapi_type__, resource.id)
++            session, query, model.__jsonapi_type__, resource.id)
+         response.status_code = 201
+         return response
+ 

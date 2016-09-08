@@ -3,20 +3,28 @@ IDEA additional info:
 Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
---- sqlalchemy_jsonapi/serializer.py	(date 1473358383000)
-+++ sqlalchemy_jsonapi/serializer.py	(date 1473358433000)
-@@ -11,6 +11,10 @@
+--- sqlalchemy_jsonapi/serializer.py	(revision 3312805c1ffbdd2f3f11f3fed24ecf2bcf277023)
++++ sqlalchemy_jsonapi/serializer.py	(revision 86a877c5cf38839b6db8cd7ddd0ac4921087b368)
+@@ -5,13 +5,15 @@
+ MIT License
+ """
+ 
+-from collections import MutableMapping
+ from enum import Enum
+-from inflection import pluralize, dasherize, parameterize, tableize, underscore
++from inflection import dasherize, tableize, underscore
  from sqlalchemy.exc import IntegrityError
- from sqlalchemy.orm.interfaces import MANYTOONE
- from sqlalchemy.util.langhelpers import iterate_attributes
-+from sqlalchemy.sql import operators
-+from sqlalchemy.orm import joinedload
 +from sqlalchemy.orm import RelationshipProperty
++from sqlalchemy.orm import joinedload
 +from sqlalchemy.orm.collections import MappedCollection
- from pprint import pprint
+ from sqlalchemy.orm.interfaces import MANYTOONE
++from sqlalchemy.sql import operators
+ from sqlalchemy.util.langhelpers import iterate_attributes
+-from pprint import pprint
  
  from .errors import (BadRequestError, InvalidTypeForEndpointError,
-@@ -303,6 +307,21 @@
+                      MissingTypeError, NotSortableError, PermissionDeniedError,
+@@ -303,6 +305,21 @@
          check_permission(resource, relationship.key, permission)
          return relationship
  
@@ -38,7 +46,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
      def _check_json_data(self, json_data):
          """
          Ensure that the request body is both a hash and has a data key.
-@@ -374,13 +393,14 @@
+@@ -374,13 +391,14 @@
              except PermissionDeniedError:
                  continue
  
@@ -54,7 +62,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
                  if api_key in include.keys():
                      related = desc(instance)
                      if related is not None:
-@@ -410,6 +430,8 @@
+@@ -410,6 +428,8 @@
                      to_ret['relationships'][api_key]['data'] = []
  
                  related = desc(instance)
@@ -63,7 +71,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
                  for item in related:
                      try:
-@@ -466,7 +488,7 @@
+@@ -466,7 +486,7 @@
          field_args = {
              k: v
              for k, v in query.items() if k.startswith('fields[')
@@ -72,7 +80,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
          fields = {}
  
-@@ -475,6 +497,24 @@
+@@ -475,6 +495,24 @@
  
          return fields
  
@@ -97,7 +105,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
      def _parse_include(self, include):
          """
          Parse the querystring args or parent includes for includes.
-@@ -614,12 +654,28 @@
+@@ -614,12 +652,28 @@
          model = self._fetch_model(api_key)
          include = self._parse_include(query.get('include', '').split(','))
          fields = self._parse_fields(query)
@@ -126,6 +134,15 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
          for attr in sorts:
              if attr == '':
                  break
+@@ -711,6 +765,8 @@
+ 
+         related = get_rel_desc(resource, relationship.key,
+                                RelationshipActions.GET)(resource)
++        if isinstance(related, MappedCollection):
++            related = related.values()
+ 
+         if relationship.direction == MANYTOONE:
+             try:
 @@ -775,7 +831,7 @@
  
          return response

@@ -34,7 +34,9 @@
                 {{ nav_item('/surveys/', 'Surveys') }}
                 {% endif %}
                 {{ nav_item('/users/', 'Members') }}
-                {% if current_user.is_anonymous %}
+                {% if current_user.is_authenticated %}
+                    {{ nav_item('/contact/', 'Feedback') }}
+                {% else %}
                     {{ nav_item('/contact/', 'Contact Us') }}
                 {% endif %}
             </ul>

@@ -12,9 +12,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
 
 from can.web import app
-from can.web.email import send_email
 from can.web.form import ChangeAddressForm
-from geopd.form import ContactForm
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
 from geopd.orm.model import *
@@ -247,19 +245,8 @@ def update_user_biography(user_id):
 
 
 ########################################################################################################################
-# contact us
+# global functionality
 ########################################################################################################################
-@web.route('/contact/', methods=['GET', 'POST'])
-def show_contact():
-    if not current_user.is_anonymous:
-        return redirect(url_for('web.index'))
-
-    form = ContactForm()
-    if form.validate_on_submit():
-        send_email(app.config['APP_CONTACT'], 'Contact Form', 'auth/email/contact', form=form.data)
-        flash('Your message has been submitted. Someone will contact you by email soon.', 'success')
-        return redirect(url_for('web.index'))
-    return render_template('contact.html', form=form)
 
 
 @web.before_request

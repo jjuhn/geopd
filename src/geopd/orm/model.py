@@ -239,7 +239,7 @@ class UserSurvey(Base):
 
     user = relationship(User, uselist=False,
                         backref=backref('surveys', collection_class=attribute_mapped_collection('survey_id')))
-    survey = relationship(Survey, uselist=False)
+    survey = relationship(Survey, uselist=False, backref=backref('user_surveys'))
     responses = relationship('UserResponse', collection_class=attribute_mapped_collection('name'),
                              backref=backref('user_survey', uselist=False))
 
@@ -258,7 +258,11 @@ class UserResponse(Base):
     id = Column(Integer, primary_key=True)
     user_survey_id = Column(Integer, ForeignKey(UserSurvey.id), nullable=False)
     question_id = Column(Integer, ForeignKey(SurveyQuestion.id), nullable=False)
-    question = relationship(SurveyQuestion, uselist=False, lazy='joined')
+    question = relationship(SurveyQuestion, uselist=False, lazy='joined', backref=backref('responses'))
+
+    answer_text = Column(Text)
+    answer_yesno = Column(Boolean)
+    answer_choices = relationship(SurveyQuestionChoice, secondary=user_response_choice_table)
 
     @hybrid_property
     def name(self):
@@ -267,7 +271,3 @@ class UserResponse(Base):
     def __init__(self, user_survey, question):
         self.question = question
         self.user_survey = user_survey
-
-    answer_text = Column(Text)
-    answer_yesno = Column(Boolean)
-    answer_choices = relationship(SurveyQuestionChoice, secondary=user_response_choice_table)

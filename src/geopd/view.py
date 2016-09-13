@@ -80,6 +80,22 @@ def show_publications():
 
 
 ########################################################################################################################
+# surveys
+########################################################################################################################
+@web.route('/surveys/')
+@login_required
+def show_surveys():
+    return render_template('surveys/index.html', surveys=Survey.query.join(Survey.questions)
+                           .options(joinedload('questions')))
+
+
+@web.route('/surveys/<int:survey_id>')
+@login_required
+def show_survey(survey_id):
+    return render_template('surveys/survey.html', survey=Survey.query.get(survey_id))
+
+
+########################################################################################################################
 # cores
 ########################################################################################################################
 @web.route('/cores/')
@@ -100,8 +116,8 @@ def show_core(core_id):
                            cores=Core.query.all())
 
 
-@login_required
 @web.route('/cores/<int:core_id>/posts/', methods=['POST'])
+@login_required
 def create_core_post(core_id):
     form = PostForm()
     if form.validate_on_submit():
@@ -123,8 +139,8 @@ def create_core_post(core_id):
     return redirect(url_for('web.show_core', core_id=core_id))
 
 
-@login_required
 @web.route('/cores/<int:core_id>/posts/<int:post_id>')
+@login_required
 def show_core_post(core_id, post_id):
     post = CorePost.query.get(post_id)
     if not post or post.core_id != core_id:
@@ -132,8 +148,8 @@ def show_core_post(core_id, post_id):
     return render_template('/cores/post.html', post=post)
 
 
-@login_required
 @web.route('/cores/<int:core_id>/posts/<int:post_id>', methods=['POST'])
+@login_required
 def update_core_post(core_id, post_id):
     post = CorePost.query.get(post_id)
     if not post or post.core_id != core_id:

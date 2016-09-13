@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% import "macros/avatar.html" as avatar %}
+
+
+{% block content %}
+    <div class="container-fluid">
+
+        <ol class="breadcrumb">
+            <li><a href="{{ url_for('web.show_surveys') }}">Surveys</a></li>
+            <li>{{ survey.title }}</li>
+        </ol>
+
+        <table id="survey-questions"
+               class="table table-striped table-hover table-condensed"
+               cellspacing="0"
+               width="100%">
+            <thead>
+            <tr>
+                <th>Question</th>
+                <th>Responses ({{ survey.questions.values()[0].responses|length }})</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for question in survey.questions.values()|sort(attribute='order') %}
+                {% if question.type.name == 'choices' %}
+                    <tr id="question-{{ question.id }}" class="info">
+                        <td colspan="2">{{ question.text }}</td>
+                    </tr>
+                    {% for choice in question.choices %}
+                        <tr class="question-{{ question.id }}-choice" data-choice-id="{{ choice.id }}">
+                            <td>{{ choice.label }}</td>
+                            <td class="responses"></td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr id="question-{{ question.id }}" class="info">
+                        <td>{{ question.text }}</td>
+                        <td class="responses"></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+    <script>
+
+        $(document).ready(function () {
+
+            var url = URI('/api/survey-questions/');
+            url.addQuery('include', 'responses,responses.answer-choices');
+            url.addQuery('fields[survey-questions]', 'responses');
+            url.addQuery('fields[user-response-choices]', 'id');
+            url.addQuery('filter[survey.id.eq]', {{ survey.id }});
+
+            $.getJSON(url.readable(), function (json) {
+                var questions = jsonapi.parse_response(json);
+                console.log(questions);
+                $.each(questions, function (i, question) {
+                    var $question = $('#question-' + question.id);
+
+                    // yes no questions
+                    var no = $.map(question.responses, function (response) {
+                        if (response['answer-yesno'] === false) return response;
+                    });
+                    var yes = $.map(question.responses, function (response) {
+                        if (response['answer-yesno'] === true) return response;
+                    });
+                    $question.children('td.responses').html(can.dom.yesno_bar(yes.length, no.length,
+                            question.responses.length));
+
+                    // multiple choice questions
+                    var choices = {};
+                    $.each($('tr.question-' + question.id + '-choice'), function (i, choice) {
+                        choices[$(choice).attr('data-choice-id')] = 0;
+                    });
+                    $.each(question.responses, function (i, response) {
+                        $.each(response['answer-choices'], function (i, choice) {
+                            if (!(choice.id in choices)) {
+                                choices[choice.id] = 1;
+                            } else {
+                                choices[choice.id] += 1;
+                            }
+                        });
+                    });
+                    $.each(choices, function (id, yes) {
+                        $('tr.question-' + question.id + '-choice[data-choice-id="' + id + '"] td.responses').html(
+                                can.dom.yesno_bar(yes, question.responses.length - yes, question.responses.length))
+                    });
+                });
+            });
+        });
+
+    </script>
+{% endblock %}

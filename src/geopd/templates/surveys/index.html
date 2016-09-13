@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h2 class="panel-title">User Surveys</h2>
+            </div>
+            <div class="panel-body">
+                <table id="surveys"
+                       class="table table-striped table-hover table-condensed"
+                       cellspacing="0"
+                       width="100%">
+                    <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Questions</th>
+                        <th>Participants</th>
+                        <th>Last response</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for survey in surveys %}
+                        <tr id="survey-{{ survey.id }}">
+                            <td>
+                                <a href="{{ url_for('web.show_survey', survey_id=survey.id) }}">{{ survey.title }}</a>
+                            </td>
+                            <td>{{ survey.questions|length }}</td>
+                            <td class="responses"></td>
+                            <td class="last_response"></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        $(document).ready(function () {
+
+            var url = URI('/api/surveys/');
+            url.addQuery('include', 'questions,user-surveys,user-surveys.responses');
+            url.addQuery('fields[surveys]', 'title,questions,user-surveys');
+            url.addQuery('fields[user-surveys]', 'responses,completed-on,updated-on');
+            url.addQuery('fields[survey-questions]', 'id');
+            url.addQuery('fields[user-responses]', 'id');
+
+            $.getJSON(url.readable(), function (json) {
+                var surveys = jsonapi.parse_response(json);
+                $.each(surveys, function (i, survey) {
+
+                    var $tr = $('#survey-' + survey.id);
+
+                    var completed = $.map(survey['user-surveys'], function (user_survey) {
+                        if (user_survey['completed-on'] != null) return user_survey;
+                    });
+                    $tr.children('td.responses').html(can.dom.progress(completed.length,
+                            survey['user-surveys'].length));
+                    $tr.children('td.last_response').html(can.dom.datetime($.map(completed, function (user_survey) {
+                        if (user_survey['updated-on'] > user_survey['completed-on']) {
+                            return user_survey['updated-on'];
+                        } else {
+                            return user_survey['completed-on'];
+                        }
+                    }).sort(function (a, b) { return b > a; })[0]));
+                })
+            });
+        });
+
+    </script>
+{% endblock %}

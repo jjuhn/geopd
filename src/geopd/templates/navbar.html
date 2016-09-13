@@ -30,6 +30,9 @@
                 {{ nav_item('/projects/', 'Projects') }}
                 {{ nav_item('/publications/', 'Publications') }}
                 {{ nav_item('/cores/', 'Cores') }}
+                {% if current_user.is_authenticated %}
+                {{ nav_item('/surveys/', 'Surveys') }}
+                {% endif %}
                 {{ nav_item('/users/', 'Members') }}
                 {% if current_user.is_anonymous %}
                     {{ nav_item('/contact/', 'Contact Us') }}
@@ -39,9 +42,9 @@
             <!-- right side -->
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_authenticated %}
-                {% include 'auth/user.html' %}
+                    {% include 'auth/user.html' %}
                 {% else %}
-                {% include 'auth/login.html' %}
+                    {% include 'auth/login.html' %}
                 {% endif %}
             </ul>
 

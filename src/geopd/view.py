@@ -173,11 +173,16 @@ def show_users():
 @web.route('/users/<int:user_id>')
 @login_required
 def show_user(user_id):
+    user = User.query.options(joinedload('avatar'),
+                              joinedload('bio'),
+                              joinedload('address')).filter(User.id == user_id).one()
+
+    if user.status_id != User.STATUS_ACTIVE:
+        abort(404)
+
     survey = Survey.query.get(SURVEY_PROFILE)
     return render_template('users/profile.html',
-                           user=User.query.options(joinedload('avatar'),
-                                                   joinedload('bio'),
-                                                   joinedload('address')).filter(User.id == user_id).one(),
+                           user=user,
                            address_form=ChangeAddressForm(),
                            survey_form=UpdateSurveyForm(),
                            survey=survey)

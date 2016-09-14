@@ -166,7 +166,8 @@ def update_core_post(core_id, post_id):
 def show_users():
     users = User.query.options(joinedload('address'))
     tpl = 'users/public.html' if current_user.is_anonymous else 'users/index.html'
-    return render_template(tpl, users=users)
+    admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
+    return render_template(tpl, users=users, admin=admin)
 
 
 @web.route('/users/<int:user_id>')

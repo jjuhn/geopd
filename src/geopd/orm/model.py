@@ -6,8 +6,6 @@ import os.path
 import pkg_resources
 from flask import url_for
 from inflection import titleize
-from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.schema import Table
 from sqlalchemy.types import Date
 
 from can.web.orm.model import *
@@ -49,6 +47,10 @@ def _user_setup(user):
     user.bio = UserBio()
     for survey in Survey.query:
         user.surveys[survey.id] = UserSurvey(user, survey)
+
+
+class Permission(PermissionMixin, Base):
+    pass
 
 
 class UserBio(Base):

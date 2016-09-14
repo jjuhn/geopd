@@ -20,6 +20,8 @@ def init_db():
     Base.metadata.drop_all(db.bind)
     Base.metadata.create_all(db.bind)
 
+    db.add(Permission(Permission.MANAGE_USER_ACCOUNT, 'Manage User Accounts'))
+
     db.add(UserStatus(User.STATUS_PENDING, 'Pending'))
     db.add(UserStatus(User.STATUS_ACTIVE, 'Active'))
     db.add(UserStatus(User.STATUS_DISABLED, 'Disabled'))

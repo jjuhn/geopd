@@ -23,11 +23,15 @@
                                width="100%">
                             <thead>
                             <tr>
+                                {% if admin %}
+                                    <th></th>{% endif %}
                                 <th>Name</th>
                                 <th>Institution</th>
                                 <th>City</th>
                                 <th>Member since</th>
                                 <th>Last seen</th>
+                                {% if admin %}
+                                    <th>Status</th>{% endif %}
                             </tr>
                             </thead>
                         </table>
@@ -98,18 +102,64 @@
         $(document).ready(function () {
 
             var url = URI('/api/users/');
-            url.addQuery('include', 'name,address');
-            url.addQuery('fields[users]', 'name,address,created-on,last-seen');
+            url.addQuery('include', 'name,address,status');
+            url.addQuery('fields[users]', 'name,address,created-on,last-seen,status');
             url.addQuery('fields[user-names]', 'formal');
             url.addQuery('fields[user-addresses]', 'institution,city,country');
+            {% if not admin %}
+                url.addQuery('filter[status_id.eq]', {{  current_user.STATUS_ACTIVE }});
+            {% endif %}
+
 
             $.getJSON(url.readable(), function (json) {
-                $('#users').DataTable({
+                var table = $('#users').DataTable({
+                    {% if admin %}
+                        buttons: [{
+                            text: 'Activate',
+                            className: 'btn btn-success',
+                            action: function (e, dt, node, config) {
+                                var users = [];
+                                dt.rows('.selected').data().each(function (user) {
+                                    users.push(user.id);
+                                });
+                                $.post("{{ url_for('can.update_users_status') }}",
+                                        {users: users, status: 1}).done(function () {
+                                    window.location = "{{ url_for('web.show_users') }}";
+                                });
+                            }
+                        }, {
+                            text: 'Disable',
+                            className: 'btn btn-danger',
+                            action: function (e, dt, node, config) {
+                                var users = [];
+                                dt.rows('.selected').data().each(function (user) {
+                                    users.push(user.id);
+                                });
+                                $.post("{{ url_for('can.update_users_status') }}",
+                                        {users: users, status: 2}).done(function () {
+                                    window.location = "{{ url_for('web.show_users') }}";
+                                });
+                            }
+                        }],
+                        select: {
+                            style: 'multi',
+                            selector: 'td:first-child'
+                        },
+                    {% endif %}
                     data: jsonapi.parse_response(json),
                     columns: [
+                        {% if admin %}
+                            {
+                                data: function (subject) {
+                                    return '';
+                                },
+                                orderable: false,
+                                className: 'select-checkbox',
+                            },
+                        {% endif %}
                         {
                             data: function (user) {
-                                return can.dom.link('{{ url_for('web.show_users') }}/' + user.id, user.name.formal);
+                                return can.dom.link('{{ url_for('web.show_users') }}' + user.id, user.name.formal);
                             }
                         },
                         {
@@ -130,6 +180,13 @@
                                 return can.dom.datetime(user['last-seen']);
                             }
                         },
+                        {% if admin %}
+                            {
+                                data: function (user) {
+                                    return can.dom.user_status(user);
+                                }
+                            }
+                        {% endif %}
                     ],
 
                     paging: true,
@@ -138,6 +195,11 @@
                     order: [[0, 'asc']],
                     deferRender: true,
                 });
+
+                {% if admin %}
+                    table.buttons().container().find('a.btn').removeClass('dt-button');
+                    table.buttons().container().appendTo($('.col-sm-6:eq(0) div', table.table().container()));
+                {% endif %}
             });
 
             $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {

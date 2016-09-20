@@ -7,7 +7,10 @@ import dateutil.parser
 import pkg_resources
 import os.path
 import Bio.Entrez
-from inflection import singularize, underscore, camelize
+from inflection import singularize
+from inflection import underscore
+from inflection import camelize
+from inflection import pluralize
 
 
 ########################################################################################################################
@@ -17,14 +20,13 @@ from inflection import singularize, underscore, camelize
 
 def init_db():
 
-    Base.metadata.drop_all(db.bind)
-    Base.metadata.create_all(db.bind)
+    for status in User.STATUS:
+        db.add(UserStatus(status.value, titleize(status.name)))
+    db.flush()
 
-    db.add(Permission(Permission.MANAGE_USER_ACCOUNT, 'Manage User Accounts'))
-
-    db.add(UserStatus(User.STATUS_PENDING, 'Pending'))
-    db.add(UserStatus(User.STATUS_ACTIVE, 'Active'))
-    db.add(UserStatus(User.STATUS_DISABLED, 'Disabled'))
+    for permission in PERMISSION:
+        db.add(Permission(permission.value, pluralize(titleize(permission.name))))
+    db.flush()
 
     users_fn = pkg_resources.resource_filename('geopd.orm', os.path.join('data', 'users.tsv'))
     with open(users_fn, 'rU') as users_stream:

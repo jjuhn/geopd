@@ -107,7 +107,7 @@
             url.addQuery('fields[user-names]', 'formal');
             url.addQuery('fields[user-addresses]', 'institution,city,country');
             {% if not admin %}
-                url.addQuery('filter[status_id.eq]', {{  current_user.STATUS_ACTIVE }});
+                url.addQuery('filter[status_id.eq]', {{  current_user.STATUS.ACTIVE.value }});
             {% endif %}
 
 

@@ -5,7 +5,6 @@ import os.path
 
 import pkg_resources
 from flask import url_for
-from inflection import titleize
 from sqlalchemy.types import Date
 
 from can.web.orm.model import *
@@ -49,8 +48,9 @@ def _user_setup(user):
         user.surveys[survey.id] = UserSurvey(user, survey)
 
 
-class Permission(PermissionMixin, Base):
-    pass
+@enum.unique
+class PERMISSION(enum.IntEnum):
+    MANAGE_USER_ACCOUNT = Permission.MANAGE_USER_ACCOUNT
 
 
 class UserBio(Base):

@@ -4,7 +4,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 <+>UTF-8
 ===================================================================
 --- sqlalchemy_jsonapi/serializer.py	(revision 3312805c1ffbdd2f3f11f3fed24ecf2bcf277023)
-+++ sqlalchemy_jsonapi/serializer.py	(revision 6103e6e3ff3ba00f9a037154244de89763298f9e)
++++ sqlalchemy_jsonapi/serializer.py	(revision e04654a770698ba0098724945973068593c33511)
 @@ -5,13 +5,15 @@
  MIT License
  """
@@ -24,7 +24,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
  from .errors import (BadRequestError, InvalidTypeForEndpointError,
                       MissingTypeError, NotSortableError, PermissionDeniedError,
-@@ -303,6 +305,21 @@
+@@ -303,6 +305,24 @@
          check_permission(resource, relationship.key, permission)
          return relationship
  
@@ -33,20 +33,23 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 +        col = None
 +
 +        for attr in attr_path.split('.'):
-+            col = getattr(model, attr)
++            col = getattr(model, underscore(attr))
 +            if isinstance(col.prop, RelationshipProperty):
 +                model = col.prop.mapper.class_
 +                collection = collection.join(col)
 +
 +        if col:
-+            collection = collection.filter(getattr(operators, op)(col, value))
++            if hasattr(col, op):
++                collection = collection.filter(getattr(col, op)(value))
++            else:
++                collection = collection.filter(getattr(operators, op)(col, value))
 +
 +        return collection
 +
      def _check_json_data(self, json_data):
          """
          Ensure that the request body is both a hash and has a data key.
-@@ -374,13 +391,14 @@
+@@ -374,13 +394,14 @@
              except PermissionDeniedError:
                  continue
  
@@ -62,7 +65,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
                  if api_key in include.keys():
                      related = desc(instance)
                      if related is not None:
-@@ -410,6 +428,8 @@
+@@ -410,6 +431,8 @@
                      to_ret['relationships'][api_key]['data'] = []
  
                  related = desc(instance)
@@ -71,7 +74,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
                  for item in related:
                      try:
-@@ -466,7 +486,7 @@
+@@ -466,7 +489,7 @@
          field_args = {
              k: v
              for k, v in query.items() if k.startswith('fields[')
@@ -80,7 +83,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
          fields = {}
  
-@@ -475,6 +495,24 @@
+@@ -475,6 +498,24 @@
  
          return fields
  
@@ -105,7 +108,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
      def _parse_include(self, include):
          """
          Parse the querystring args or parent includes for includes.
-@@ -614,12 +652,24 @@
+@@ -614,12 +655,24 @@
          model = self._fetch_model(api_key)
          include = self._parse_include(query.get('include', '').split(','))
          fields = self._parse_fields(query)
@@ -130,7 +133,16 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
          for attr in sorts:
              if attr == '':
                  break
-@@ -711,6 +761,8 @@
+@@ -707,18 +760,27 @@
+         py_key = resource.__jsonapi_map_to_py__[rel_key]
+         relationship = self._get_relationship(resource, py_key,
+                                               Permissions.VIEW)
++
++        include = self._parse_include(query.get('include', '').split(','))
++        fields = self._parse_fields(query)
++        included = {}
++
+         response = JSONAPIResponse()
  
          related = get_rel_desc(resource, relationship.key,
                                 RelationshipActions.GET)(resource)
@@ -139,7 +151,36 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
  
          if relationship.direction == MANYTOONE:
              try:
-@@ -775,7 +827,7 @@
+                 if related is None:
+                     response.data['data'] = None
+                 else:
+-                    response.data['data'] = self._render_full_resource(related,
+-                                                                       {}, {})
++                    built = self._render_full_resource(related, include, fields)
++                    response.data['included'] = list(built.pop('included').values())
++                    response.data['data'] = built
++
+             except PermissionDeniedError:
+                 response.data['data'] = None
+         else:
+@@ -726,11 +788,14 @@
+ 
+             for item in related:
+                 try:
+-                    response.data['data'].append(
+-                        self._render_full_resource(item, {}, {}))
++                    built = self._render_full_resource(item, include, fields)
++                    included.update(built.pop('included'))
++                    response.data['data'].append(built)
+                 except PermissionDeniedError:
+                     continue
+ 
++            response.data['included'] = list(included.values())
++
+         return response
+ 
+     def get_relationship(self, session, query, api_type, obj_id, rel_key):
+@@ -775,7 +840,7 @@
  
          return response
  
@@ -148,7 +189,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
                             rel_key):
          """
          Replacement of relationship values.
-@@ -854,10 +906,10 @@
+@@ -854,10 +919,10 @@
          except KeyError:
              raise ValidationError('Incompatible Type')
  
@@ -161,7 +202,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
          """
          Replacement of resource values.
  
-@@ -905,7 +957,7 @@
+@@ -905,7 +970,7 @@
                      continue
  
                  self.patch_relationship(
@@ -170,7 +211,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
                      model.__jsonapi_type__, resource.id, api_key)
  
              data_keys = set(map((lambda x: resource.__jsonapi_map_to_py__.get(x, None)), json_data['data']['attributes'].keys()))
-@@ -931,9 +983,9 @@
+@@ -931,9 +996,9 @@
              session.rollback()
              raise ValidationError('Incompatible data type')
          return self.get_resource(
@@ -182,7 +223,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
          """
          Create a new Resource.
  
-@@ -1067,7 +1119,7 @@
+@@ -1067,7 +1132,7 @@
              raise ValidationError('Incompatible data type')
          session.refresh(resource)
          response = self.get_resource(

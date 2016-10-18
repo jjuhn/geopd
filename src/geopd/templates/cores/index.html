@@ -4,14 +4,13 @@
     <div class="container-fluid">
 
         {% include "cores/header.html" %}
-
         {% if core.survey and not current_user.surveys[core.survey.id].completed_on %}
 
             {% include "cores/survey.html" %}
 
         {% else %}
 
-            <div class="row">
+              <div class="row">
                 <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
                     <img class="img-circle img-responsive" width="240" src="{{ core.image_url }}" alt="{{ core.name }}">
                 </div>

@@ -27,16 +27,16 @@ input[type=checkbox] ~ span {
     margin-right: 1em;
 }
 
-.promo-tokyo {
+.promo {
     border-top-right-radius: 75px;
     border-bottom-left-radius: 75px;
 }
 
-.promo-tokyo img {
+.promo img {
     border-top-right-radius: 75px;
 }
 
-.promo-tokyo h2 {
+.promo h2 {
     color: #990000;
     font-weight: bold;
 }

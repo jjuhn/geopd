@@ -22,10 +22,6 @@ QUESTION_TYPE_CHOICES = 4
 ########################################################################################################################
 
 
-project_investigator_table = Table('project_investigators', Base.metadata,
-                                   Column('project_id', Integer, ForeignKey('projects.id'), primary_key=True),
-                                   Column('investigator_id', Integer, ForeignKey('users.id'), primary_key=True))
-
 core_leader_table = Table('core_leaders', Base.metadata,
                           Column('core_id', Integer, ForeignKey('cores.id'), primary_key=True),
                           Column('leader_id', Integer, ForeignKey('users.id'), primary_key=True))
@@ -34,6 +30,11 @@ user_response_choice_table = Table('user_response_choices', Base.metadata,
                                    Column('response_id', Integer, ForeignKey('user_responses.id'), primary_key=True),
                                    Column('choice_id', Integer, ForeignKey('survey_question_choices.id'),
                                           primary_key=True))
+
+
+compost_affiliation_table = Table('com_posts_affiliations', Base.metadata,
+                                     Column('com_post_id', Integer, ForeignKey('com_posts.id'), primary_key=True),
+                                     Column('affiliation_id', Integer, ForeignKey('affiliations.id'), primary_key=True))
 
 
 ########################################################################################################################
@@ -64,14 +65,79 @@ class UserBio(Base):
 class Project(Base):
     id = Column(Integer, primary_key=True)
     name = Column(Text, unique=True, nullable=False)
-    description = Column(Text, unique=True, nullable=False)
+    summary = Column(Text, unique=True, nullable=False)
+    description = Column(Text, nullable=False)
 
-    investigators = relationship(User, secondary=project_investigator_table)
+    members = relationship(User, secondary=lambda:ProjectMember.__table__, backref=backref('mprojects'))
 
-    def __init__(self, name, description, investigators=list()):
+    def __init__(self, name, summary, description, investigators=list()):
         self.name = name
+        self.summary = summary
         self.description = description
         self.investigators = investigators
+
+
+class ProjectMember(Base):
+    project_id = Column(Integer, ForeignKey(Project.id), primary_key=True, autoincrement=False)
+    member_id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
+    investigator = Column(Boolean, default=False)
+
+    def __init__(self, project_id, user_id, investigator):
+        self.project_id = project_id
+        self.member_id = user_id
+        self.investigator = investigator
+
+
+class ProjectPost(Base):
+    id = Column(Integer, primary_key=True,)
+    title = Column(Text, nullable=False)
+    body = Column(Text, nullable=False)
+    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = Column(DateTime)
+    author_id = Column(Integer, ForeignKey(User.id))
+    project_id = Column(Integer, ForeignKey(Project.id))
+
+    author = relationship(User, foreign_keys=[author_id], backref=backref('project_posts'))
+    project = relationship(Project, foreign_keys=[project_id], backref=backref('posts'))
+
+    def __init__(self, title, body):
+        self.title = title
+        self.body = body
+        self.author = current_user
+
+
+class ComPost(Base):
+    id = Column(Integer, primary_key=True,)
+    title = Column(Text, nullable=False)
+    body = Column(Text, nullable=False)
+    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = Column(DateTime)
+    author_id = Column(Integer, ForeignKey(User.id))
+
+    author = relationship(User, foreign_keys=[author_id], backref=backref('com_posts'))
+    affiliations = relationship(lambda:Affiliation, secondary=compost_affiliation_table)
+
+    def __init__(self, title, body):
+        self.title = title
+        self.body = body
+        self.author = current_user
+
+
+class ComPostComment(CommentMixin, Base):
+    com_post_id = Column(Integer, ForeignKey(ComPost.id), nullable=True)
+    com_post = relationship(ComPost, backref=backref('comments'))
+
+
+class ProjectPostComment(CommentMixin, Base):
+    project_post_id = Column(Integer, ForeignKey(ProjectPost.id), nullable=True)
+    project_post = relationship(ProjectPost, backref=backref('comments'))
+
+
+class Affiliation(Base):
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False, unique=True)
+    hidden = Column(Boolean, nullable=False)
+    # posts = relationship(ComPost, secondary=compost_affiliation_table)
 
 
 class Publication(Base):
@@ -273,3 +339,4 @@ class UserResponse(Base):
     def __init__(self, user_survey, question):
         self.question = question
         self.user_survey = user_survey
+

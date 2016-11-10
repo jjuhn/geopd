@@ -3,20 +3,27 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <h1 class="page-header">Projects</h1>
+        <div class="col-md-offset-1 col-md-10">
+            <h1 class="page-header text-primary">Projects</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+            <img class="img-circle img-responsive" width="240" src="/geopd/images/projects/projects.jpg" alt="projects">
+        </div>
+        <div class="col-md-8">
             <table class="table table-striped">
                 {% for project in projects %}
                 <tr>
                     <td>
                         <div>
-                            <h3 class="text-primary">{{ project.name }}</h3>
+                            <h3 class="text-primary"><a href="{{project.id}}">{{ project.name }}</a></h3>
                             <p class="text-muted">
-                                {% for user in project.investigators %}
+                                {% for user in project.members %}
                                     <em>{{ user.name.full }}</em>{% if not loop.last %}, {% endif %}
                                 {% endfor %}
                             </p>
-                            <p>{{ project.description }}</p>
+                            <p>{{ project.summary }}</p>
                         </div>
                     </td>
                 </tr>

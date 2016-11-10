@@ -1,25 +1,36 @@
 from random import randint
+import markdown
 
 from flask import Markup
 from flask import abort
 from flask import flash
 from flask import redirect
 from flask import render_template
+from flask import send_from_directory
 from flask_login import login_required
 from inflection import singularize
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
+from sqlalchemy import desc
 
 from can.web import app
 from can.web.form import ChangeAddressForm
+from can.web.email import send_email
+
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
+from geopd.form import ProjectPostForm
+from geopd.form import ModalForm
+from werkzeug.utils import secure_filename
+
 from geopd.orm.model import *
 from geopd.web import blueprint as web
 
 SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2
+SURVEY_COMMUNICATION = 3
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 
 ########################################################################################################################
@@ -65,8 +76,97 @@ def show_meeting(id):
 ########################################################################################################################
 @web.route('/projects/')
 def show_projects():
-    return render_template('projects.html', projects=Project.query.all())
+    return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all())
 
+def make_tree(path):
+    tree = dict(name=os.path.basename(path), children=[])
+    try:
+        lst = os.listdir(path)
+    except OSError:
+        pass #ignore errors
+    else:
+        for name in lst:
+            name = name.decode('utf8').encode('ascii', 'ignore')
+            fn = os.path.join(path, name)
+            if os.path.isdir(fn):
+                tree['children'].append(make_tree(fn))
+            else:
+                tree['children'].append(dict(name=name))
+    return tree
+
+
+@web.route('/projects/<int:project_id>')
+@login_required
+def show_project(project_id):
+    admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
+
+    p = Project.query.get(project_id)
+    pm = ProjectMember.query\
+        .filter(ProjectMember.project_id == project_id)\
+        .filter(ProjectMember.member_id == current_user.id)\
+        .filter(ProjectMember.investigator == True).count()
+
+    is_member = True if current_user in p.members else False
+    is_investigator = True if pm > 0 else False
+
+    tree = make_tree(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id)))
+    filename = os.path.join('texts', '{0}.md'.format(project_id))
+    file_path = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
+
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            content = Markup(markdown.markdown(f.read()))
+            return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
+                           is_member=is_member, is_investigator=is_investigator, tree=tree, content=content, admin=admin)
+
+    return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
+                           is_member=is_member, is_investigator=is_investigator, tree=tree, content="", admin=admin)
+
+
+@web.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
+@web.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
+@login_required
+def send_file(project_id, dir, subdir, filename):
+    return send_from_directory(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id), dir, subdir), filename)
+
+
+@web.route('/projects/<int:project_id>/manage')
+@login_required
+def show_manage_project(project_id):
+    return render_template('projects/manage_members.html', project=Project.query.get(project_id))
+
+
+@web.route('/projects/<int:project_id>/manage', methods=['POST'])
+@login_required
+def update_project_members(project_id):
+    user_ids = [int(user_id) for user_id in request.form.getlist('users[]')]
+    invs = ProjectMember.query \
+        .filter(ProjectMember.project_id == project_id) \
+        .filter(ProjectMember.member_id.in_(user_ids)) \
+        .filter(ProjectMember.investigator == True).all()
+    inv_user_ids = [int(inv.member_id) for inv in invs]
+    user_ids = list(set(user_ids) - set(inv_user_ids))
+
+    for user_id in user_ids:
+        db.merge(ProjectMember(project_id, user_id, False))
+        db.flush()
+    db.commit()
+
+    return '', 204
+
+
+@web.route('/projects/<int:project_id>/manage/remove', methods=['POST'])
+@login_required
+def remove_project_members(project_id):
+    user_ids = [int(user_id) for user_id in request.form.getlist('users[]')]
+
+    ProjectMember.query\
+        .filter(ProjectMember.member_id.in_(user_ids))\
+        .filter(ProjectMember.project_id == project_id)\
+        .filter(ProjectMember.investigator == False).delete(synchronize_session='fetch')
+    db.commit()
+
+    return '', 204
 
 ########################################################################################################################
 # publications
@@ -112,6 +212,193 @@ def show_core(core_id):
     return render_template('cores/public/index.html',
                            core=Core.query.get(core_id),
                            cores=Core.query.all())
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
+@web.route('/projects/<int:project_id>/posts/', methods=['POST'])
+@login_required
+def create_project_post(project_id):
+    form = PostForm()
+
+    if form.validate_on_submit():
+        project = Project.query.options(noload('posts')).get(project_id)
+        uploaded_files = request.files.getlist("project_upload[]")
+
+        title, body = (request.form.get(key) for key in ('title', 'body'))
+
+        if not title:
+            flash('Please provide a post title', 'danger')
+        elif not body:
+            flash('Please provide post content', 'danger')
+        else:
+            new_post = ProjectPost(title, body)
+            project.posts.append(new_post)
+            db.flush()
+
+            try:
+                db.commit()
+            except SQLAlchemyError:
+                flash('Error creating the post. Please try again later.', 'danger')
+            else:
+                if uploaded_files:
+                    for f in uploaded_files:
+                        if allowed_file(f.filename):
+                            filename = secure_filename(f.filename)
+                            save_path = os.path.join(app.config['UPLOAD_FOLDER'], "project_post_uploads",
+                                                     str(project_id), str(new_post.id))
+                            if not os.path.exists(save_path):
+                                os.makedirs(save_path)
+                            f.save(os.path.join(save_path, filename))
+
+                for user in project.members:
+                    if not user == current_user:
+                        send_email(user.email, "GEoPD - {0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
+
+
+
+    return redirect(url_for('web.show_project', project_id=project_id))
+
+
+@web.route('/projects/<int:project_id>/posts/<int:post_id>')
+@login_required
+def show_project_post(project_id, post_id):
+    post = ProjectPost.query.get(post_id)
+    if not post or post.project_id != project_id:
+        abort(404)
+
+    uploaded_path = os.path.join(app.config['UPLOAD_FOLDER'], "project_post_uploads", str(project_id), str(post_id))
+    uploaded_files = []
+    if os.path.exists(uploaded_path):
+        uploaded_files = [f for f in os.listdir(uploaded_path)]
+
+    return render_template('/projects/post.html', post=post, uploaded_files=uploaded_files)
+
+
+@web.route('/projects/<int:project_id>/posts/<int:post_id>', methods=['POST'])
+@login_required
+def update_project_post(project_id, post_id):
+    post = ProjectPost.query.get(post_id)
+    if not post or post.project_id != project_id:
+        abort(404)
+
+    post.body = request.form.get('body')
+    post.updated_on = datetime.utcnow()
+    db.commit()
+    return '', 204
+
+
+@web.route('/projects/<int:project_id>/<int:post_id>/<string:filename>')
+@login_required
+def send_post_file(project_id, post_id, filename):
+    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], "project_post_uploads", str(project_id), str(post_id)), filename)
+
+
+@web.route('/communications/')
+def show_communications():
+    if current_user.is_authenticated:
+        return render_template('communications/index.html', form=PostForm(), affiliations=Affiliation.query.order_by(Affiliation.id).all())
+
+    return render_template('communications/public/index.html')
+
+
+@web.route('/communications/posts', methods=['POST'])
+@login_required
+def create_communications_post():
+    form = PostForm()
+
+    if form.validate_on_submit():
+        uploaded_files = request.files.getlist("communications_post_upload[]")
+        title, body = (request.form.get(key) for key in ('title', 'body'))
+        aff = request.form.getlist('affiliations')
+
+        if not title:
+            flash('Please provide a post title', 'danger')
+        elif not body:
+            flash('Please provide post content', 'danger')
+        else:
+            new_post = ComPost(title, body)
+
+            if not aff:
+                aff = [Affiliation.query.filter(Affiliation.name=='General').first().id]
+
+            # adding records to association table using many to many relationship.
+            affs = Affiliation.query.filter(Affiliation.id.in_(aff)).all()
+            aff_names = [item.name for item in affs]
+
+            new_post.affiliations = affs
+
+            db.add(new_post)
+            db.flush()
+
+            try:
+                db.commit()
+            except SQLAlchemyError:
+                flash('Error creating the post. Please try again later.', 'danger')
+            else:
+                if uploaded_files:
+                    for f in uploaded_files:
+                        if allowed_file(f.filename):
+                            filename = secure_filename(f.filename)
+                            save_path = os.path.join(app.config['UPLOAD_FOLDER'],
+                                                     "communication_post_uploads", str(new_post.id))
+                            if not os.path.exists(save_path):
+                                os.makedirs(save_path)
+                            f.save(os.path.join(save_path, filename))
+
+                sq = SurveyQuestion.query.filter(SurveyQuestion.name=='communications').first()
+                responses = sq.responses
+
+                users_aff = []
+                for user_response in responses:
+                    for choice in user_response.answer_choices:
+                        if choice.label in aff_names:
+                            users_aff.append(user_response.user_survey.user)
+
+                if users_aff:
+                    users_aff = set(users_aff)
+                    users_aff.remove(current_user)
+                    users_aff = list(users_aff)
+                    if users_aff:
+                        for user in users_aff:
+                            send_email(user.email, "GEoPD Communications Board Updated", "email/communications_board_update",
+                                   user=user, current_user=current_user)
+
+    return redirect(url_for('web.show_communications'))
+
+
+@web.route('/communications/posts/<int:post_id>')
+@login_required
+def show_communications_post(post_id):
+    post = ComPost.query.get(post_id)
+
+    uploaded_path = os.path.join(app.config['UPLOAD_FOLDER'],"communication_post_uploads", str(post_id))
+    uploaded_files = []
+
+    if os.path.exists(uploaded_path):
+        uploaded_files = [f for f in os.listdir(uploaded_path)]
+
+    return render_template('/communications/post.html', post=post, uploaded_files=uploaded_files)
+
+
+@web.route('/communications/posts/<int:post_id>', methods=['POST'])
+@login_required
+def update_communications_post(post_id):
+    post = ComPost.query.get(post_id)
+
+    post.body = request.form.get('body')
+    post.updated_on = datetime.utcnow()
+    db.commit()
+
+    return '', 204
+
+
+@web.route('/communications/<int:post_id>/<string:filename>')
+@login_required
+def send_communications_post_file(post_id, filename):
+    return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"],"communication_post_uploads", str(post_id)), filename)
 
 
 @web.route('/cores/<int:core_id>/posts/', methods=['POST'])
@@ -181,12 +468,16 @@ def show_user(user_id):
         abort(404)
 
     survey = Survey.query.get(SURVEY_PROFILE)
+    communication_survey = Survey.query.get(SURVEY_COMMUNICATION)
+
+    affiliations = Affiliation.query.filter(Affiliation.hidden==False).order_by(Affiliation.id).all()
+
     return render_template('users/profile.html',
                            user=user,
                            address_form=ChangeAddressForm(),
                            survey_form=UpdateSurveyForm(),
-                           survey=survey)
-
+                           survey=survey,
+                           communication_survey=communication_survey)
 
 @web.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
 @login_required
@@ -201,7 +492,7 @@ def update_user_survey(user_id, survey_id):
         user_survey = current_user.surveys[survey_id]
 
         for name in user_survey.survey.questions.keys():
-
+            print name
             question = user_survey.survey.questions[name]
             response = user_survey.responses[name] if name in user_survey.responses \
                 else UserResponse(user_survey, question)

@@ -1,0 +1,14 @@
+{% extends "projects/project_base.html" %}
+{% set project_name = "Communications" %}
+{% set image_url = "/geopd/images/communications/communications.jpg" %}
+{% from "macros/communications_discussion_board.html" import create_discussion_board %}
+
+{% block project_content %}
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">Discussion Board</div>
+        <div class="panel-body">{{ create_discussion_board(form, affiliations) }}</div>
+    </div>
+</div>
+
+{% endblock %}

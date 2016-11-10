@@ -1,0 +1,25 @@
+{% extends "projects/project_base.html" %}
+{% set project_name = project.name %}
+{% set image_url = url_for('web.static', filename='images/projects/') + project.name + ".jpg" %}
+
+{% from "macros/synuclein_multiplication.html" import make_accordion %}
+{% from "macros/project_discussion_board.html" import create_project_discussion_board %}
+
+{% block project_content %}
+    {% if is_investigator or admin %}
+        <p align="right">
+            <input id="manage"
+                   type="button"
+                   class="btn btn-primary"
+                   value="Manage Users"
+                   onclick="window.location='{{ url_for('web.show_manage_project', project_id=project.id) }}';">
+        </p>
+    {% endif %}
+
+    {% if project.id == 6 %}
+        {{ make_accordion(project, is_member, form, tree, content) }}
+    {% else %}
+        {{ create_project_discussion_board(project, form) }}
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,114 @@
+{% macro create_project_discussion_board(project, form) %}
+
+<ul class="nav nav-tabs">
+    <li role="presentation" class="active">
+        <a id="posts-tab" href="#posts-pane" role="tab" data-toggle="tab">Posts
+        <span id="posts-count" class="badge"></span>
+        </a>
+    </li>
+    <li role="presentation">
+        <a id="create-tab" href="#create-pane" role="tab" data-toggle="tab">Create new post</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane fade in active" id="posts-pane">
+        <table id="post-table" class="table" width="100%">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Created</th>
+                    <th>Modified</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="create-pane">
+        <form id="post-form" role="form"
+              action="{{ url_for('web.create_project_post', project_id=project.id) }}"
+              enctype="multipart/form-data"
+              method="post">
+            {{ form.csrf_token() }}
+            <div class="form-group">
+                <input class="form-control" type="text"
+                       placeholder="{{ form.title.label.text }}"
+                       value="{{ request.form.title }}"
+                       id="{{ form.title.id }}" name="{{ form.title.name }}"
+                       required="required"/>
+                <div class="help-block with-errors"></div>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control"
+                          placeholder="{{ form.body.label.text }}"
+                          id="{{ form.body.id }}" name="{{ form.body.name }}"
+                          rows="10"
+                          required="required"
+                          data-provide="markdown">{{ request.form.body }}</textarea>
+
+                <div class="help-block with-errors"></div>
+            </div>
+            <div class="form-group">
+                <input id="project_upload" name="project_upload[]" multiple type="file" class="file-loading">
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#project_upload").fileinput({
+                maxFilePreviewSize: 10240,
+                showUpload: false,
+                browseOnZoneClick: true,
+                previewFileIcon: '<i class="fa fa-file"></i>',
+                allowedPreviewTypes: ['image', 'text'], // allow only preview of image & text files
+                previewFileIconSettings: {
+                    'docx': '<i class="fa fa-file-word-o text-primary"></i>',
+                    'xlsx': '<i class="fa fa-file-excel-o text-success"></i>',
+                    'pptx': '<i class="fa fa-file-powerpoint-o text-danger"></i>',
+                    'pdf': '<i class="fa fa-file-pdf-o text-danger"></i>',
+                    'zip': '<i class="fa fa-file-archive-o text-muted"></i>',
+                }
+        });
+
+        var url = URI('/api/project-posts/');
+        url.addQuery('include', 'author,author.name');
+        url.addQuery('filter[project.id.eq]',{{ project.id }});
+
+        $.getJSON(url.readable(), function(json){
+            var posts = jsonapi.parse_response(json, 2);
+            $('#posts-count').text(posts.length);
+
+            var table = $('#post-table').DataTable({
+                data: posts,
+                columns:[
+                    {
+                        data: function(post){
+                            return can.dom.link('{{url_for('web.show_project', project_id=project.id) }}/posts/' + post.id, post.title);
+                        }
+                    },
+                    {
+                        data: function(post){
+                            return can.dom.link('{{ url_for('web.show_users') }}' + post.author.id, post.author.name.first + ' ' +post.author.name.last);
+
+                        }
+                    },
+                    {
+                        data: 'created-on',
+                        render: can.dom.datetime,
+                    },
+                    {
+                        data: 'updated-on',
+                        render: can.dom.datetime,
+                    }
+                ]
+                })
+        })
+    });
+</script>
+
+
+{% endmacro %}

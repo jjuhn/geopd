@@ -1,0 +1,11 @@
+Dear {{ user.name.first }}
+
+{{ current_user.name.full }} has created a thread you have subscribed to.
+
+This thread is located at: {{ url_for('web.show_communications', _external=True) }}
+
+Sincerely,
+
+The {{ config.APP_NAME }} Team
+
+Note: replies to this email address are not monitored.

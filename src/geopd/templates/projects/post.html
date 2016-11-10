@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-9 col-md-offset-1">
+                <ol class="breadcrumb">
+                    <li><a href="{{ url_for('web.show_projects') }}">Projects</a></li>
+                    <li><a href="{{ url_for('web.show_project', project_id=post.project.id) }}">{{ post.project.name }}</a></li>
+                    <li>{{ post.title }}</li>
+                </ol>
+
+                <h1 class="page-header text-primary" >{{ post.title }}</h1>
+                <p class="well well-sm text-muted">
+                    <em>Created
+                        <time data-moment="{{ post.created_on.isoformat() }}Z"></time>
+                        by
+                        {% if post.author.id == current_user.id %}
+                            you
+                        {% else %}
+                            <a href="{{ url_for('web.show_user', user_id=post.author.id) }}">{{ post.author.name.full }}</a>
+                        {% endif %}
+                    </em>
+                    {% if post.updated_on %}
+                        <span class="label label-primary pull-right">Edited
+                        <time data-moment="{{ post.updated_on.isoformat() }}Z"></time>
+                    </span>
+                    {% endif %}
+                </p>
+
+                {% if post.author.id == current_user.id %}
+                    <p class="alert alert-info alert-dismissible" role="alert">
+                        <span class="close" data-dismiss="alert">&times;</span>
+                        Double click on the post to edit in place.
+                    </p>
+                {% endif %}
+                <div class="panel-group">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Post</div>
+                        <div class="panel-body" id="post-edit">
+                            <div id="post">{{ post.body|md2html|safe }}</div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Attachments</div>
+                        <div class="panel-body" id="post-attach">
+                            {% for file in uploaded_files %}
+                            <li><a href="/projects/{{post.project.id}}/{{post.id}}/{{file}}" download> {{ file }} </a></li>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+                <h4 class="text-muted">User comments</h4>
+                <hr/>
+                <div id="post-comments"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+
+            {% if post.author.id == current_user.id %}
+
+                var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
+
+                $('#post-edit').dblclick(function () {
+                    $('#post').markdown({
+                        hideable: true,
+                        height: 400,
+                        onBlur: function (e) {
+                            $.ajax('{{ url_for('web.update_project_post', project_id=post.project_id, post_id=post.id) }}', {
+                                method: 'post',
+                                data: {body: e.getContent()},
+                                success: function () {
+                                    $('#post-message').html($('<div class="alert alert-success"></div>')
+                                            .text('Changes saved successfully.').append(close));
+                                },
+                                error: function () {
+                                    $('#post-message').html($('<div class="alert alter-danger"></div>')
+                                            .text('Error: failed to save changes.').append(close));
+                                }
+                            });
+                        },
+                    });
+                });
+            {% endif %}
+
+            jsonapi.comments('#post-comments', {
+                userID: '{{ current_user.id }}',
+                userName: '{{ current_user.name.full }}',
+                resourceID: '{{ post.id }}',
+                resourceType: 'project-posts',
+                commentResourceType: 'project-post-comments',
+                relName: 'project_post',
+            });
+
+        })
+    </script>
+
+{% endblock %}

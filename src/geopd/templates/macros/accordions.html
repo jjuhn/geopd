@@ -1,0 +1,23 @@
+{% macro make_accordions() %}
+
+
+<div class="panel-group" id="accordion">
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 calss="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#variable_name">variable_name</a>
+            </h4>
+        </div>
+        <div id="variable_name" class="panel-collapse collapse in">
+            <div class="panel-body">
+                body
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+{% endmacro %}

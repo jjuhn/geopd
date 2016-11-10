@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-offset-1 col-md-10">
+                <h1 class="page-header text-primary">{{ project_name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                <img class="img-circle img-responsive"
+                     width="240"
+                     src="{{ image_url }}"
+                     alt="{{ project_name }}"
+                     onerror="this.src='{{ url_for('web.static', filename='images/projects/')}}projects.jpg'">
+            </div>
+
+            <div class="col-md-8">
+                {% block project_content %}
+                {% endblock %}
+            </div>
+
+        </div>
+    </div>
+
+
+
+{% endblock %}

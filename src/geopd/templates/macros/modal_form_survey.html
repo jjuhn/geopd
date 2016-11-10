@@ -1,0 +1,55 @@
+{% macro create_survey(current_user, form, survey) %}
+<form id="modal-form" role="form"
+                action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+                                                                  survey_id=survey.id) }}"
+                method="post">
+
+    <!-- Modal -->
+    <div id="modalSurvey" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+        <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Pending Survey</h4>
+                </div>
+                <div class="modal-body">
+                    {{ form.csrf_token() }}
+                    <p>Please select the cores that you are interested with. </p>
+                    <div class="form-group funkyradio">
+                    {% for k, q in survey.questions.iteritems() %}
+                        {% if q.type.name == 'choices' %}
+                            {% for choice in q.choices %}
+                                    <div class="funkyradio-primary">
+                                        <input type="checkbox"
+                                               name="communications"
+                                               id="{{choice.id}}"
+                                               value="{{ choice.id}}"/>
+                                        <label for="{{choice.id}}">{{ choice.label }}</label>
+                                    </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    {% if current_user.surveys[survey.id].completed_on is none %}
+                        {{ form.complete(class="btn btn-primary") }}
+                    {% else %}
+                        {{ form.update(class="btn btn-primary") }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+</div>
+</form>
+
+<script>
+$(document).ready(function () {
+    $('#modalSurvey').modal('show');
+});
+
+</script>
+{% endmacro %}
+
+

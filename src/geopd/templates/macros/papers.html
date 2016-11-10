@@ -1,0 +1,13 @@
+{% macro create_papers(tree) %}
+    <p>This place is for SNCA Papers</p>
+    <ul>
+    {%- for item in tree.children recursive %}
+        <li>{{ item.name }}
+        {%- if item.children -%}
+            <ul>{{ loop(item.children) }}</ul>
+        {%- endif %}</li>
+    {%- endfor %}
+    </ul>
+
+{% endmacro %}
+

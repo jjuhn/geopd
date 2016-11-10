@@ -47,7 +47,7 @@
             url.addQuery('fields[user-responses]', 'id');
 
             $.getJSON(url.readable(), function (json) {
-                var surveys = jsonapi.parse_response(json);
+                var surveys = jsonapi.parse_response(json, 1);
                 $.each(surveys, function (i, survey) {
 
                     var $tr = $('#survey-' + survey.id);

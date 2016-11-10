@@ -54,7 +54,8 @@
             url.addQuery('filter[survey.id.eq]', {{ survey.id }});
 
             $.getJSON(url.readable(), function (json) {
-                var questions = jsonapi.parse_response(json);
+                var questions = jsonapi.parse_response(json, 2);
+
                 console.log(questions);
                 $.each(questions, function (i, question) {
                     var $question = $('#question-' + question.id);
@@ -85,6 +86,7 @@
                     });
                     $.each(choices, function (id, yes) {
                         $('tr.question-' + question.id + '-choice[data-choice-id="' + id + '"] td.responses').html(
+
                                 can.dom.yesno_bar(yes, question.responses.length - yes, question.responses.length))
                     });
                 });

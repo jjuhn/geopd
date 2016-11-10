@@ -5,5 +5,6 @@ create_api([
     'geopd.api.surveys',
     'geopd.api.user_surveys',
     'geopd.api.cores',
-    'geopd.api.posts'
+    'geopd.api.posts',
+    'geopd.api.projects'
 ])

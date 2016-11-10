@@ -100,14 +100,14 @@
 
             var url = URI('/api/core-posts/');
             url.addQuery('include', 'author,author.name');
-            url.addQuery('fields[core-posts]', 'title,created-on,updated-on,author');
-            url.addQuery('fields[users]', 'name');
-            url.addQuery('fields[user-names]', 'formal');
+//            url.addQuery('fields[core-posts]', 'title,created-on,updated-on,author');
+//            url.addQuery('fields[users]', 'name');
+//            url.addQuery('fields[user-names]', 'formal');
             url.addQuery('filter[core.id.eq]', {{ core.id }});
 
             $.getJSON(url.readable(), function (json) {
                 var table = $('#post-table').DataTable({
-                    data: jsonapi.parse_response(json),
+                    data: jsonapi.parse_response(json, 1),
                     columns: [
                         {
                             data: function (post) {
@@ -117,7 +117,7 @@
                         },
                         {
                             data: function (post) {
-                                return post.author.name.formal;
+                                return post.author.name;
                             }
                         },
                         {

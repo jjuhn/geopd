@@ -40,7 +40,7 @@ def init_db():
 
     projects_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'projects.tsv'))
     for row in csv.DictReader(projects_stream, delimiter='\t'):
-        project = Project(row['name'], row['description'])
+        project = Project(row['name'], row['summary'])
         if row['investigators']:
             for name in row['investigators'].split(','):
                 project.investigators.append(User.query.join(UserName).filter(UserName.full == name).one())

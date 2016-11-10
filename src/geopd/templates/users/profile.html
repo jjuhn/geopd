@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% import "macros/avatar.html" as avatar %}
-
+{% import "macros/modal_form_survey.html" as modal_form %}
 
 {% block content %}
     <div class="container-fluid">
@@ -56,6 +56,9 @@
                 <hr/>
 
                 <div id="profile-message"></div>
+                {% if current_user.surveys[communication_survey.id].completed_on is none %}
+                    {{ modal_form.create_survey(current_user, survey_form, communication_survey) }}
+                {% endif %}
 
                 <!-- Tabs -->
                 <ul class="nav nav-tabs">

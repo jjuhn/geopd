@@ -103,9 +103,9 @@
 
             var url = URI('/api/users/');
             url.addQuery('include', 'name,address,status');
-            url.addQuery('fields[users]', 'name,address,created-on,last-seen,status');
-            url.addQuery('fields[user-names]', 'formal');
-            url.addQuery('fields[user-addresses]', 'institution,city,country');
+//            url.addQuery('fields[users]', 'name,address,created-on,last-seen,status');
+//            url.addQuery('fields[user-names]', 'formal');
+//            url.addQuery('fields[user-addresses]', 'institution,city,country');
             {% if not admin %}
                 url.addQuery('filter[status_id.eq]', {{  current_user.STATUS.ACTIVE.value }});
             {% endif %}
@@ -146,7 +146,7 @@
                             selector: 'td:first-child'
                         },
                     {% endif %}
-                    data: jsonapi.parse_response(json),
+                    data: jsonapi.parse_response(json, 1),
                     columns: [
                         {% if admin %}
                             {
@@ -159,7 +159,7 @@
                         {% endif %}
                         {
                             data: function (user) {
-                                return can.dom.link('{{ url_for('web.show_users') }}' + user.id, user.name.formal);
+                                return can.dom.link('{{ url_for('web.show_users') }}' + user.id, user.name.first + ' ' + user.name.last);
                             }
                         },
                         {

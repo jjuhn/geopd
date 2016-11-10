@@ -29,10 +29,11 @@
                 {{ nav_item('/meetings/', 'Annual Meetings') }}
                 {{ nav_item('/projects/', 'Projects') }}
                 {{ nav_item('/publications/', 'Publications') }}
-                {{ nav_item('/cores/', 'Cores') }}
+                <!--{{ nav_item('/cores/', 'Cores') }}-->
                 {% if current_user.is_authenticated %}
                 {{ nav_item('/surveys/', 'Surveys') }}
                 {% endif %}
+                {{ nav_item('/communications/', 'Communications')}}
                 {{ nav_item('/users/', 'Members') }}
                 {{ nav_item('/contact/', 'Feedback' if current_user.is_authenticated else 'Contact Us') }}
             </ul>

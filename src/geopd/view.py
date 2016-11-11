@@ -359,7 +359,9 @@ def create_communications_post():
 
                 if users_aff:
                     users_aff = set(users_aff)
-                    users_aff.remove(current_user)
+                    if current_user in users_aff:
+                        users_aff.remove(current_user)
+
                     users_aff = list(users_aff)
                     if users_aff:
                         for user in users_aff:

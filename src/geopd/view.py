@@ -30,7 +30,7 @@ from geopd.web import blueprint as web
 SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2
 SURVEY_COMMUNICATION = 3
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'])
 
 
 ########################################################################################################################

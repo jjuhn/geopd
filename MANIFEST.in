@@ -1,1 +1,1 @@
-recursive-include src *.html *.js *.css *.ico *.json *.png *.jpg *.gif *.csv *.txt *.pdf
+recursive-include src *.html *.js *.css *.ico *.json *.png *.jpg *.gif *.csv *.txt *.pdf *.md

@@ -15,7 +15,7 @@
                 </div>
                 <div class="modal-body">
                     {{ form.csrf_token() }}
-                    <p>Please select the cores that you are interested with. </p>
+                    <p>Please select the cores that you are interested in.</p>
                     <div class="form-group funkyradio">
                     {% for k, q in survey.questions.iteritems() %}
                         {% if q.type.name == 'choices' %}

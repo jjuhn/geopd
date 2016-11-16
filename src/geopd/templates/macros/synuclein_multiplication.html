@@ -16,6 +16,25 @@
                 </div>
             </div>
 
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#members">Members</a>
+                    </h4>
+                </div>
+
+                <div id="members" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        {% for member in project.members.all() %}
+                        <li>{{ member.name.full }}</li>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+
+
+
             {%- for item in tree.children recursive %}
             <div class="panel panel-default">
                 <div class="panel-heading"><h4 class="panel-title">

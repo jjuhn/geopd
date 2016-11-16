@@ -10,8 +10,8 @@
                 <div>
                     <h3 class="text-primary"><a href="{{project.id}}">{{ project.name }}</a></h3>
                     <p class="text-muted">
-                        {% for user in project.members %}
-                            <em>{{ user.name.full }}</em>{% if not loop.last %}, {% endif %}
+                        Investigators: {% for investigator in project.members.filter(project_members.investigator).all()%}
+                            <em>{{ investigator.name.full }}</em>{% if not loop.last %}, {% endif %}
                         {% endfor %}
                     </p>
                     <p>{{ project.summary }}</p>

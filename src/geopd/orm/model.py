@@ -68,7 +68,7 @@ class Project(Base):
     summary = Column(Text, unique=True, nullable=False)
     description = Column(Text, nullable=False)
 
-    members = relationship(User, secondary=lambda:ProjectMember.__table__, backref=backref('mprojects'))
+    members = relationship(User, secondary=lambda:ProjectMember.__table__, backref=backref('mprojects'), lazy="dynamic")
 
     def __init__(self, name, summary, description, investigators=list()):
         self.name = name

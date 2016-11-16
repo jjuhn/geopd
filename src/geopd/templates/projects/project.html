@@ -6,20 +6,62 @@
 {% from "macros/project_discussion_board.html" import create_project_discussion_board %}
 
 {% block project_content %}
-    {% if is_investigator or admin %}
-        <p align="right">
+
+    <p align="right">
+        {% if is_investigator or admin %}
             <input id="manage"
                    type="button"
                    class="btn btn-primary"
                    value="Manage Users"
                    onclick="window.location='{{ url_for('web.show_manage_project', project_id=project.id) }}';">
-        </p>
-    {% endif %}
+        {% elif not is_member%}
+            <input id="joinMessage"
+                   type="button"
+                   class="btn btn-primary"
+                   value="Join"
+                   data-target="#modalJoin">
+        {% endif %}
+    </p>
 
     {% if project.id == 6 %}
         {{ make_accordion(project, is_member, form, tree, content) }}
     {% else %}
         {{ create_project_discussion_board(project, form) }}
     {% endif %}
+    <div id="modalJoin" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-primary">Join {{ project.name }} Project</h4>
+                </div>
+                <div class="modal-body">
+                    <p>By clicking the Join button below,
+                        you will be notified to investigators of this project
+                        and they will contact you shortly.</p>
+                    <p>Thank you for your interest in {{project.name}} project.</p>
+                </div>
+                <div class="modal-footer">
+                    <input id="real_join"
+                           type="button"
+                           class="btn btn-primary"
+                           value="Join"
+                           onclick="window.location='{{ url_for('web.email_investigators', project_id=project.id) }}';">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+$(document).ready(function () {
+    $("#joinMessage").click(function(){
+        $('#modalJoin').modal('show');
+    });
+
+});
+
+</script>
 
 {% endblock %}

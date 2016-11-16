@@ -30,7 +30,7 @@ from geopd.web import blueprint as web
 SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2
 SURVEY_COMMUNICATION = 3
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'rtf'])
 
 
 ########################################################################################################################
@@ -76,7 +76,11 @@ def show_meeting(id):
 ########################################################################################################################
 @web.route('/projects/')
 def show_projects():
-    return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all())
+    project_members = ProjectMember.query.filter(ProjectMember.investigator).all()
+
+    return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all(), project_members = ProjectMember)
+
+    # return render_template('/projects/index.html',  projects=Project.query.order_by(desc(Project.id)).all(), project_members=project_members)
 
 def make_tree(path):
     tree = dict(name=os.path.basename(path), children=[])
@@ -255,7 +259,7 @@ def create_project_post(project_id):
 
                 for user in project.members:
                     if not user == current_user:
-                        send_email(user.email, "GEoPD - {0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
+                        send_email(user.email, "{0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
 
 
 
@@ -365,7 +369,7 @@ def create_communications_post():
                     users_aff = list(users_aff)
                     if users_aff:
                         for user in users_aff:
-                            send_email(user.email, "GEoPD Communications Board Updated", "email/communications_board_update",
+                            send_email(user.email, "Communications Board Updated", "email/communications_board_update",
                                    user=user, current_user=current_user)
 
     return redirect(url_for('web.show_communications'))
@@ -448,6 +452,22 @@ def update_core_post(core_id, post_id):
     return '', 204
 
 
+@web.route('/projects/<int:project_id>/join')
+@login_required
+def email_investigators(project_id):
+    project = Project.query.get(project_id)
+    #lazy = dynamic on project with members so I could filter the result by association table ProjectMember
+    investigators = project.members.filter(ProjectMember.investigator).all()
+
+    for investigator in investigators:
+        send_email(investigator.email,
+                   "New member Request for {0} project".format(project.name),
+                   "email/new_project_member_request",
+                   user=investigator, current_user=current_user, project=project)
+
+    return redirect(url_for('web.show_project', project_id=project_id))
+
+
 ########################################################################################################################
 # users
 ########################################################################################################################
@@ -494,12 +514,10 @@ def update_user_survey(user_id, survey_id):
         user_survey = current_user.surveys[survey_id]
 
         for name in user_survey.survey.questions.keys():
-            print name
             question = user_survey.survey.questions[name]
             response = user_survey.responses[name] if name in user_survey.responses \
                 else UserResponse(user_survey, question)
             db.add(response)
-
             if question.type_id in (QUESTION_TYPE_YESNO, QUESTION_TYPE_YESNO_EXPLAIN):
                 if name in request.form.keys():
                     response.answer_yesno = request.form[name] == 'yes'

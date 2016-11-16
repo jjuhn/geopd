@@ -67,6 +67,7 @@
                         <li><a data-toggle="tab" href="#address-pane">Address</a></li>
                     {% endif %}
                     <li><a data-toggle="tab" href="#survey-pane">Survey</a></li>
+                    <li><a data-toggle="tab" href="#communications-pane">Communications Survey</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -128,6 +129,20 @@
                             {% if current_user.id == user.id %}
                                 <hr/>
                                 {{ render_submit(survey_form, survey.id) }}
+                            {% endif %}
+                        </form>
+                    </div>
+                    <!-- Communications survey-->
+                    <div id="communications-pane" class="tab-pane fade">
+                        <form id="survey-form"
+                              role="form"
+                              action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+                                                                  survey_id=communication_survey.id) }}" method="post">
+                            {{ survey_form.csrf_token }}
+                            {{ render_question(communication_survey.questions['communications'], communication_survey.id, user) }}
+                            {% if current_user.id == user.id %}
+                                <hr/>
+                                {{ render_submit(survey_form, communication_survey.id) }}
                             {% endif %}
                         </form>
                     </div>

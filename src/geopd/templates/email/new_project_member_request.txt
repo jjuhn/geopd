@@ -1,0 +1,9 @@
+Dear {{ user.name.first }}
+
+{{ current_user.name.full }} has recently requested to join {{ project.name }} project.
+
+email address: {{ current_user.email }}
+
+Sincerely,
+The {{ config.APP_NAME }} Team
+Note: replies to this email address are not monitored.

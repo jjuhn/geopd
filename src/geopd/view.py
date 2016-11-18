@@ -584,9 +584,6 @@ def register():
 
         try:
             db.flush()
-            user_referee = UserReferee(user, committee)
-            db.add(user_referee)
-            db.flush()
 
         except SQLAlchemyError as e:
             db.rollback()

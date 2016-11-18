@@ -340,3 +340,17 @@ class UserResponse(Base):
         self.question = question
         self.user_survey = user_survey
 
+
+class UserReferee(Base):
+    id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
+    referrer_id = Column(Integer, ForeignKey(User.id))
+
+    user = relationship(User, foreign_keys=[id], backref=backref('referee', lazy='joined', uselist=False))
+    user_referrer = relationship(User, foreign_keys=[referrer_id],
+                                 backref=backref('referrer', lazy='joined', uselist=False))
+
+    def __init__(self, referee, referrer):
+        self.id = referee.id
+        self.referrer_id = referrer.id
+
+

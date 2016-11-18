@@ -567,7 +567,7 @@ def update_user_biography(user_id):
     return '', 204
 
 
-@web.route("/register_user", methods=['GET', 'POST'])
+@web.route("/registration", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('web.index'))
@@ -583,6 +583,9 @@ def register():
         db.add(user)
 
         try:
+            db.flush()
+            user_referee = UserReferee(user, committee)
+            db.add(user_referee)
             db.flush()
 
         except SQLAlchemyError as e:

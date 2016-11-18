@@ -26,6 +26,8 @@ from werkzeug.utils import secure_filename
 
 from geopd.orm.model import *
 from geopd.web import blueprint as web
+from can.web.auth import RegistrationForm
+
 
 SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2
@@ -456,7 +458,9 @@ def update_core_post(core_id, post_id):
 @login_required
 def email_investigators(project_id):
     project = Project.query.get(project_id)
-    #lazy = dynamic on project with members so I could filter the result by association table ProjectMember
+    # lazy = dynamic on project with members so I could filter the result by association table ProjectMember
+    # require change later on since it won't work with jsonapi
+
     investigators = project.members.filter(ProjectMember.investigator).all()
 
     for investigator in investigators:
@@ -464,6 +468,8 @@ def email_investigators(project_id):
                    "New member Request for {0} project".format(project.name),
                    "email/new_project_member_request",
                    user=investigator, current_user=current_user, project=project)
+
+    flash('Email request sent to investigators', category='success')
 
     return redirect(url_for('web.show_project', project_id=project_id))
 
@@ -559,6 +565,47 @@ def update_user_biography(user_id):
     db.commit()
 
     return '', 204
+
+
+@web.route("/register_user", methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('web.index'))
+
+    form = RegistrationForm()
+
+    if form.validate_on_submit():
+        selected_committee = request.form.get("referrer")
+        committee = User.query.get(selected_committee) if selected_committee else None
+
+        user = User(email=form.email.data, password=form.password.data, name=form.name.data)
+        user.address.load(request.form)
+        db.add(user)
+
+        try:
+            db.flush()
+
+        except SQLAlchemyError as e:
+            db.rollback()
+            flash('Error while processing request. Please try again later', 'warning')
+
+        else:
+            token = user.generate_confirmation_token()
+            send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
+            if committee:
+                send_email(committee.email, "Requesting activation of new user.",
+                           'email/new_member_request', user=user, committee=committee)
+
+            flash('A confirmation email has been sent to your email address', 'success')
+            db.commit()
+            return redirect(url_for('web.index'))
+
+    # flash form errors if necessary
+    for error in form.errors.values():
+        flash(error[0], 'danger')
+
+    return render_template('auth_geopd/register.html', form=form,
+                           steering_committee=Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users)
 
 
 ########################################################################################################################

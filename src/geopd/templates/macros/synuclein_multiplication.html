@@ -26,14 +26,13 @@
                 <div id="members" class="panel-collapse collapse">
                     <div class="panel-body">
                         {% for member in project.members.all() %}
+                        <div class="col-md-4">
                             <li><a href="/users/{{member.id}}"> {{ member.name.full }}</a></li>
+                        </div>
                         {% endfor %}
                     </div>
                 </div>
             </div>
-
-
-
 
             {%- for item in tree.children recursive %}
             <div class="panel panel-default">

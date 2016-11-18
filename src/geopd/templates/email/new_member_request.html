@@ -1,0 +1,14 @@
+<p>Dear {{ committee.name.first }}</p>
+
+<p>{{ user.name.full }} has registered for {{ config.APP_NAME }}.</p>
+<p>Please review this request.</p>
+
+<p>You can give access to {{ user.name.full }} by logging into
+    <a href="{{ url_for('web.show_users', _external=True) }}"> Manage members</a>
+</p>
+
+<p>Sincerely,</p>
+
+<p>The {{ config.APP_NAME }} Team</p>
+
+<p><small>Note: replies to this email address are not monitored.</small></p>

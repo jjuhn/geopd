@@ -1,0 +1,12 @@
+Dear {{ committee.name.first }}
+
+{{ user.name.full }} has registered for {{ config.APP_NAME }}.
+Please review this request.
+
+You can give access to {{ user.name.full }} by logging into {{ url_for('web.show_users', _external=True) }}.
+
+Sincerely,
+
+The {{ config.APP_NAME }} Team
+
+Note: replies to this email address are not monitored.

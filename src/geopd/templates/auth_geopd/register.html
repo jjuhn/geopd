@@ -86,9 +86,12 @@
                             {{ address.field(form) }}
                             <hr/>
                             <div class="form-group">
-                                <label for ="referrer">Please select one member who referred you to this site.</label>
+                                <label for ="referrer">Which steering committee referred you to this site?</label>
                                 <select id="referrer" class="form-control" name="referrer" required>
                                     {% for user in steering_committee %}
+                                        <option value="{{ user.id }}">{{ user.name.full }}</option>
+                                    {% endfor %}
+                                    {% for user in admin %}
                                         <option value="{{ user.id }}">{{ user.name.full }}</option>
                                     {% endfor %}
                                 </select>

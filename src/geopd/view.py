@@ -604,8 +604,6 @@ def register():
     for error in form.errors.values():
         flash(error[0], 'danger')
 
-
-
     return render_template('auth_geopd/register.html', form=form,
                            steering_committee=Permission.query.get(2).users,
                            admin=Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users)

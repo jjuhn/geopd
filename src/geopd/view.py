@@ -648,22 +648,8 @@ def update_referrer_after_insert_user(mapper, connection, target):
     ur = UserReferrer(target, referrer)
     db.session.add(ur)
 
+    send_email(referrer.email, "Requesting activation of new user.",
+               'email/new_member_request', user=target, committee=referrer)
 
 
 
-
-
-# def after_insert_listener(mapper, connection, target):
-#     # 'target' is the inserted object
-#     referrer = User.query.get(referrer_id)
-#     new_user = target
-#
-#     ur = UserReferrer(new_user, referrer)
-#
-#     db.session.add(ur)
-#     db.session.commit()
-#
-#     print UserReferrer.query.all()
-#
-#
-# event.listen(User, 'after_insert', after_insert_listener)

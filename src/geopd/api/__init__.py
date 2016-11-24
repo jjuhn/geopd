@@ -1,10 +1,15 @@
-from can.web.api import create_api
+from importlib import import_module
 
-create_api([
+
+for name in [
     'geopd.api.users',
     'geopd.api.surveys',
     'geopd.api.user_surveys',
     'geopd.api.cores',
     'geopd.api.posts',
-    'geopd.api.projects'
-])
+    'geopd.api.projects']:
+
+    import_module(name)
+
+
+

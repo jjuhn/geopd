@@ -1,12 +1,12 @@
-{% extends "base.html" %}
-{% import "macros/avatar.html" as avatar %}
+{% extends "core/base.html" %}
+{% import "/core/macros/avatar.html" as avatar %}
 
 
 {% block content %}
     <div class="container-fluid">
 
         <ol class="breadcrumb">
-            <li><a href="{{ url_for('web.show_surveys') }}">Surveys</a></li>
+            <li><a href="{{ url_for('show_surveys') }}">Surveys</a></li>
             <li>{{ survey.title }}</li>
         </ol>
 

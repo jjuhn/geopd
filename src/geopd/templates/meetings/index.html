@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
 <div class="container">
@@ -10,7 +10,7 @@
             <div class="btn-group-vertical btn-group-lg center-block" role="group">
                 {% for m in meetings %}
                 {% if meeting.id != m.id %}
-                <a href="{{ url_for('web.show_meeting', id=m.id) }}"
+                <a href="{{ url_for('show_meeting', id=m.id) }}"
                    type="button" class="btn btn-default">{{ m.title }}</a>
                 {% endif %}
                 {% endfor %}

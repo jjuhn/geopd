@@ -1,6 +1,6 @@
 {% extends "projects/project_base.html" %}
 {% set project_name = "Manage members - "+ project.name %}
-{% set image_url = url_for('web.static', filename='images/projects/') + project.name + ".jpg" %}
+{% set image_url = url_for('static', filename='images/projects/') + project.name + ".jpg" %}
 
 {% block project_content %}
     <table id="user-table" class="table" width="100%">
@@ -35,9 +35,9 @@
                             dt.rows('.selected').data().each(function (user) {
                                 users.push(user.id);
                             });
-                            $.post("{{ url_for('web.update_project_members', project_id=project.id) }}",
+                            $.post("{{ url_for('update_project_members', project_id=project.id) }}",
                                     {users: users}).done(function () {
-                                window.location = "{{ url_for('web.show_manage_project', project_id=project.id) }}";
+                                window.location = "{{ url_for('show_manage_project', project_id=project.id) }}";
                             });
                         }
                     }, {
@@ -48,9 +48,9 @@
                             dt.rows('.selected').data().each(function (user) {
                                 users.push(user.id);
                             });
-                            $.post("{{ url_for('web.remove_project_members', project_id=project.id) }}",
+                            $.post("{{ url_for('remove_project_members', project_id=project.id) }}",
                                     {users: users}).done(function () {
-                                window.location = "{{ url_for('web.show_manage_project', project_id=project.id) }}";
+                                window.location = "{{ url_for('show_manage_project', project_id=project.id) }}";
                             });
                         }
                     }],
@@ -70,7 +70,7 @@
                         },
                         {
                             data: function(user){
-                                return can.dom.link('{{ url_for('web.show_users') }}'
+                                return can.dom.link('{{ url_for('show_users') }}'
                                 + user.id, user.name.first + ' ' + user.name.last);
                             }
                         },

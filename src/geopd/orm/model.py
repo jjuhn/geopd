@@ -5,9 +5,8 @@ import os.path
 
 import pkg_resources
 from flask import url_for
-from sqlalchemy.types import Date
 
-from can.web.orm.model import *
+from geopd.core.orm.model import *
 
 ########################################################################################################################
 # Constants
@@ -22,19 +21,18 @@ QUESTION_TYPE_CHOICES = 4
 ########################################################################################################################
 
 
-core_leader_table = Table('core_leaders', Base.metadata,
-                          Column('core_id', Integer, ForeignKey('cores.id'), primary_key=True),
-                          Column('leader_id', Integer, ForeignKey('users.id'), primary_key=True))
+core_leader_table = db.Table('core_leaders',
+                          db.Column('core_id', db.Integer, db.ForeignKey('cores.id'), primary_key=True),
+                          db.Column('leader_id', db.Integer, db.ForeignKey('users.id'), primary_key=True))
 
-user_response_choice_table = Table('user_response_choices', Base.metadata,
-                                   Column('response_id', Integer, ForeignKey('user_responses.id'), primary_key=True),
-                                   Column('choice_id', Integer, ForeignKey('survey_question_choices.id'),
+user_response_choice_table = db.Table('user_response_choices',
+                                   db.Column('response_id', db.Integer, db.ForeignKey('user_responses.id'), primary_key=True),
+                                   db.Column('choice_id', db.Integer, db.ForeignKey('survey_question_choices.id'),
                                           primary_key=True))
 
-
-compost_affiliation_table = Table('com_posts_affiliations', Base.metadata,
-                                     Column('com_post_id', Integer, ForeignKey('com_posts.id'), primary_key=True),
-                                     Column('affiliation_id', Integer, ForeignKey('affiliations.id'), primary_key=True))
+compost_affiliation_table = db.Table('com_posts_affiliations',
+                                     db.Column('com_post_id', db.Integer, db.ForeignKey('com_posts.id'), primary_key=True),
+                                     db.Column('affiliation_id', db.Integer, db.ForeignKey('affiliations.id'), primary_key=True))
 
 
 ########################################################################################################################
@@ -54,21 +52,21 @@ class PERMISSION(enum.IntEnum):
     MANAGE_USER_ACCOUNT = Permission.MANAGE_USER_ACCOUNT
 
 
-class UserBio(Base):
-    id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
-    research_interests = Column(Text)
-    research_experience = Column(Text)
+class UserBio(db.Model):
+    id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True, autoincrement=False)
+    research_interests = db.Column(db.Text)
+    research_experience = db.Column(db.Text)
 
-    user = relationship(User, foreign_keys=[id], backref=backref('bio', uselist=False))
+    user = db.relationship(User, foreign_keys=[id], backref=db.backref('bio', uselist=False))
 
 
-class Project(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, unique=True, nullable=False)
-    summary = Column(Text, unique=True, nullable=False)
-    description = Column(Text, nullable=False)
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, unique=True, nullable=False)
+    summary = db.Column(db.Text, unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=False)
 
-    members = relationship(User, secondary=lambda:ProjectMember.__table__, backref=backref('mprojects'), lazy="dynamic")
+    members = db.relationship(User, secondary=lambda:ProjectMember.__table__, backref=db.backref('mprojects'), lazy="dynamic")
 
     def __init__(self, name, summary, description, investigators=list()):
         self.name = name
@@ -77,10 +75,10 @@ class Project(Base):
         self.investigators = investigators
 
 
-class ProjectMember(Base):
-    project_id = Column(Integer, ForeignKey(Project.id), primary_key=True, autoincrement=False)
-    member_id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
-    investigator = Column(Boolean, default=False)
+class ProjectMember(db.Model):
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id), primary_key=True, autoincrement=False)
+    member_id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True, autoincrement=False)
+    investigator = db.Column(db.Boolean, default=False)
 
     def __init__(self, project_id, user_id, investigator):
         self.project_id = project_id
@@ -88,34 +86,17 @@ class ProjectMember(Base):
         self.investigator = investigator
 
 
-class ProjectPost(Base):
-    id = Column(Integer, primary_key=True,)
-    title = Column(Text, nullable=False)
-    body = Column(Text, nullable=False)
-    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_on = Column(DateTime)
-    author_id = Column(Integer, ForeignKey(User.id))
-    project_id = Column(Integer, ForeignKey(Project.id))
+class ProjectPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True,)
+    title = db.Column(db.Text, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = db.Column(db.DateTime)
+    author_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id))
 
-    author = relationship(User, foreign_keys=[author_id], backref=backref('project_posts'))
-    project = relationship(Project, foreign_keys=[project_id], backref=backref('posts'))
-
-    def __init__(self, title, body):
-        self.title = title
-        self.body = body
-        self.author = current_user
-
-
-class ComPost(Base):
-    id = Column(Integer, primary_key=True,)
-    title = Column(Text, nullable=False)
-    body = Column(Text, nullable=False)
-    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_on = Column(DateTime)
-    author_id = Column(Integer, ForeignKey(User.id))
-
-    author = relationship(User, foreign_keys=[author_id], backref=backref('com_posts'))
-    affiliations = relationship(lambda:Affiliation, secondary=compost_affiliation_table)
+    author = db.relationship(User, foreign_keys=[author_id], backref=db.backref('project_posts'))
+    project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('posts'))
 
     def __init__(self, title, body):
         self.title = title
@@ -123,34 +104,51 @@ class ComPost(Base):
         self.author = current_user
 
 
-class ComPostComment(CommentMixin, Base):
-    com_post_id = Column(Integer, ForeignKey(ComPost.id), nullable=True)
-    com_post = relationship(ComPost, backref=backref('comments'))
+class ComPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True,)
+    title = db.Column(db.Text, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = db.Column(db.DateTime)
+    author_id = db.Column(db.Integer, db.ForeignKey(User.id))
+
+    author = db.relationship(User, foreign_keys=[author_id], backref=db.backref('com_posts'))
+    affiliations = db.relationship(lambda:Affiliation, secondary=compost_affiliation_table)
+
+    def __init__(self, title, body):
+        self.title = title
+        self.body = body
+        self.author = current_user
 
 
-class ProjectPostComment(CommentMixin, Base):
-    project_post_id = Column(Integer, ForeignKey(ProjectPost.id), nullable=True)
-    project_post = relationship(ProjectPost, backref=backref('comments'))
+class ComPostComment(CommentMixin, db.Model):
+    com_post_id = db.Column(db.Integer, db.ForeignKey(ComPost.id), nullable=True)
+    com_post = db.relationship(ComPost, backref=db.backref('comments'))
 
 
-class Affiliation(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False, unique=True)
-    hidden = Column(Boolean, nullable=False)
-    # posts = relationship(ComPost, secondary=compost_affiliation_table)
+class ProjectPostComment(CommentMixin, db.Model):
+    project_post_id = db.Column(db.Integer, db.ForeignKey(ProjectPost.id), nullable=True)
+    project_post = db.relationship(ProjectPost, backref=db.backref('comments'))
 
 
-class Publication(Base):
-    id = Column(Integer, primary_key=True, autoincrement=False)  # PubMed
-    title = Column(Text, nullable=False)
-    source = Column(Text, nullable=False)
-    issue = Column(Text, nullable=False)
-    volume = Column(Text, nullable=False)
-    pages = Column(Text, nullable=False)
-    authors = Column(Text, nullable=False)
-    abstract = Column(Text)
-    published_on = Column(Date, nullable=False)
-    epublished_on = Column(Date)
+class Affiliation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True)
+    hidden = db.Column(db.Boolean, nullable=False)
+    # posts = db.relationship(ComPost, secondary=compost_affiliation_table)
+
+
+class Publication(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)  # PubMed
+    title = db.Column(db.Text, nullable=False)
+    source = db.Column(db.Text, nullable=False)
+    issue = db.Column(db.Text, nullable=False)
+    volume = db.Column(db.Text, nullable=False)
+    pages = db.Column(db.Text, nullable=False)
+    authors = db.Column(db.Text, nullable=False)
+    abstract = db.Column(db.Text)
+    published_on = db.Column(db.Date, nullable=False)
+    epublished_on = db.Column(db.Date)
 
     def __init__(self, id, title):
         self.id = id
@@ -161,15 +159,15 @@ class Publication(Base):
         filename = os.path.join('pubmed', '{0}.pdf'.format(self.id))
         fullpath = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
         if os.path.exists(fullpath):
-            return url_for('web.static', filename='pubmed/{0}.pdf'.format(self.id))
+            return url_for('static', filename='pubmed/{0}.pdf'.format(self.id))
 
 
-class Meeting(Base):
-    id = Column(Integer, primary_key=True)
-    city = Column(Text(convert_unicode=True), nullable=False)
-    year = Column(Integer, nullable=False, unique=True)
-    carousel = Column(Boolean, nullable=False, default=False, server_default=false())
-    program = Column(Boolean, nullable=False, default=False, server_default=false())
+class Meeting(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.Text(convert_unicode=True), nullable=False)
+    year = db.Column(db.Integer, nullable=False, unique=True)
+    carousel = db.Column(db.Boolean, nullable=False, default=False, server_default=false())
+    program = db.Column(db.Boolean, nullable=False, default=False, server_default=false())
 
     def __init__(self, city, year, carousel=None, program=None):
         self.city = city
@@ -187,17 +185,17 @@ class Meeting(Base):
 
     @property
     def image_url(self):
-        return url_for('web.static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
+        return url_for('static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
 
 
-class Core(Base):
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False, unique=True)
-    key = Column(Text, nullable=False, unique=True)
-    survey_id = Column(Integer, ForeignKey('surveys.id'))
+class Core(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False, unique=True)
+    key = db.Column(db.Text, nullable=False, unique=True)
+    survey_id = db.Column(db.Integer, db.ForeignKey('surveys.id'))
 
-    leaders = relationship(User, secondary=core_leader_table)
-    survey = relationship('Survey')
+    leaders = db.relationship(User, secondary=core_leader_table)
+    survey = db.relationship('Survey')
 
     def __init__(self, name, key):
         self.name = name
@@ -205,20 +203,20 @@ class Core(Base):
 
     @property
     def image_url(self):
-        return url_for('web.static', filename='images/cores/{0}.jpg'.format(self.key))
+        return url_for('static', filename='images/cores/{0}.jpg'.format(self.key))
 
 
-class CorePost(Base):
-    id = Column(Integer, primary_key=True)
-    title = Column(Text, nullable=False)
-    body = Column(Text, nullable=False)
-    created_on = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_on = Column(DateTime)
-    author_id = Column(Integer, ForeignKey('users.id'))
-    core_id = Column(Integer, ForeignKey('cores.id'))
+class CorePost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Text, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = db.Column(db.DateTime)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    core_id = db.Column(db.Integer, db.ForeignKey('cores.id'))
 
-    author = relationship(User, foreign_keys=[author_id], backref=backref('core_posts'))
-    core = relationship(Core, foreign_keys=[core_id], backref=backref('posts'))
+    author = db.relationship(User, foreign_keys=[author_id], backref=db.backref('core_posts'))
+    core = db.relationship(Core, foreign_keys=[core_id], backref=db.backref('posts'))
 
     def __init__(self, title, body):
         self.title = title
@@ -226,21 +224,21 @@ class CorePost(Base):
         self.author = current_user
 
 
-class CorePostComment(CommentMixin, Base):
-    core_post_id = Column(Integer, ForeignKey(CorePost.id), nullable=True)
-    core_post = relationship(CorePost, backref=backref('comments'))
+class CorePostComment(CommentMixin, db.Model):
+    core_post_id = db.Column(db.Integer, db.ForeignKey(CorePost.id), nullable=True)
+    core_post = db.relationship(CorePost, backref=db.backref('comments'))
 
 
-class Survey(Base):
-    id = Column(Integer, primary_key=True)
-    title = Column(Text, nullable=False)
-    description = Column(Text)
+class Survey(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text)
 
-    parent_type = Column(Text)
-    parent_id = Column(Text)
+    parent_type = db.Column(db.Text)
+    parent_id = db.Column(db.Text)
 
     def __init__(self, title, description=None):
-        self.title = titleize(title)
+        self.title = inflection.titleize(title)
         self.description = description
 
     def init_user_surveys(self):
@@ -248,9 +246,9 @@ class Survey(Base):
             user.surveys[self.id] = UserSurvey(user, self)
 
 
-class SurveyQuestionType(Base):
-    id = Column(Integer, primary_key=True, autoincrement=False)
-    name = Column(Text, nullable=False, unique=True)
+class SurveyQuestionType(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    name = db.Column(db.Text, nullable=False, unique=True)
 
     def __init__(self, type_id, name):
         self.id = type_id
@@ -260,21 +258,21 @@ class SurveyQuestionType(Base):
         return self.name
 
 
-class SurveyQuestion(Base):
-    __table_args__ = UniqueConstraint('id', 'name'),
+class SurveyQuestion(db.Model):
+    __table_args__ = db.UniqueConstraint('id', 'name'),
 
-    id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False)
-    text = Column(Text, nullable=False)
-    order = Column(Integer)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text, nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    order = db.Column(db.Integer)
 
-    survey_id = Column(Integer, ForeignKey(Survey.id), nullable=False)
-    survey = relationship(Survey, uselist=False,
-                          backref=backref('questions',
+    survey_id = db.Column(db.Integer, db.ForeignKey(Survey.id), nullable=False)
+    survey = db.relationship(Survey, uselist=False,
+                          backref=db.backref('questions',
                                           collection_class=attribute_mapped_collection('name')))
 
-    type_id = Column(Integer, ForeignKey(SurveyQuestionType.id), nullable=False)
-    type = relationship(SurveyQuestionType, uselist=False)
+    type_id = db.Column(db.Integer, db.ForeignKey(SurveyQuestionType.id), nullable=False)
+    type = db.relationship(SurveyQuestionType, uselist=False)
 
     def __init__(self, name, text, type_object, order=None):
         self.name = name
@@ -283,33 +281,33 @@ class SurveyQuestion(Base):
         self.order = order
 
 
-class SurveyQuestionChoice(Base):
-    __table_args__ = UniqueConstraint('question_id', 'label'),
+class SurveyQuestionChoice(db.Model):
+    __table_args__ = db.UniqueConstraint('question_id', 'label'),
 
-    id = Column(Integer, primary_key=True)
-    label = Column(Text, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    label = db.Column(db.Text, nullable=False)
 
-    question_id = Column(Integer, ForeignKey(SurveyQuestion.id), nullable=False)
-    question = relationship(SurveyQuestion, uselist=False, backref=backref('choices'))
+    question_id = db.Column(db.Integer, db.ForeignKey(SurveyQuestion.id), nullable=False)
+    question = db.relationship(SurveyQuestion, uselist=False, backref=db.backref('choices'))
 
     def __init__(self, label):
         self.label = label
 
 
-class UserSurvey(Base):
-    __table_args__ = UniqueConstraint('user_id', 'survey_id'),
+class UserSurvey(db.Model):
+    __table_args__ = db.UniqueConstraint('user_id', 'survey_id'),
 
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey(User.id), nullable=False)
-    survey_id = Column(Integer, ForeignKey(Survey.id), nullable=False)
-    completed_on = Column(DateTime)
-    updated_on = Column(DateTime)
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    survey_id = db.Column(db.Integer, db.ForeignKey(Survey.id), nullable=False)
+    completed_on = db.Column(db.DateTime)
+    updated_on = db.Column(db.DateTime)
 
-    user = relationship(User, uselist=False,
-                        backref=backref('surveys', collection_class=attribute_mapped_collection('survey_id')))
-    survey = relationship(Survey, uselist=False, backref=backref('user_surveys'))
-    responses = relationship('UserResponse', collection_class=attribute_mapped_collection('name'),
-                             backref=backref('user_survey', uselist=False))
+    user = db.relationship(User, uselist=False,
+                        backref=db.backref('surveys', collection_class=attribute_mapped_collection('survey_id')))
+    survey = db.relationship(Survey, uselist=False, backref=db.backref('user_surveys'))
+    responses = db.relationship('UserResponse', collection_class=attribute_mapped_collection('name'),
+                             backref=db.backref('user_survey', uselist=False))
 
     def __init__(self, user, survey):
         self.user = user
@@ -320,17 +318,17 @@ class UserSurvey(Base):
         return self.survey.title
 
 
-class UserResponse(Base):
-    __table_args__ = UniqueConstraint('user_survey_id', 'question_id'),
+class UserResponse(db.Model):
+    __table_args__ = db.UniqueConstraint('user_survey_id', 'question_id'),
 
-    id = Column(Integer, primary_key=True)
-    user_survey_id = Column(Integer, ForeignKey(UserSurvey.id), nullable=False)
-    question_id = Column(Integer, ForeignKey(SurveyQuestion.id), nullable=False)
-    question = relationship(SurveyQuestion, uselist=False, lazy='joined', backref=backref('responses'))
+    id = db.Column(db.Integer, primary_key=True)
+    user_survey_id = db.Column(db.Integer, db.ForeignKey(UserSurvey.id), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey(SurveyQuestion.id), nullable=False)
+    question = db.relationship(SurveyQuestion, uselist=False, lazy='joined', backref=db.backref('responses'))
 
-    answer_text = Column(Text)
-    answer_yesno = Column(Boolean)
-    answer_choices = relationship(SurveyQuestionChoice, secondary=user_response_choice_table)
+    answer_text = db.Column(db.Text)
+    answer_yesno = db.Column(db.Boolean)
+    answer_choices = db.relationship(SurveyQuestionChoice, secondary=user_response_choice_table)
 
     @hybrid_property
     def name(self):
@@ -341,16 +339,17 @@ class UserResponse(Base):
         self.user_survey = user_survey
 
 
-# class UserReferee(Base):
-#     id = Column(Integer, ForeignKey(User.id), primary_key=True, autoincrement=False)
-#     referrer_id = Column(Integer, ForeignKey(User.id))
-#
-#     user = relationship(User, foreign_keys=[id], backref=backref('referrer', lazy='joined', uselist=False))
-#     user_referrer = relationship(User, foreign_keys=[referrer_id],
-#                                  backref=backref('referee', lazy='joined', uselist=False))
-#
-#     def __init__(self, referee, referrer):
-#         self.id = referee.id
-#         self.referrer_id = referrer.id
+class UserReferrer(db.Model):
+    id = db.Column(db.Integer, db.ForeignKey(User.id), primary_key=True, autoincrement=False)
+    referrer_id = db.Column(db.Integer, db.ForeignKey(User.id))
+
+    referee = db.relationship(User, foreign_keys=[id], backref=db.backref('user_referee', lazy='joined', uselist=False))
+
+    referrer = db.relationship(User, foreign_keys=[referrer_id],
+                                 backref=db.backref('userreferrer', lazy='joined', uselist=False))
+
+    def __init__(self, referee, referrer):
+        self.id = referee.id
+        self.referrer_id = referrer.id
 
 

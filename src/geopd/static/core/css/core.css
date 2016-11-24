@@ -1,0 +1,177 @@
+/**
+ * Popups
+ */
+.well.popup {
+    margin-top: 5px;
+}
+
+.well.popup h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.well.popup ul {
+    list-style-type: none;
+}
+
+.well.popup .funkyradio ul {
+    display: inline-block;
+    padding-left: 0;
+}
+
+.well.popup .funkyradio ul li label {
+    padding-right: 10px;
+}
+
+/**
+ * DataTables
+ */
+
+div.toolbar {
+    float: left;
+    margin-left: 5px;
+}
+
+div.dt-buttons {
+    float: none;
+    display: inline-block;
+    margin-left: 1em;
+}
+
+div.dt-buttons .btn {
+    margin-right: 1em;
+}
+
+table.dataTable tbody > tr.selected {
+    background-color: #eeeeee;
+    color: #666666;
+}
+
+table.dataTable tbody tr.selected a {
+    color: #337ab7;
+}
+
+/* checkbox */
+table.dataTable td.select-checkbox:before {
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    width: 20px;
+    height: 20px;
+    margin-top: -12px;
+    margin-left: -12px;
+}
+
+/* check mark */
+table.dataTable tr.selected td.select-checkbox:after {
+    color: #337ab7;
+    text-shadow: none;
+    margin-top: -12px;
+    margin-left: -8px;
+}
+
+/**
+ * Panels with Tabs
+ */
+
+.panel.with-nav-tabs .panel-heading {
+    padding: 5px 5px 0 5px;
+}
+
+.panel.with-nav-tabs .nav-tabs {
+    border-bottom: none;
+}
+
+.panel.with-nav-tabs .nav-justified {
+    margin-bottom: -1px;
+}
+
+/**
+ * jQuery Comments
+ */
+
+.jquery-comments {
+    color: #666666;
+}
+
+.jquery-comments ul.main li.comment .name,
+.jquery-comments ul.main li.comment .name a {
+    font-style: normal;
+    font-weight: normal;
+    color: #337ab7 !important;
+}
+
+.jquery-comments ul.main li.comment .comment-wrapper > .profile-picture,
+.jquery-comments ul.main li.comment .child-comments .profile-picture,
+.jquery-comments .commenting-field .profile-picture {
+    max-width: 58px;
+    max-height: 58px;
+    width: 58px;
+    height: 58px;
+    border: 1px solid #cccccc;
+    padding: 3px;
+    margin-right: 10px;
+}
+
+.jquery-comments ul.main li.comment .child-comments .comment-wrapper > .profile-picture,
+.jquery-comments ul.main li.comment .child-comments .profile-picture {
+    margin-left: 65px;
+}
+
+.jquery-comments ul.main li.comment .comment-wrapper > time {
+    font-size: 1em;
+}
+
+/**
+ * Group lists
+ */
+.list-group-item {
+    padding: 5px 10px;
+}
+
+/**
+ * Misc.
+ */
+*[title], .rating {
+    cursor: pointer;
+}
+
+form .page-header, .tab-content .page-header {
+    margin-top: 20px;
+}
+
+.ui-slider-handle {
+    width: 3em !important;
+    height: 1.6em !important;
+    top: 50% !important;
+    margin-top: -.8em;
+    text-align: center;
+    line-height: 1.6em;
+}
+
+.ui-state-active, .ui-widget-content .ui-state-active,
+.ui-widget-header .ui-state-active, a.ui-button:active,
+.ui-button:active, .ui-button.ui-state-active:hover {
+    border: 1px solid #337ab7;
+    background: #337ab7;
+}
+
+.panel.with-nav-tabs .tab-pane {
+    padding-top: 0;
+}
+
+hr {
+    margin: 10px 0;
+}
+
+#processing-indicator {
+    width: 50%;
+}
+
+#processing-indicator div.progress-bar {
+    width: 100%;
+}
+
+div.dataTables_wrapper div.dataTables_processing {
+    visibility: hidden;
+}

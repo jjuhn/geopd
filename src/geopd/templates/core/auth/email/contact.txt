@@ -1,0 +1,5 @@
+Name: {{ current_user.name.full if current_user.is_authenticated else form.name }}
+Email: {{ current_user.email if current_user.is_authenticated else form.email }}
+Subject: {{ form.subject }}
+
+{{ form.message }}

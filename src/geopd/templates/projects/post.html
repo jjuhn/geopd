@@ -1,28 +1,28 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 {% block content %}
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-9 col-md-offset-1">
                 <ol class="breadcrumb">
-                    <li><a href="{{ url_for('web.show_projects') }}">Projects</a></li>
-                    <li><a href="{{ url_for('web.show_project', project_id=post.project.id) }}">{{ post.project.name }}</a></li>
+                    <li><a href="{{ url_for('show_projects') }}">Projects</a></li>
+                    <li><a href="{{ url_for('show_project', project_id=post.project.id) }}">{{ post.project.name }}</a></li>
                     <li>{{ post.title }}</li>
                 </ol>
 
                 <h1 class="page-header text-primary" >{{ post.title }}</h1>
                 <p class="well well-sm text-muted">
                     <em>Created
-                        <time data-moment="{{ post.created_on.isoformat() }}Z"></time>
+                        <time data-moment="{{ post.created_on|isoformat }}"></time>
                         by
                         {% if post.author.id == current_user.id %}
                             you
                         {% else %}
-                            <a href="{{ url_for('web.show_user', user_id=post.author.id) }}">{{ post.author.name.full }}</a>
+                            <a href="{{ url_for('show_user', user_id=post.author.id) }}">{{ post.author.name.full }}</a>
                         {% endif %}
                     </em>
                     {% if post.updated_on %}
                         <span class="label label-primary pull-right">Edited
-                        <time data-moment="{{ post.updated_on.isoformat() }}Z"></time>
+                        <time data-moment="{{ post.updated_on|isoformat }}"></time>
                     </span>
                     {% endif %}
                 </p>
@@ -74,7 +74,7 @@
                         hideable: true,
                         height: 400,
                         onBlur: function (e) {
-                            $.ajax('{{ url_for('web.update_project_post', project_id=post.project_id, post_id=post.id) }}', {
+                            $.ajax('{{ url_for('update_project_post', project_id=post.project_id, post_id=post.id) }}', {
                                 method: 'post',
                                 data: {body: e.getContent()},
                                 success: function () {

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
     <div class="container-fluid">
@@ -51,7 +51,7 @@
                         <!-- Create new post -->
                         <div role="tabpanel" class="tab-pane fade" id="post-pane">
                             <form id="post-form" role="form"
-                                  action="{{ url_for('web.create_core_post', core_id=core.id) }}"
+                                  action="{{ url_for('create_core_post', core_id=core.id) }}"
                                   method="post">
                                 {{ form.csrf_token() }}
                                 <div class="form-group">
@@ -111,7 +111,7 @@
                     columns: [
                         {
                             data: function (post) {
-                                return can.dom.link('{{ url_for('web.show_core', core_id=core.id) }}/posts/' + post.id,
+                                return can.dom.link('{{ url_for('show_core', core_id=core.id) }}/posts/' + post.id,
                                         post.title);
                             }
                         },

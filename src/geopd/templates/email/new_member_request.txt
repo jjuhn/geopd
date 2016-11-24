@@ -3,7 +3,7 @@ Dear {{ committee.name.first }}
 {{ user.name.full }} has registered for {{ config.APP_NAME }}.
 Please review this request.
 
-You can give access to {{ user.name.full }} by logging into {{ url_for('web.show_users', _external=True) }}.
+You can give access to {{ user.name.full }} by logging into {{ url_for('show_users', _external=True) }}.
 
 Sincerely,
 

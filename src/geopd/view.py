@@ -13,10 +13,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
 from sqlalchemy import desc
+from sqlalchemy import event
+from geopd.core import app
+from geopd.core.mail import send_email
+from geopd.core.form import ChangeAddressForm
+from geopd.core.auth import RegistrationForm
 
-from can.web import app
-from can.web.form import ChangeAddressForm
-from can.web.email import send_email
 
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
@@ -25,8 +27,6 @@ from geopd.form import ModalForm
 from werkzeug.utils import secure_filename
 
 from geopd.orm.model import *
-from geopd.web import blueprint as web
-from can.web.auth import RegistrationForm
 
 
 SURVEY_PROFILE = 1
@@ -38,10 +38,10 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'doc
 ########################################################################################################################
 # main page
 ########################################################################################################################
-@web.route('/')
+@app.route('/')
 def index():
     if not current_user.is_anonymous:
-        return redirect(url_for('web.show_user', user_id=current_user.id))
+        return redirect(url_for('show_user', user_id=current_user.id))
 
     return render_template('welcome.html', cores=Core.query.all(),
                            meetings=Meeting.query.filter(Meeting.carousel).order_by(Meeting.year.desc()).all())
@@ -50,7 +50,7 @@ def index():
 ########################################################################################################################
 # about us
 ########################################################################################################################
-@web.route('/about/')
+@app.route('/about/')
 def show_about():
     return render_template('about.html')
 
@@ -58,13 +58,13 @@ def show_about():
 ########################################################################################################################
 # annual meetings
 ########################################################################################################################
-@web.route('/meetings/')
+@app.route('/meetings/')
 def show_meetings():
     meeting = Meeting.query.filter(Meeting.program).order_by(Meeting.year.desc()).first()
-    return redirect(url_for('web.show_meeting', id=meeting.id))
+    return redirect(url_for('show_meeting', id=meeting.id))
 
 
-@web.route('/meetings/<int:id>')
+@app.route('/meetings/<int:id>')
 def show_meeting(id):
     meeting = Meeting.query.get(id)
     if not meeting.program:
@@ -76,13 +76,11 @@ def show_meeting(id):
 ########################################################################################################################
 # projects
 ########################################################################################################################
-@web.route('/projects/')
+@app.route('/projects/')
 def show_projects():
     project_members = ProjectMember.query.filter(ProjectMember.investigator).all()
+    return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all(), project_members=ProjectMember)
 
-    return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all(), project_members = ProjectMember)
-
-    # return render_template('/projects/index.html',  projects=Project.query.order_by(desc(Project.id)).all(), project_members=project_members)
 
 def make_tree(path):
     tree = dict(name=os.path.basename(path), children=[])
@@ -101,7 +99,7 @@ def make_tree(path):
     return tree
 
 
-@web.route('/projects/<int:project_id>')
+@app.route('/projects/<int:project_id>')
 @login_required
 def show_project(project_id):
     admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
@@ -129,20 +127,20 @@ def show_project(project_id):
                            is_member=is_member, is_investigator=is_investigator, tree=tree, content="", admin=admin)
 
 
-@web.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
-@web.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
+@app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
+@app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
 @login_required
 def send_file(project_id, dir, subdir, filename):
     return send_from_directory(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id), dir, subdir), filename)
 
 
-@web.route('/projects/<int:project_id>/manage')
+@app.route('/projects/<int:project_id>/manage')
 @login_required
 def show_manage_project(project_id):
     return render_template('projects/manage_members.html', project=Project.query.get(project_id))
 
 
-@web.route('/projects/<int:project_id>/manage', methods=['POST'])
+@app.route('/projects/<int:project_id>/manage', methods=['POST'])
 @login_required
 def update_project_members(project_id):
     user_ids = [int(user_id) for user_id in request.form.getlist('users[]')]
@@ -155,13 +153,13 @@ def update_project_members(project_id):
 
     for user_id in user_ids:
         db.merge(ProjectMember(project_id, user_id, False))
-        db.flush()
-    db.commit()
+        db.session.flush()
+    db.session.commit()
 
     return '', 204
 
 
-@web.route('/projects/<int:project_id>/manage/remove', methods=['POST'])
+@app.route('/projects/<int:project_id>/manage/remove', methods=['POST'])
 @login_required
 def remove_project_members(project_id):
     user_ids = [int(user_id) for user_id in request.form.getlist('users[]')]
@@ -170,14 +168,14 @@ def remove_project_members(project_id):
         .filter(ProjectMember.member_id.in_(user_ids))\
         .filter(ProjectMember.project_id == project_id)\
         .filter(ProjectMember.investigator == False).delete(synchronize_session='fetch')
-    db.commit()
+    db.session.commit()
 
     return '', 204
 
 ########################################################################################################################
 # publications
 ########################################################################################################################
-@web.route('/publications/')
+@app.route('/publications/')
 def show_publications():
     publications = Publication.query.order_by(Publication.published_on.desc()).all()
     return render_template('publications.html', publications=publications)
@@ -186,14 +184,14 @@ def show_publications():
 ########################################################################################################################
 # surveys
 ########################################################################################################################
-@web.route('/surveys/')
+@app.route('/surveys/')
 @login_required
 def show_surveys():
     return render_template('surveys/index.html', surveys=Survey.query.join(Survey.questions)
                            .options(joinedload('questions')))
 
 
-@web.route('/surveys/<int:survey_id>')
+@app.route('/surveys/<int:survey_id>')
 @login_required
 def show_survey(survey_id):
     return render_template('surveys/survey.html', survey=Survey.query.get(survey_id))
@@ -202,12 +200,12 @@ def show_survey(survey_id):
 ########################################################################################################################
 # cores
 ########################################################################################################################
-@web.route('/cores/')
+@app.route('/cores/')
 def show_cores():
     return show_core(core_id=1)
 
 
-@web.route('/cores/<int:core_id>')
+@app.route('/cores/<int:core_id>')
 def show_core(core_id):
     if current_user.is_authenticated:
         return render_template('cores/index.html',
@@ -224,7 +222,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-@web.route('/projects/<int:project_id>/posts/', methods=['POST'])
+@app.route('/projects/<int:project_id>/posts/', methods=['POST'])
 @login_required
 def create_project_post(project_id):
     form = PostForm()
@@ -242,10 +240,10 @@ def create_project_post(project_id):
         else:
             new_post = ProjectPost(title, body)
             project.posts.append(new_post)
-            db.flush()
+            db.session.flush()
 
             try:
-                db.commit()
+                db.session.commit()
             except SQLAlchemyError:
                 flash('Error creating the post. Please try again later.', 'danger')
             else:
@@ -264,11 +262,10 @@ def create_project_post(project_id):
                         send_email(user.email, "{0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
 
 
+    return redirect(url_for('show_project', project_id=project_id))
 
-    return redirect(url_for('web.show_project', project_id=project_id))
 
-
-@web.route('/projects/<int:project_id>/posts/<int:post_id>')
+@app.route('/projects/<int:project_id>/posts/<int:post_id>')
 @login_required
 def show_project_post(project_id, post_id):
     post = ProjectPost.query.get(post_id)
@@ -283,7 +280,7 @@ def show_project_post(project_id, post_id):
     return render_template('/projects/post.html', post=post, uploaded_files=uploaded_files)
 
 
-@web.route('/projects/<int:project_id>/posts/<int:post_id>', methods=['POST'])
+@app.route('/projects/<int:project_id>/posts/<int:post_id>', methods=['POST'])
 @login_required
 def update_project_post(project_id, post_id):
     post = ProjectPost.query.get(post_id)
@@ -292,17 +289,17 @@ def update_project_post(project_id, post_id):
 
     post.body = request.form.get('body')
     post.updated_on = datetime.utcnow()
-    db.commit()
+    db.session.commit()
     return '', 204
 
 
-@web.route('/projects/<int:project_id>/<int:post_id>/<string:filename>')
+@app.route('/projects/<int:project_id>/<int:post_id>/<string:filename>')
 @login_required
 def send_post_file(project_id, post_id, filename):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"], "project_post_uploads", str(project_id), str(post_id)), filename)
 
 
-@web.route('/communications/')
+@app.route('/communications/')
 def show_communications():
     if current_user.is_authenticated:
         return render_template('communications/index.html', form=PostForm(), affiliations=Affiliation.query.order_by(Affiliation.id).all())
@@ -310,7 +307,7 @@ def show_communications():
     return render_template('communications/public/index.html')
 
 
-@web.route('/communications/posts', methods=['POST'])
+@app.route('/communications/posts', methods=['POST'])
 @login_required
 def create_communications_post():
     form = PostForm()
@@ -336,11 +333,11 @@ def create_communications_post():
 
             new_post.affiliations = affs
 
-            db.add(new_post)
-            db.flush()
+            db.session.add(new_post)
+            db.session.flush()
 
             try:
-                db.commit()
+                db.session.commit()
             except SQLAlchemyError:
                 flash('Error creating the post. Please try again later.', 'danger')
             else:
@@ -374,10 +371,10 @@ def create_communications_post():
                             send_email(user.email, "Communications Board Updated", "email/communications_board_update",
                                    user=user, current_user=current_user)
 
-    return redirect(url_for('web.show_communications'))
+    return redirect(url_for('show_communications'))
 
 
-@web.route('/communications/posts/<int:post_id>')
+@app.route('/communications/posts/<int:post_id>')
 @login_required
 def show_communications_post(post_id):
     post = ComPost.query.get(post_id)
@@ -391,25 +388,25 @@ def show_communications_post(post_id):
     return render_template('/communications/post.html', post=post, uploaded_files=uploaded_files)
 
 
-@web.route('/communications/posts/<int:post_id>', methods=['POST'])
+@app.route('/communications/posts/<int:post_id>', methods=['POST'])
 @login_required
 def update_communications_post(post_id):
     post = ComPost.query.get(post_id)
 
     post.body = request.form.get('body')
     post.updated_on = datetime.utcnow()
-    db.commit()
+    db.session.commit()
 
     return '', 204
 
 
-@web.route('/communications/<int:post_id>/<string:filename>')
+@app.route('/communications/<int:post_id>/<string:filename>')
 @login_required
 def send_communications_post_file(post_id, filename):
     return send_from_directory(os.path.join(app.config["UPLOAD_FOLDER"],"communication_post_uploads", str(post_id)), filename)
 
 
-@web.route('/cores/<int:core_id>/posts/', methods=['POST'])
+@app.route('/cores/<int:core_id>/posts/', methods=['POST'])
 @login_required
 def create_core_post(core_id):
     form = PostForm()
@@ -425,14 +422,14 @@ def create_core_post(core_id):
         else:
             core.posts.append(CorePost(title, body))
             try:
-                db.commit()
+                db.session.commit()
             except SQLAlchemyError:
                 flash('Error creating the post. Please try again later.', 'danger')
 
-    return redirect(url_for('web.show_core', core_id=core_id))
+    return redirect(url_for('show_core', core_id=core_id))
 
 
-@web.route('/cores/<int:core_id>/posts/<int:post_id>')
+@app.route('/cores/<int:core_id>/posts/<int:post_id>')
 @login_required
 def show_core_post(core_id, post_id):
     post = CorePost.query.get(post_id)
@@ -441,7 +438,7 @@ def show_core_post(core_id, post_id):
     return render_template('/cores/post.html', post=post)
 
 
-@web.route('/cores/<int:core_id>/posts/<int:post_id>', methods=['POST'])
+@app.route('/cores/<int:core_id>/posts/<int:post_id>', methods=['POST'])
 @login_required
 def update_core_post(core_id, post_id):
     post = CorePost.query.get(post_id)
@@ -450,11 +447,11 @@ def update_core_post(core_id, post_id):
 
     post.body = request.form.get('body')
     post.updated_on = datetime.utcnow()
-    db.commit()
+    db.session.commit()
     return '', 204
 
 
-@web.route('/projects/<int:project_id>/join')
+@app.route('/projects/<int:project_id>/join')
 @login_required
 def email_investigators(project_id):
     project = Project.query.get(project_id)
@@ -471,13 +468,13 @@ def email_investigators(project_id):
 
     flash('Email request sent to investigators', category='success')
 
-    return redirect(url_for('web.show_project', project_id=project_id))
+    return redirect(url_for('show_project', project_id=project_id))
 
 
 ########################################################################################################################
 # users
 ########################################################################################################################
-@web.route('/users/')
+@app.route('/users/')
 def show_users():
     users = User.query.options(joinedload('address'))
     tpl = 'users/public.html' if current_user.is_anonymous else 'users/index.html'
@@ -485,7 +482,7 @@ def show_users():
     return render_template(tpl, users=users, admin=admin)
 
 
-@web.route('/users/<int:user_id>')
+@app.route('/users/<int:user_id>')
 @login_required
 def show_user(user_id):
     user = User.query.options(joinedload('avatar'),
@@ -507,7 +504,7 @@ def show_user(user_id):
                            survey=survey,
                            communication_survey=communication_survey)
 
-@web.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
+@app.route('/users/<int:user_id>/surveys/<int:survey_id>', methods=['POST'])
 @login_required
 def update_user_survey(user_id, survey_id):
     if user_id != current_user.id:
@@ -523,7 +520,7 @@ def update_user_survey(user_id, survey_id):
             question = user_survey.survey.questions[name]
             response = user_survey.responses[name] if name in user_survey.responses \
                 else UserResponse(user_survey, question)
-            db.add(response)
+            db.session.add(response)
             if question.type_id in (QUESTION_TYPE_YESNO, QUESTION_TYPE_YESNO_EXPLAIN):
                 if name in request.form.keys():
                     response.answer_yesno = request.form[name] == 'yes'
@@ -541,16 +538,16 @@ def update_user_survey(user_id, survey_id):
             user_survey.updated_on = datetime.utcnow()
 
         try:
-            db.commit()
+            db.session.commit()
         except SQLAlchemyError:
             raise
         else:
             flash('Survey information updated.', category='success')
 
-    return redirect(request.referrer or url_for('web.index'))
+    return redirect(request.referrer or url_for('index'))
 
 
-@web.route('/users/<int:user_id>/biography', methods=['POST'])
+@app.route('/users/<int:user_id>/biography', methods=['POST'])
 @login_required
 def update_user_biography(user_id):
     if user_id != current_user.id:
@@ -562,15 +559,15 @@ def update_user_biography(user_id):
     elif name == 'experience':
         current_user.bio.research_experience = request.form['value'].strip()
 
-    db.commit()
+    db.session.commit()
 
     return '', 204
 
 
-@web.route("/registration", methods=['GET', 'POST'])
-def register():
+@app.route("/registration", methods=['GET', 'POST'])
+def registration():
     if current_user.is_authenticated:
-        return redirect(url_for('web.index'))
+        return redirect(url_for('index'))
 
     form = RegistrationForm()
 
@@ -580,13 +577,13 @@ def register():
 
         user = User(email=form.email.data, password=form.password.data, name=form.name.data)
         user.address.load(request.form)
-        db.add(user)
+        db.session.add(user)
 
         try:
-            db.flush()
+            db.session.flush()
 
         except SQLAlchemyError as e:
-            db.rollback()
+            db.session.rollback()
             flash('Error while processing request. Please try again later', 'warning')
 
         else:
@@ -597,8 +594,8 @@ def register():
                            'email/new_member_request', user=user, committee=committee)
 
             flash('A confirmation email has been sent to your email address', 'success')
-            db.commit()
-            return redirect(url_for('web.index'))
+            db.session.commit()
+            return redirect(url_for('index'))
 
     # flash form errors if necessary
     for error in form.errors.values():
@@ -614,7 +611,7 @@ def register():
 ########################################################################################################################
 
 
-@web.before_request
+@app.before_request
 def before_request():
     if current_user.is_authenticated:
         if request.endpoint == 'web.show_core':
@@ -623,7 +620,7 @@ def before_request():
                     flash(Markup(
                         'Your biography is not up to date. '
                         '<a href="{0}" class="alert-link">Update my biography</a>.'.format(
-                            url_for('web.show_user', user_id=current_user.id))), category='warning')
+                            url_for('show_user', user_id=current_user.id))), category='warning')
                 else:
                     for user_survey in current_user.surveys.values():
                         if not user_survey.completed_on:
@@ -633,7 +630,7 @@ def before_request():
                                 view_args = {'{0}_id'.format(singularize(parent_type)): parent_id}
                                 url = url_for(endpoint, **view_args)
                             else:
-                                url = url_for('web.show_user', user_id=current_user.id)
+                                url = url_for('show_user', user_id=current_user.id)
                             flash(Markup(
                                 'You have not completed the survey. Please complete the '
                                 '<a href="{href}#survey" class="alert-link">{title}</a>.'.format(
@@ -643,7 +640,30 @@ def before_request():
                             break
 
 
-########################################################################################################################
-# register blueprint
-########################################################################################################################
-app.register_blueprint(web)
+
+@event.listens_for(User, 'after_insert')
+def update_referrer_after_insert_user(mapper, connection, target):
+    referrer_id = request.form.get('referrer')
+    referrer = User.query.get(referrer_id)
+    ur = UserReferrer(target, referrer)
+    db.session.add(ur)
+
+
+
+
+
+
+# def after_insert_listener(mapper, connection, target):
+#     # 'target' is the inserted object
+#     referrer = User.query.get(referrer_id)
+#     new_user = target
+#
+#     ur = UserReferrer(new_user, referrer)
+#
+#     db.session.add(ur)
+#     db.session.commit()
+#
+#     print UserReferrer.query.all()
+#
+#
+# event.listen(User, 'after_insert', after_insert_listener)

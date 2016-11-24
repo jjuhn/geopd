@@ -1,6 +1,6 @@
 {% macro create_survey(current_user, form, survey) %}
 <form id="modal-form" role="form"
-                action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+                action="{{ url_for('update_user_survey', user_id=current_user.id,
                                                                   survey_id=survey.id) }}"
                 method="post">
 

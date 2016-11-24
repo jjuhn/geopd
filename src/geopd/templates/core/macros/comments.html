@@ -1,0 +1,18 @@
+{% macro create_user_comments(id, title, resource_type, current_user) %}
+    <h1 class="page-header">User comments
+        <small>{{ title }}</small>
+    </h1>
+    <div id="user-comments"></div>
+    <script>
+        $(document).ready(function () {
+            jsonapi.comments('#user-comments', {
+                userID: '{{ current_user.id }}',
+                userName: '{{ current_user.name.full }}',
+                resourceID: '{{ id }}',
+                resourceType: '{{ resource_type }}',
+                commentResourceType: '{{ resource_type|singularize }}-comments',
+                relName: '{{ resource_type|singularize }}',
+            });
+        });
+    </script>
+{% endmacro %}

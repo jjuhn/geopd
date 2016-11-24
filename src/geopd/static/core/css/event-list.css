@@ -1,0 +1,113 @@
+.event-list {
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.event-list > li {
+    border: 1px solid #cccccc;
+    padding: 0;
+    margin: 0 0 20px 0;
+    background-color: #eeeeee;
+}
+
+.event-list > li > time {
+    display: inline-block;
+    width: 100%;
+    color: #ffffff;
+    background-color: #337ab7;
+    padding: 5px;
+    text-align: center;
+    text-transform: uppercase;
+    font-style: normal;
+    font-weight: normal;
+    opacity: 0.8;
+}
+
+.event-list > li:nth-child(even) > time {
+    background-color: #5bc0de;
+}
+
+.event-list > li > time > span {
+    display: none;
+}
+
+.event-list > li > time > .day {
+    display: block;
+    font-size: 56pt;
+    font-weight: 100;
+    line-height: 1;
+}
+
+.event-list > li time > .month {
+    display: block;
+    font-size: 24pt;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.event-list > li > img {
+    width: 100%;
+}
+
+.event-list > li > .info {
+    padding-top: 5px;
+    text-align: center;
+}
+
+.event-list > li > .info > .title {
+    font-size: 17pt;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+}
+
+.event-list > li > .info > .desc {
+    font-size: 13pt;
+    font-weight: 300;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .event-list > li {
+        position: relative;
+        display: block;
+        width: 100%;
+        min-height: 120px;
+        padding: 0px;
+    }
+
+    .event-list > li > time,
+    .event-list > li > img {
+        display: inline-block;
+    }
+
+    .event-list > li > time,
+    .event-list > li > img {
+        width: 120px;
+        float: left;
+    }
+
+    .event-list > li > .info {
+        background-color: rgb(245, 245, 245);
+        overflow: hidden;
+    }
+
+    .event-list > li > time,
+    .event-list > li > img {
+        width: 120px;
+        height: 120px;
+        padding: 0px;
+        margin: 0px;
+    }
+
+    .event-list > li > .info {
+        position: relative;
+        min-height: 120px;
+        text-align: left;
+    }
+
+    .event-list > li > .info > .title,
+    .event-list > li > .info > .desc {
+        padding: 0px 10px;
+    }
+}

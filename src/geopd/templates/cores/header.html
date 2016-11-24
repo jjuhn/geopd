@@ -3,7 +3,7 @@
         <div class="btn-group">
             {% for c in cores %}
                 <a type="button"
-                   href="{% if c.id == core.id %}#{% else %}{{ url_for('web.show_core', core_id=c.id) }}{% endif %}"
+                   href="{% if c.id == core.id %}#{% else %}{{ url_for('show_core', core_id=c.id) }}{% endif %}"
                    class="btn {% if c.id == core.id %}btn-primary{% else %}btn-default{% endif %}">
                     {{ c.name }}
                 </a>

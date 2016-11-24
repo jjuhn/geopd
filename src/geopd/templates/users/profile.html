@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% import "macros/avatar.html" as avatar %}
+{% extends "core/base.html" %}
+{% import "/core/macros/avatar.html" as avatar %}
 {% import "macros/modal_form_survey.html" as modal_form %}
 
 {% block content %}
@@ -8,7 +8,7 @@
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <ol class="breadcrumb">
-                    <li><a href="{{ url_for('web.show_users') }}">Members</a></li>
+                    <li><a href="{{ url_for('show_users') }}">Members</a></li>
                     <li>{{ user.name.full }}</li>
                 </ol>
             </div>
@@ -40,11 +40,11 @@
                     <a href="mailto:{{ user.email }}?Subject=[GEoPD]%20" target="_top">{{ user.email }}</a>
                 </p>
                 <p class="text-muted">Member since
-                    <time data-moment="{{ user.created_on|moment }}"></time>
+                    <time data-moment="{{ user.created_on|isoformat }}"></time>
                     .
                     {% if user.last_seen %}
                         Last Seen
-                        <time data-moment="{{ user.last_seen|moment }}"></time>.
+                        <time data-moment="{{ user.last_seen|isoformat }}"></time>.
                     {% endif %}
                 </p>
             </div>
@@ -93,7 +93,7 @@
 
                     <!-- Address (logged in users only) -->
                     {% if user.id == current_user.id %}
-                        {% import "macros/address.html" as address %}
+                        {% import "core/macros/address.html" as address %}
                         <div id="address-pane" class="tab-pane fade">
                             {{ address.form(address_form, user.id) }}
                         </div>
@@ -102,7 +102,7 @@
                     <!-- Survey -->
                     <div id="survey-pane" class="tab-pane fade">
                         {% from "survey.html" import render_question, render_submit with context %}
-                        <form id="surveyForm" action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+                        <form id="surveyForm" action="{{ url_for('update_user_survey', user_id=current_user.id,
                                                                   survey_id=survey.id) }}"
                               method="post">
                             {{ survey_form.csrf_token }}
@@ -136,7 +136,7 @@
                     <div id="communications-pane" class="tab-pane fade">
                         <form id="survey-form"
                               role="form"
-                              action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+                              action="{{ url_for('update_user_survey', user_id=current_user.id,
                                                                   survey_id=communication_survey.id) }}" method="post">
                             {{ survey_form.csrf_token }}
                             {{ render_question(communication_survey.questions['communications'], communication_survey.id, user) }}
@@ -188,7 +188,7 @@
                         hideable: true,
                         height: 300,
                         onBlur: function (e) {
-                            $.ajax('{{ url_for('web.update_user_biography', user_id=current_user.id) }}', {
+                            $.ajax('{{ url_for('update_user_biography', user_id=current_user.id) }}', {
                                 method: 'post',
                                 data: {
                                     name: e.$element[0].id,

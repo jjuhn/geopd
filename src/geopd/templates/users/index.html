@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
     <div class="container-fluid">
@@ -31,7 +31,9 @@
                                 <th>Member since</th>
                                 <th>Last seen</th>
                                 {% if admin %}
-                                    <th>Status</th>{% endif %}
+                                    <th>Referred by</th>
+                                    <th>Status</th>
+                                {% endif %}
                             </tr>
                             </thead>
                         </table>
@@ -82,18 +84,18 @@
                         position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
                         map: map,
                         title: '{{ user.name.formal }}',
-                    });
+                    })
 
                     marker{{ loop.index }}.addListener('click', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
-                                profile: '{{ url_for("web.show_user", user_id=user.id) }}',
+                                profile: '{{ url_for("show_user", user_id=user.id) }}',
                                 name: '{{ user.name.formal }}',
                                 email: '{{ user.email }}',
                                 institution: '{{ user.address.institution }}',
                                 address: '{{ user.address.long }}',
                             })
-                        }).open(map, marker{{ loop.index }});
+                        }).open(map, marker{{ loop.index }})
                     });
                 {%- endif -%}
             {%- endfor -%}
@@ -102,7 +104,7 @@
         $(document).ready(function () {
 
             var url = URI('/api/users/');
-            url.addQuery('include', 'name,address,status');
+            url.addQuery('include', 'name,address,status,user-referee,user-referee.referrer,user-referee.referrer.name');
 //            url.addQuery('fields[users]', 'name,address,created-on,last-seen,status');
 //            url.addQuery('fields[user-names]', 'formal');
 //            url.addQuery('fields[user-addresses]', 'institution,city,country');
@@ -112,6 +114,7 @@
 
 
             $.getJSON(url.readable(), function (json) {
+                console.log(jsonapi.parse_response(json, 2))
                 var table = $('#users').DataTable({
                     {% if admin %}
                         buttons: [{
@@ -122,9 +125,9 @@
                                 dt.rows('.selected').data().each(function (user) {
                                     users.push(user.id);
                                 });
-                                $.post("{{ url_for('can.update_users_status') }}",
+                                $.post("{{ url_for('update_users_status') }}",
                                         {users: users, status: 1}).done(function () {
-                                    window.location = "{{ url_for('web.show_users') }}";
+                                    window.location = "{{ url_for('show_users') }}";
                                 });
                             }
                         }, {
@@ -135,9 +138,9 @@
                                 dt.rows('.selected').data().each(function (user) {
                                     users.push(user.id);
                                 });
-                                $.post("{{ url_for('can.update_users_status') }}",
+                                $.post("{{ url_for('update_users_status') }}",
                                         {users: users, status: 2}).done(function () {
-                                    window.location = "{{ url_for('web.show_users') }}";
+                                    window.location = "{{ url_for('show_users') }}";
                                 });
                             }
                         }],
@@ -146,7 +149,7 @@
                             selector: 'td:first-child'
                         },
                     {% endif %}
-                    data: jsonapi.parse_response(json, 1),
+                    data: jsonapi.parse_response(json, 3),
                     columns: [
                         {% if admin %}
                             {
@@ -159,7 +162,7 @@
                         {% endif %}
                         {
                             data: function (user) {
-                                return can.dom.link('{{ url_for('web.show_users') }}' + user.id, user.name.first + ' ' + user.name.last);
+                                return can.dom.link('{{ url_for('show_users') }}' + user.id, user.name.first + ' ' + user.name.last);
                             }
                         },
                         {
@@ -181,6 +184,14 @@
                             }
                         },
                         {% if admin %}
+                            {
+                                data:function(user){
+                                    if (user['user-referee']){
+                                        var referrer = user['user-referee'].referrer;
+                                        return can.dom.link('{{ url_for('show_users') }}' + referrer.id, referrer.name.first+' '+referrer.name.last);
+                                    }
+                                }
+                            },
                             {
                                 data: function (user) {
                                     return can.dom.user_status(user);

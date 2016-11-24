@@ -17,7 +17,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="/">
-                <img alt="{{ config.APP_BRAND }}" src="{{ url_for('web.static', filename='images/brand.png') }}"
+                <img alt="{{ config.APP_BRAND }}" src="{{ url_for('static', filename='images/brand.png') }}"
                      title="{{ config.APP_NAME }}">
             </a>
         </div>
@@ -41,7 +41,7 @@
             <!-- right side -->
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_authenticated %}
-                    {% include 'auth/user.html' %}
+                    {% include 'core/auth/user.html' %}
                 {% else %}
                     {% include 'auth_geopd/login.html' %}
                 {% endif %}

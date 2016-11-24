@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
     <div class="container-fluid">
@@ -44,7 +44,7 @@
                     marker{{ loop.index }}.addListener('click', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
-                                profile: '{{ url_for("web.show_user", user_id=user.id) }}',
+                                profile: '{{ url_for("show_user", user_id=user.id) }}',
                                 name: '{{ user.name.full }}',
                                 institution: '{{ user.address.institution }}',
                                 address: '{{ user.address.long }}',

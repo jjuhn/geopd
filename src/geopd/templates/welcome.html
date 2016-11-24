@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "core/base.html" %}
 
 {% block content %}
 <div class="container-fluid">
@@ -44,7 +44,7 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-2 text-center">
-                <p><img src="{{ url_for('web.static', filename='images/logo.png') }}"></p>
+                <p><img src="{{ url_for('static', filename='images/logo.png') }}"></p>
                 <p>
                     <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">Join us!</a>
                 </p>
@@ -61,7 +61,7 @@
                 <div class="row">
                     {% for core in cores %}
                     <div class="geopd-core col-md-2">
-                        <a href="{{ url_for('web.show_core', core_id=core.id) }}">
+                        <a href="{{ url_for('show_core', core_id=core.id) }}">
                             <img src="{{ core.image_url }}" alt="{{ core.name }}" class="img-circle">
                             <div class="geopd-label"><span>{{ core.name }}</span></div>
                         </a>

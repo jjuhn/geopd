@@ -21,12 +21,12 @@ from inflection import pluralize
 def init_db():
 
     for status in User.STATUS:
-        db.add(UserStatus(status.value, titleize(status.name)))
-    db.flush()
+        db.session.add(UserStatus(status.value, titleize(status.name)))
+    db.session.flush()
 
     for permission in PERMISSION:
-        db.add(Permission(permission.value, pluralize(titleize(permission.name))))
-    db.flush()
+        db.session.add(Permission(permission.value, pluralize(titleize(permission.name))))
+    db.session.flush()
 
     users_fn = pkg_resources.resource_filename('geopd.orm', os.path.join('data', 'users.tsv'))
     with open(users_fn, 'rU') as users_stream:
@@ -35,8 +35,8 @@ def init_db():
             user.status_id = User.STATUS_ACTIVE
             user.confirmed = True
             user.force_password_reset = True
-            db.add(user)
-        db.flush()
+            db.session.add(user)
+        db.session.flush()
 
     projects_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'projects.tsv'))
     for row in csv.DictReader(projects_stream, delimiter='\t'):
@@ -44,7 +44,7 @@ def init_db():
         if row['investigators']:
             for name in row['investigators'].split(','):
                 project.investigators.append(User.query.join(UserName).filter(UserName.full == name).one())
-        db.add(project)
+        db.session.add(project)
 
     publications = dict()
     publications_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'publications.tsv'))
@@ -64,7 +64,7 @@ def init_db():
         publication.published_on = dateutil.parser.parse(rec['PubDate'])
         publication.epublished_on = dateutil.parser.parse(rec['EPubDate']) if rec['EPubDate'] else None
         publications[rec['Id']] = publication
-        db.add(publication)
+        db.session.add(publication)
 
     handle = Bio.Entrez.efetch(db='pubmed', id=','.join(publications.keys()), rettype='abstract', retmode='xml')
     for rec in Bio.Entrez.read(handle):
@@ -74,17 +74,17 @@ def init_db():
                 abstract_lines.append(s)
             publications[rec['MedlineCitation']['PMID']].abstract = '\n'.join(abstract_lines)
 
-    db.add(Meeting('Paris', 2005, carousel=True))
-    db.add(Meeting('Santorini', 2006, carousel=True))
-    db.add(Meeting('Trondheim', 2008, carousel=True))
-    db.add(Meeting('Tubingen', 2009, carousel=True))
-    db.add(Meeting('Toronto', 2010, carousel=True))
-    db.add(Meeting('Evanston', 2011, program=True, carousel=True))
-    db.add(Meeting('Seoul', 2012, program=True, carousel=True))
-    db.add(Meeting('Luebeck', 2013, program=True, carousel=True))
-    db.add(Meeting('Vancouver', 2014, program=True, carousel=True))
-    db.add(Meeting('Tokyo', 2015, program=True, carousel=True))
-    db.add(Meeting('Luxembourg', 2016, program=True))
+    db.session.add(Meeting('Paris', 2005, carousel=True))
+    db.session.add(Meeting('Santorini', 2006, carousel=True))
+    db.session.add(Meeting('Trondheim', 2008, carousel=True))
+    db.session.add(Meeting('Tubingen', 2009, carousel=True))
+    db.session.add(Meeting('Toronto', 2010, carousel=True))
+    db.session.add(Meeting('Evanston', 2011, program=True, carousel=True))
+    db.session.add(Meeting('Seoul', 2012, program=True, carousel=True))
+    db.session.add(Meeting('Luebeck', 2013, program=True, carousel=True))
+    db.session.add(Meeting('Vancouver', 2014, program=True, carousel=True))
+    db.session.add(Meeting('Tokyo', 2015, program=True, carousel=True))
+    db.session.add(Meeting('Luxembourg', 2016, program=True))
 
     cores_stream = pkg_resources.resource_stream('geopd.orm', os.path.join('data', 'cores.tsv'))
     for row in csv.DictReader(cores_stream, delimiter='\t'):
@@ -92,8 +92,8 @@ def init_db():
         if row['leaders']:
             for name in row['leaders'].split(','):
                 core.leaders.append(User.query.join(UserName).filter(UserName.full == name).one())
-        db.add(core)
-    db.flush()
+        db.session.add(core)
+    db.session.flush()
 
     # survey question types
     question_types = dict()
@@ -128,5 +128,5 @@ def init_db():
                     for choice in attrs['choices']:
                         question.choices.append(SurveyQuestionChoice(choice))
 
-    db.commit()
+    db.session.commit()
 

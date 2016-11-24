@@ -1,0 +1,52 @@
+{% macro render(user, current_user_id) %}
+{% if user.id != current_user_id %}
+<img src="{{ url_for('get_user_avatar', user_id=user.id) }}" alt="{{ user.name.full }}"
+     class="img-rounded img-responsive thumbnail center-block"/>
+{% else %}
+<div class="kv-avatar text-center">
+    <input id="avatar" name="avatar" type="file" class="file-loading center-block">
+</div>
+<script>
+    $(document).ready(function () {
+        $("#avatar").fileinput({
+            uploadUrl: "{{ url_for('update_user_avatar', user_id=user.id) }}",
+            uploadAsync: true,
+            uploadExtraData: {
+                name: 'avatar'
+            },
+            overwriteInitial: true,
+            maxFileSize: 1500,
+            showClose: false,
+            showCaption: false,
+            browseLabel: 'Upload Image',
+            removeLabel: '',
+            uploadLabel: 'Save',
+            browseIcon: '<i class="glyphicon glyphicon-upload"></i>',
+            removeIcon: '&times',
+            removeTitle: 'Cancel or reset changes',
+            browseClass: 'btn btn-default btn-sm',
+            removeClass: 'btn btn-default btn-sm',
+            uploadClass: 'btn btn-primary btn-sm',
+            elErrorContainer: '#kv-avatar-errors',
+            msgErrorClass: 'alert alert-block alert-danger',
+            defaultPreviewContent: can.dom.html($('<img/>').addClass('file-preview-image')
+                    .attr('alt', "{{ user.name.full }}")
+                    .attr('title', "{{ user.name.full }}")
+                    .attr('src', "{{ url_for('get_user_avatar', user_id=user.id) }}")),
+            removeFromPreviewOnError: true,
+            allowedFileExtensions: ["jpg", "jpeg", "png", "gif"],
+            layoutTemplates: {
+                footer: '',
+                main2: '{preview}\n<div class="kv-upload-progress hide"></div>\n{cancel}\n{upload}\n{browse}\n',
+            },
+        }).on('fileuploaded', function (event, data, previewId, index) {
+            $('a.fileinput-upload-button').hide();
+            $('#avatar').parents('div.btn.btn-file').first().show();
+        }).on('fileselect', function (event, numFiles, label) {
+            $('a.fileinput-upload-button').show();
+            $('#avatar').parents('div.btn.btn-file').first().hide();
+        });
+    });
+</script>
+{% endif %}
+{% endmacro %}

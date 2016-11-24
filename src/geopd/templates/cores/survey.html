@@ -1,7 +1,7 @@
 <div class="container">
 
     {% from "survey.html" import render_question, render_submit with context %}
-    <form id="surveyForm" action="{{ url_for('web.update_user_survey', user_id=current_user.id,
+    <form id="surveyForm" action="{{ url_for('update_user_survey', user_id=current_user.id,
                                                                        survey_id=core.survey.id) }}"
           method="post">
         {{ survey_form.csrf_token }}

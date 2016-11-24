@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% import "macros/address.html" as address %}
+{% extends "core/base.html" %}
+{% import "core/macros/address.html" as address %}
 
 {% block title %}{{ super() }} - Register{% endblock %}
 
@@ -13,7 +13,7 @@
                     </div>
                     <div class="panel-body">
 
-                        <form id="registration-form" action="{{ url_for('web.register') }}"
+                        <form id="registration-form" action="{{ url_for('register') }}"
                               role="form" method="post" data-toggle="validator">
                             {{ form.csrf_token }}
 
@@ -85,6 +85,7 @@
                             <hr/>
                             {{ address.field(form) }}
                             <hr/>
+
                             <div class="form-group">
                                 <label for ="referrer">Which steering committee referred you to this site?</label>
                                 <select id="referrer" class="form-control" name="referrer" required>

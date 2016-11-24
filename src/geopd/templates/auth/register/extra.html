@@ -1,0 +1,24 @@
+<div class="form-group">
+    <label for ="referrer">Which steering committee referred you to this site?</label>
+    <select id="referrer" class="form-control" name="referrer" required>
+
+    </select>
+</div>
+
+<script>
+
+$(document).ready(function (){
+    var url = URI('/api/permissions/');
+    url.addQuery('include', 'users,users.name');
+    url.addQuery('filter[id.eq]', 1);
+    $.getJSON(url.readable(), function(json){
+        data = jsonapi.parse_response(json, 2)
+        $.each(data[0].users, function(k, v){
+            var o = new Option(v.name.first +" "+ v.name.last, v.id);
+            $(o).html(v.name.first +" "+ v.name.last);
+            $('#referrer').append(o)
+        });
+
+    })
+})
+</script>

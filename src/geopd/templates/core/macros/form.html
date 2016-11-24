@@ -1,0 +1,46 @@
+{% macro field(field, glyphicon, required=false) %}
+<div class="form-group">
+    <div class="input-group">
+        <div class="input-group-addon">
+            <span title="{{ field.label.text }}" data-toggle="tooltip" class="glyphicon glyphicon-{{ glyphicon }}"></span>
+        </div>
+        {% if required %}
+        {{ field(class="form-control", placeholder=field.label.text, required='required') }}
+        {% else %}
+        {{ field(class="form-control", placeholder=field.label.text) }}
+        {% endif %}
+    </div>
+    <div class="help-block with-errors"></div>
+</div>
+{% endmacro %}
+
+{% macro date(field, glyphicon, required=false) %}
+<div class="form-group">
+    <div class="input-group">
+        <div class="input-group-addon">
+            <span>{{ field.label.text }}</span>
+        </div>
+        {% if required %}
+        {{ field(class="form-control", placeholder=field.label.text, type='date', required='required') }}
+        {% else %}
+        {{ field(class="form-control", placeholder=field.label.text, type='date') }}
+        {% endif %}
+    </div>
+    <div class="help-block with-errors"></div>
+</div>
+{% endmacro %}
+
+{% macro radio(field, class='primary') %}
+<div class="form-group funkyradio">
+    <h4>{{ field.label.text }}</h4>
+    {{ field(class="funkyradio-" + class + " list-inline") }}
+</div>
+{% endmacro %}
+
+{% macro checkbox_group(field, class='primary') %}
+<div class="form-group funkyradio">
+    <h4>{{ field.label.text }}</h4>
+    <p class="text-muted">&#x2714 Check all that apply.</p>
+    {{ field(class="funkyradio-" + class + " list-inline") }}
+</div>
+{% endmacro %}

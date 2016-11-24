@@ -2,18 +2,21 @@ from datetime import datetime, date
 from importlib import import_module
 
 import inflection
-from flask import Flask
 from flask import Blueprint
+from flask import Flask
+from flask import render_template
 from flask.json import JSONEncoder
 from flask_assets import Environment
 from flask_bootstrap import Bootstrap
 from flask_mail import Mail
+from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
-from sa_jsonapi import serializer as jsonapi
 from flask_wtf import CsrfProtect
 from markdown import markdown
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative import declared_attr
+
+from sa_jsonapi import serializer as jsonapi
 
 
 class CustomModel(object):
@@ -84,6 +87,19 @@ assets.register('css',
                 'css/{0}.css'.format(app.import_name),
                 output='css/global.min.css', filters='cssmin')
 
+
+# send mail
+def send_email(to, subject, template_name, **context):
+    subject = "[{0}] {1}".format(app.config['APP_NAME'], subject)
+    msg = Message(subject,
+                  sender='"{0}" <{1}>'.format(app.config['APP_NAME'], app.config['MAIL_USERNAME']),
+                  recipients=[to])
+    msg.body = render_template(template_name + '.txt', **context)
+    msg.html = render_template(template_name + '.html', **context)
+    if mail:
+        mail.send(msg)
+
+
 # filters
 app.jinja_env.filters['isoformat'] = lambda x: x.isoformat() + 'Z'
 app.jinja_env.filters['md2html'] = lambda x: markdown(x)
@@ -116,4 +132,3 @@ application = app
 # test server
 def run():
     app.run()
-

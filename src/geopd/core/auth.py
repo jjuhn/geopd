@@ -17,8 +17,8 @@ from wtforms import SubmitField
 from wtforms import ValidationError
 
 from . import app
+from . import send_email
 from .form import AddressMixin
-from .mail import send_email
 from .orm.model import *
 
 ########################################################################################################################

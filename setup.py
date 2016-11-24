@@ -27,7 +27,8 @@ setup(name='geopd',
           'nameparser',
           'requests',
           'binaryornot',
-          'sa_jsonapi'
+          'sa_jsonapi',
+          'enum'
       ],
       include_package_data=True,
       zip_safe=False,

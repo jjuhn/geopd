@@ -8,10 +8,10 @@ from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import app
+from . import send_email
 from .form import ChangeAddressForm
 from .form import ContactForm
 from .form import FeedbackForm
-from .mail import send_email
 from .orm.model import *
 
 

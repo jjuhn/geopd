@@ -15,7 +15,7 @@ from sqlalchemy.orm import noload
 from sqlalchemy import desc
 from sqlalchemy import event
 from geopd.core import app
-from geopd.core.mail import send_email
+from geopd.core import send_email
 from geopd.core.form import ChangeAddressForm
 from geopd.core.auth import RegistrationForm
 
@@ -152,7 +152,7 @@ def update_project_members(project_id):
     user_ids = list(set(user_ids) - set(inv_user_ids))
 
     for user_id in user_ids:
-        db.merge(ProjectMember(project_id, user_id, False))
+        db.session.merge(ProjectMember(project_id, user_id, False))
         db.session.flush()
     db.session.commit()
 

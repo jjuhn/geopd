@@ -28,7 +28,7 @@ setup(name='geopd',
           'requests',
           'binaryornot',
           'sa_jsonapi',
-          'enum'
+          'enum34'
       ],
       include_package_data=True,
       zip_safe=False,

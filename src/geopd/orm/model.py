@@ -353,3 +353,11 @@ class UserReferrer(db.Model):
         self.referrer_id = referrer.id
 
 
+class ProjectCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Text)
+    order = db.Column(db.Integer)
+    project_id = db.Column(db.Integer, db.ForeignKey(Project.id))
+
+    project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('categories', lazy='joined') )
+

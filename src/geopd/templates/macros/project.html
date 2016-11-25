@@ -1,0 +1,37 @@
+{% macro create_project_accordians(project, categories) %}
+
+<div class="panel-group" id="accordion">
+    {% for category in categories %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#{{ category.id }}">{{ category.name }}</a>
+            </h4>
+        </div>
+        <div id="{{ category.id }}" class="panel-collapse collapse">
+            <div class="panel-body">
+                {% if category.content_type == file %}
+                    {{ make some table and display}}
+                {% elif category.content_type == text %}
+                    {{ make some }}
+                {{ category.contents}}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script>
+
+</script>
+
+{% endmacro %}
+
+{% macro create_project_tabs(project, categories) %}
+
+<ul class="nav nav-tabs">
+    {% for category in categories %}
+        <li><a href="#{{ category.id }}">{{ category.name }}</a></li>
+    {% endfor %}
+</ul>
+
+{% endmacro %}

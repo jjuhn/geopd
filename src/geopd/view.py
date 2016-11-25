@@ -113,6 +113,8 @@ def show_project(project_id):
     is_member = True if current_user in p.members else False
     is_investigator = True if pm > 0 else False
 
+    print p.categories
+
     tree = make_tree(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id)))
     filename = os.path.join('texts', '{0}.md'.format(project_id))
     file_path = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
@@ -125,7 +127,7 @@ def show_project(project_id):
 
     return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
                            is_member=is_member, is_investigator=is_investigator, tree=tree, content="", admin=admin)
-
+    # return render_template('projects/project.html', project=Project.query.get(project_id), categories=p.categories, form=ProjectPostForm())
 
 @app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
 @app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')

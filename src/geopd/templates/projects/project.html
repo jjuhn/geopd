@@ -4,7 +4,7 @@
 
 {% from "macros/synuclein_multiplication.html" import make_accordion %}
 {% from "macros/project_discussion_board.html" import create_project_discussion_board %}
-
+{% from "macros/project.html" import create_project_accordians %}
 {% block project_content %}
 
     <p align="right">
@@ -24,9 +24,11 @@
     </p>
 
     {% if project.id == 6 %}
-        {{ make_accordion(project, is_member, form, tree, content) }}
+        {{ make_accordion(project, is_member, form, tree, content, members) }}
     {% else %}
-        {{ create_project_discussion_board(project, form) }}
+        {{ create_project_accordians(project, categories) }}
+
+        <!--{{ create_project_discussion_board(project, form) }}-->
     {% endif %}
     <div id="modalJoin" class="modal fade" role="dialog">
         <div class="modal-dialog">

@@ -1,0 +1,62 @@
+{% macro create_project_files_table(category_id, is_member, is_investigator, admin) %}
+<table id="project-contents-table-{{category_id}}" class="table" width="100%">
+    <thead>
+        <tr>
+        {% if admin or is_member or is_investigator %}
+            <th></th>
+        {% endif %}
+            <th>Name</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+</table>
+
+<script>
+    $(document).ready(function(){
+        var url = URI('/api/content_files');
+        url.addQuery('include', 'project-category,project-category.project');
+        url.addQuery('filter[category_id.eq]', {{ category_id }});
+
+        $.getJSON(url.readable(), function(json){
+            var table = $('#project-contents-table-{{category_id}}').DataTable({
+                data: jsonapi.parse_response(json, 3),
+                columns:[
+                    {% if admin or is_member or is_investigator %}
+                    {
+                        data: function(content_file){
+                            return content_file
+                        },
+                        render: function(data, type, full, meta){
+//                            look into making mixins for contentFile for making up the href path.
+
+                            var category_name = data['project-category'].name.toLowerCase().replace(/ /g, "_");
+                            var project_id = data['project-category'].project.id;
+                            var path = ['/projects', project_id, category_name, data['file-name']];
+                            var href = path.join('/');
+                            return '<a href="#" download><span class="glyphicon glyphicon-download"></span></a>'.replace("#", href)
+                        },
+                        orderable: false,
+                        className:'download-button'
+                    },
+                    {% endif %}
+                    {
+                        data: function(content_file){
+                            var filename = content_file['display-name'];
+                            return filename
+                        }
+                    },
+                    {
+                        data: function(content_file){
+                            return content_file['extension'];
+                        }
+                    }
+
+                ]
+
+            });
+
+        })
+    })
+</script>
+{% endmacro %}
+

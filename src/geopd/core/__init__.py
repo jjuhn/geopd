@@ -120,10 +120,10 @@ import_module('{0}.view'.format(__name__))
 import_module('{0}.view'.format(app.import_name))
 
 # api
-jsonapi.register_base(db.Model)
 api = Blueprint('api', app.import_name, url_prefix='/api')
 import_module('{0}.api'.format(app.import_name))
 app.register_blueprint(api)
+jsonapi.register_base(db.Model)
 
 # wsgi hook
 application = app

@@ -2,6 +2,14 @@
 {% set project_name = "Manage members - "+ project.name %}
 {% set image_url = url_for('static', filename='images/projects/') + project.name + ".jpg" %}
 
+{% block breadcrumb %}
+    <ol class="breadcrumb">
+        <li><a href="{{ url_for('show_projects') }}">Projects</a></li>
+        <li><a href="{{ url_for('show_project', project_id=project.id) }}">{{ project.name }}</a></li>
+        <li>{{ project_name }}</li>
+    </ol>
+{% endblock %}
+
 {% block project_content %}
     <table id="user-table" class="table" width="100%">
         <thead>
@@ -24,7 +32,6 @@
         $(document).ready(function(){
             var url = URI('/api/users');
             url.addQuery('include', 'name,address,mprojects');
-            console.log(url.readable());
             $.getJSON(url.readable(), function(json){
                 var table = $('#user-table').DataTable({
                     buttons: [{

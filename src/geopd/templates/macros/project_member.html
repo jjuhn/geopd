@@ -1,0 +1,76 @@
+{% macro create_members_table(project) %}
+<!--<ul class="nav nav-tabs">-->
+    <!--<li role="presentation" class="active"><a href="#members-pane">Project Members</a></li>-->
+<!--</ul>-->
+<!--<div class="tab-content">-->
+    <div role="tabpanel" class="tab-pane fade in active" id="members-pane">
+        <table id="user-table" class="table" width="100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Institution</th>
+                    <th>City</th>
+                    <th>Associated Projects</th>
+                    <th>Member since</th>
+                    <th>Last seen</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+<!--</div>-->
+
+<script>
+    $(document).ready(function(){
+        var url = URI('/api/projects/{{ project.id }}');
+        url.addQuery('include', 'name,address,mprojects');
+
+        $.getJSON(url.readable(), function(json){
+            var table = $('#user-table').DataTable({
+                data: jsonapi.parse_response(json,3),
+                order:[[4, 'desc']],
+                columns:[
+                    {
+                        data: function(user){
+                            return can.dom.link('{{ url_for('show_users') }}'
+                            + user.id, user.name.first + ' ' + user.name.last);
+                        }
+                    },
+                    {
+                        data: function (user) {
+                            return user.address.institution
+                        }
+                    },
+                    {
+                        data: function (user) {
+                            return user.address.city
+                        }
+                    },
+                    {
+                        data: function (user){
+                            var project_names = [];
+                            if (user.mprojects){
+                                $.each(user.mprojects, function(index, value){
+                                   project_names.push(value.name)
+                                });
+                            }
+                            return project_names.join(", ")
+                        }
+                    },
+                    {
+                        data: function(user){
+                            return can.dom.datetime(user['created-on']);
+                        }
+                    },
+                    {
+                        data: function(user){
+                            return can.dom.datetime(user['last-seen']);
+                        }
+                    }
+                ]
+            });
+
+        })
+    })
+</script>
+
+{% endmacro %}

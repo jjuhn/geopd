@@ -38,10 +38,6 @@ div.dt-buttons {
     margin-left: 1em;
 }
 
-div.dt-buttons .btn {
-    margin-right: 1em;
-}
-
 table.dataTable tbody > tr.selected {
     background-color: #eeeeee;
     color: #666666;

@@ -16,4 +16,10 @@ def bulk_insert(mapper, mapping, chunk_size=_CHUNK_SIZE):
         db.session.bulk_insert_mappings(mapper, batch)
         db.session.flush()
         total = locale.format("%d", i + len(batch), grouping=True)
-        log.info("inserted {0} {1} records".format(total, mapper.__name__))
+        log.info("inserted {0} '{1}' records".format(total, mapper.__tablename__))
+
+
+def insert(table, data):
+    if data:
+        log.info("inserted {0} '{1}' records".format(len(data), table.name))
+        db.session.connection().execute(table.insert(), data)

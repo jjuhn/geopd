@@ -317,7 +317,6 @@ class FileMixin(object):
 
 
 class CommentMixin(object):
-    __mapper_args__ = dict(order_by="created_on.desc()")
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     body = db.Column(db.Text, nullable=False)

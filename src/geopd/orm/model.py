@@ -353,11 +353,101 @@ class UserReferrer(db.Model):
         self.referrer_id = referrer.id
 
 
+class CategoryType(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    name = db.Column(db.Text, nullable=False)
+
+
 class ProjectCategory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text)
     order = db.Column(db.Integer)
     project_id = db.Column(db.Integer, db.ForeignKey(Project.id))
+    type_id = db.Column(db.Integer, db.ForeignKey(CategoryType.id))
 
-    project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('categories', lazy='joined') )
+    project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('categories', lazy='joined', order_by=order))
+    type = db.relationship(CategoryType, foreign_keys=[type_id], backref=db.backref('categories', lazy='joined'))
+
+
+class ContentFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    saved_path = db.Column(db.Text, nullable=False)
+    file_name = db.Column(db.Text, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey(ProjectCategory.id))
+    read_and_show = db.Column(db.Boolean)
+    display_name = db.Column(db.Text, nullable=False)
+    extension = db.Column(db.Text, nullable=False)
+
+    project_category = db.relationship(ProjectCategory, foreign_keys=[category_id], backref=db.backref('content_files'), lazy='joined')
+
+    @property
+    def file_url(self):
+        filename = os.path.join("projects",
+                                str(self.project_category.project.id),
+                                str(self.project_category.name.lower().replace(" ", "_")),
+                                str(self.file_name))
+
+        return filename
+
+
+class textContent(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    contents = db.Column(db.Text, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey(ProjectCategory.id))
+
+    project_category = db.relationship(ProjectCategory, foreign_keys=[category_id],
+                                       backref=db.backref('text_contents', lazy='joined'))
+
+
+class ContentPublication(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    file_name = db.Column(db.Text, nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey(ProjectCategory.id))
+    pmid = db.Column(db.Integer)
+    title = db.Column(db.Text, nullable=False)
+    source = db.Column(db.Text)
+    issue = db.Column(db.Text)
+    volume = db.Column(db.Text)
+    pages = db.Column(db.Text)
+    authors = db.Column(db.Text)
+    abstract = db.Column(db.Text)
+    published_on = db.Column(db.Date)
+    epublished_on = db.Column(db.Date)
+
+    project_category = db.relationship(ProjectCategory,
+                                       foreign_keys=[category_id],
+                                       backref=db.backref('content_publications'), lazy='joined')
+
+    def __init__(self, title):
+        self.title = title
+
+    @property
+    def file_url(self):
+        filename = os.path.join("projects",
+                                str(self.project_category.project.id),
+                                str(self.project_category.name.lower().replace(" ", "_")),
+                                str(self.file_name))
+
+        return filename
+
+
+class ContentPedigree(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    file_name = db.Column(db.Text, nullable=False)
+    region = db.Column(db.Text, nullable=False)
+    country_code = db.Column(db.Text, nullable=False)
+    display_name = db.Column(db.Text, nullable=False)
+    pedigree_type = db.Column(db.Text, nullable=False)
+    country = db.Column(db.Text, nullable=False)
+
+    category_id = db.Column(db.Integer, db.ForeignKey(ProjectCategory.id))
+
+    project_category = db.relationship(ProjectCategory,
+                                       foreign_keys=[category_id],
+                                       backref=db.backref('content_pedigrees'), lazy='joined')
+
+    def __init__(self, file_name):
+        self.file_name = file_name
+
+
 

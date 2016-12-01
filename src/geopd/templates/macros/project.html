@@ -1,7 +1,12 @@
-{% macro create_project_accordians(project, categories) %}
+{% from "macros/project_discussion_board.html" import create_project_discussion_board %}
+{% from "macros/project_member.html" import create_members_table %}
+{% from "macros/project_contents.html" import create_project_files_table %}
+{% from "macros/project_publications.html" import create_project_publications_table %}
+{% from "macros/project_pedigrees.html" import create_project_pedigrees_table %}
 
+{% macro create_project_accordians(project, read_contents, form, is_member, is_investigator, admin) %}
 <div class="panel-group" id="accordion">
-    {% for category in categories %}
+    {% for category in project.categories %}
     <div class="panel panel-default">
         <div class="panel-heading">
             <h4 class="panel-title">
@@ -10,11 +15,24 @@
         </div>
         <div id="{{ category.id }}" class="panel-collapse collapse">
             <div class="panel-body">
-                {% if category.content_type == file %}
-                    {{ make some table and display}}
-                {% elif category.content_type == text %}
-                    {{ make some }}
-                {{ category.contents}}
+                {% if category.type.name == 'text' %}
+                    {{ read_contents.get(category.id) }}
+                {% elif category.type.name == 'member' %}
+                    {{ create_members_table(project) }}
+                {% elif category.type.name == 'file' %}
+                    {{ create_project_files_table(category.id, is_member, is_investigator, admin) }}
+                {% elif category.type.name == 'discussion_board' %}
+                    {% if is_member or is_investigator or admin %}
+                        {{ create_project_discussion_board(project, form) }}
+                    {% else %}
+                        Discussion board is only available for members of {{ project.name }} project.
+                    {% endif %}
+                {% elif category.type.name == 'publication' %}
+                    {{ create_project_publications_table(category.id, is_member, is_investigator, admin) }}
+                {% elif category.type.name == 'pedigree' %}
+                    {{ create_project_pedigrees_table(category.id, is_member, is_investigator, admin) }}
+
+                {% endif %}
             </div>
         </div>
     </div>
@@ -27,11 +45,9 @@
 {% endmacro %}
 
 {% macro create_project_tabs(project, categories) %}
-
 <ul class="nav nav-tabs">
     {% for category in categories %}
         <li><a href="#{{ category.id }}">{{ category.name }}</a></li>
     {% endfor %}
 </ul>
-
 {% endmacro %}

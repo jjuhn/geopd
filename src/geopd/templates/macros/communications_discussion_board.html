@@ -117,11 +117,26 @@
                     },
                     {
                         data: 'created-on',
-                        render: can.dom.datetime,
+                        render: function(data, type, row) {
+                            if (type=='sort' || type=='type'){
+                                return Date.parse(data);
+                            }
+                            else{
+                                return can.dom.datetime(data);
+                            }
+                        }
+
                     },
                     {
                         data: 'updated-on',
-                        render: can.dom.datetime,
+                        render: function(data, type, row) {
+                            if (type=='sort' || type=='type'){
+                                return Date.parse(data);
+                            }
+                            else{
+                                return can.dom.datetime(data);
+                            }
+                        }
                     }
                 ]
                 })

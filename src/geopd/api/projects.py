@@ -20,3 +20,37 @@ def get_project(project_id):
     response = jsonapi.get_related(db.session, request.args, 'projects', project_id, 'members')
     return jsonify(response.document), response.status
 
+
+@api.route('/categories')
+@login_required
+def get_categories():
+    response = jsonapi.get_collection(db.session, request.args, 'project-categories')
+    return jsonify(response.document), response.status
+
+
+@api.route('/categories/<int:category_id>')
+@login_required
+def get_category(category_id):
+    response = jsonapi.get_related(db.session, request.args, 'project-categories', category_id, 'content-files')
+    return jsonify(response.document), response.status
+
+
+@api.route('/content_files')
+@login_required
+def get_content_files():
+    response = jsonapi.get_collection(db.session, request.args, 'content-files')
+    return jsonify(response.document), response.status
+
+
+@api.route('/content_publications')
+@login_required
+def get_content_publications():
+    response = jsonapi.get_collection(db.session, request.args, 'content-publications')
+    return jsonify(response.document), response.status
+
+
+@api.route('/content_pedigrees')
+@login_required
+def get_content_pedigrees():
+    response = jsonapi.get_collection(db.session, request.args, 'content-pedigrees')
+    return jsonify(response.document), response.status

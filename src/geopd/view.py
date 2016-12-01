@@ -19,7 +19,6 @@ from geopd.core import send_email
 from geopd.core.form import ChangeAddressForm
 from geopd.core.auth import RegistrationForm
 
-
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
 from geopd.form import ProjectPostForm
@@ -33,6 +32,27 @@ SURVEY_PROFILE = 1
 SURVEY_BIOLOGY = 2
 SURVEY_COMMUNICATION = 3
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'rtf'])
+
+
+from geopd.core import mail
+from flask_mail import Message
+from threading import Thread
+
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def send_email_async(to, subject, template_name, **context):
+    subject = "[{0}] {1}".format(app.config['APP_NAME'], subject)
+    msg = Message(subject,
+                  sender='"{0}" <{1}>'.format(app.config['APP_NAME'], app.config['MAIL_USERNAME']),
+                  recipients=[to])
+    msg.body = render_template(template_name + '.txt', **context)
+    msg.html = render_template(template_name + '.html', **context)
+
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
 
 
 ########################################################################################################################
@@ -113,21 +133,19 @@ def show_project(project_id):
     is_member = True if current_user in p.members else False
     is_investigator = True if pm > 0 else False
 
-    print p.categories
-
-    tree = make_tree(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id)))
-    filename = os.path.join('texts', '{0}.md'.format(project_id))
-    file_path = pkg_resources.resource_filename('geopd', os.path.join('static', filename))
-
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            content = Markup(markdown.markdown(f.read()))
-            return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
-                           is_member=is_member, is_investigator=is_investigator, tree=tree, content=content, admin=admin)
+    read_contents_dict = {}
+    for category in p.categories:
+        for file in category.content_files:
+            if file.read_and_show:
+                full_path = os.path.join(app.config["PRIVATE_DIR"],file.file_url)
+                if os.path.exists(full_path):
+                    with open(full_path, 'r') as f:
+                        read_contents = Markup(markdown.markdown(f.read()))
+                        read_contents_dict.update({category.id: read_contents})
 
     return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
-                           is_member=is_member, is_investigator=is_investigator, tree=tree, content="", admin=admin)
-    # return render_template('projects/project.html', project=Project.query.get(project_id), categories=p.categories, form=ProjectPostForm())
+                           is_member=is_member, is_investigator=is_investigator, read_contents=read_contents_dict, admin=admin)
+
 
 @app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
 @app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
@@ -261,7 +279,12 @@ def create_project_post(project_id):
 
                 for user in project.members:
                     if not user == current_user:
-                        send_email(user.email, "{0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
+                        send_email_async(user.email,
+                                         "{0} Discussion Board Updated".format(project.name),
+                                         "email/project_board_update", user=user, project=project,
+                                         title=title, body=body)
+
+                        # send_email(user.email, "{0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
 
 
     return redirect(url_for('show_project', project_id=project_id))
@@ -370,7 +393,7 @@ def create_communications_post():
                     users_aff = list(users_aff)
                     if users_aff:
                         for user in users_aff:
-                            send_email(user.email, "Communications Board Updated", "email/communications_board_update",
+                            send_email_async(user.email, "Communications Board Updated", "email/communications_board_update",
                                    user=user, current_user=current_user)
 
     return redirect(url_for('show_communications'))
@@ -643,15 +666,15 @@ def before_request():
 
 
 
-@event.listens_for(User, 'after_insert')
-def update_referrer_after_insert_user(mapper, connection, target):
-    referrer_id = request.form.get('referrer')
-    referrer = User.query.get(referrer_id)
-    ur = UserReferrer(target, referrer)
-    db.session.add(ur)
-
-    send_email(referrer.email, "Requesting activation of new user.",
-               'email/new_member_request', user=target, committee=referrer)
+# @event.listens_for(User, 'after_insert')
+# def update_referrer_after_insert_user(mapper, connection, target):
+#     referrer_id = request.form.get('referrer')
+#     referrer = User.query.get(referrer_id)
+#     ur = UserReferrer(target, referrer)
+#     db.session.add(ur)
+#
+#     send_email(referrer.email, "Requesting activation of new user.",
+#                'email/new_member_request', user=target, committee=referrer)
 
 
 

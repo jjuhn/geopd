@@ -390,15 +390,6 @@ class ContentFile(db.Model):
         return filename
 
 
-class textContent(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
-    contents = db.Column(db.Text, nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey(ProjectCategory.id))
-
-    project_category = db.relationship(ProjectCategory, foreign_keys=[category_id],
-                                       backref=db.backref('text_contents', lazy='joined'))
-
-
 class ContentPublication(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     file_name = db.Column(db.Text, nullable=False)

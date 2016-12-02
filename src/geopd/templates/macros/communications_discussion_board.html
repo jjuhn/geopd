@@ -93,6 +93,10 @@
             $('#posts-count').text(posts.length);
 
             var table = $('#post-table').DataTable({
+                rowReorder:{
+                    selector: 'td:nth-child(2)'
+                },
+                responsive:true,
                 data: posts,
                 columns:[
                     {

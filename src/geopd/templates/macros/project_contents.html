@@ -19,6 +19,10 @@
 
         $.getJSON(url.readable(), function(json){
             var table = $('#project-contents-table-{{category_id}}').DataTable({
+                rowReorder:{
+                    selector: 'td:nth-child(2)'
+                },
+                responsive:true,
                 data: jsonapi.parse_response(json, 3),
                 columns:[
                     {% if admin or is_member or is_investigator %}

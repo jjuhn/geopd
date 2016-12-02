@@ -20,6 +20,10 @@
 
         $.getJSON(url.readable(), function(json){
             var table = $('#project-publications-table').DataTable({
+                rowReorder:{
+                    selector: 'td:nth-child(2)'
+                },
+                responsive:true,
                 data: jsonapi.parse_response(json, 3),
                 {% if admin or is_member or is_investigator %}
                 order: [[3, "desc"]],

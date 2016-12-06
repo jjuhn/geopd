@@ -19,6 +19,7 @@
                     <th>Author</th>
                     <th>Created</th>
                     <th>Modified</th>
+                    <th>Comments</th>
                 </tr>
             </thead>
         </table>
@@ -75,7 +76,7 @@
         });
 
         var url = URI('/api/project-posts/');
-        url.addQuery('include', 'author,author.name');
+        url.addQuery('include', 'author,author.name,comments');
         url.addQuery('filter[project.id.eq]',{{ project.id }});
 
         $.getJSON(url.readable(), function(json){
@@ -122,6 +123,12 @@
                             else{
                                 return can.dom.datetime(data);
                             }
+                        }
+                    },
+                    {
+                        data: function(post){
+                            console.log(post)
+                            return post.comments.length
                         }
                     }
                 ]

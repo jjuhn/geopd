@@ -150,13 +150,17 @@ def show_project(project_id):
                                is_member=is_member, is_investigator=is_investigator, read_contents=read_contents_dict, admin=admin)
 
 
+@app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
+@app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
+@login_required
+def send_file(project_id, dir, subdir, filename):
+    return send_from_directory(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id), dir, subdir), filename)
+
+
 @app.route('/projects/<int:project_id>/create_project_category')
 def create_project_category(project_id):
 
     return render_template('projects/create_projecte_category', project=Project.query.get(project_id))
-
-
-
 
 
 @app.route('/projects/<int:project_id>/manage_members')

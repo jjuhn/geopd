@@ -1,0 +1,32 @@
+{% extends "core/base.html" %}
+{% from "macros/project.html" import create_project_accordians_public %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-9 col-md-offset-1">
+                <ol class="breadcrumb">
+                    <li><a href="{{ url_for('show_projects') }}">Projects</a></li>
+                    <li>{{ project.name }}</li>
+                </ol>
+            </div>
+            <div class="col-md-offset-1 col-md-10">
+                <h1 class="page-header text-primary">{{ project.name }}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                <p><img src="{{ url_for('static', filename='images/logo.png') }}"></p>
+                <p>
+                    <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">Join us!</a>
+                </p>
+            </div>
+
+            <div class="col-md-8">
+                {{ create_project_accordians_public(project, read_contents) }}
+
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

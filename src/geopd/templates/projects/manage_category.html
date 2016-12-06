@@ -1,0 +1,29 @@
+{% extends "projects/project_base.html" %}
+{% set project_name = "Manage category - " + category.name %}
+{% set image_url = url_for('static', filename='images/projects/') + project.name + ".jpg" %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb">
+        <li><a href="{{ url_for('show_projects') }}">Projects</a></li>
+        <li><a href="{{ url_for('show_project', project_id=project.id) }}">{{ project.name }}</a></li>
+        <li>{{ project_name }}</li>
+    </ol>
+{% endblock %}
+
+{% block project_content %}
+<p>{{ category.name }}</p>
+<p>{{ category.type.name }}</p>
+
+{% if category.type.name == 'text'%}
+    {{ category.content_files[0].read_file }}
+
+{% elif category.type.name =='file'%}
+    {{ category }}
+
+{% endif %}
+
+
+
+
+
+{% endblock %}

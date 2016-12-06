@@ -34,6 +34,9 @@
             url.addQuery('include', 'name,address,mprojects');
             $.getJSON(url.readable(), function(json){
                 var table = $('#user-table').DataTable({
+                rowReorder:{
+                    selector: 'td:nth-child(2)'},
+                responsive:true,
                     buttons: [{
                         text: 'Add',
                         className: 'btn btn-success',

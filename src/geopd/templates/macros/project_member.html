@@ -23,7 +23,6 @@
     $(document).ready(function(){
         var url = URI('/api/projects/{{ project.id }}');
         url.addQuery('include', 'name,address,mprojects');
-
         $.getJSON(url.readable(), function(json){
             var table = $('#user-table').DataTable({
                 rowReorder:{

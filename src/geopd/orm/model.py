@@ -368,6 +368,9 @@ class ProjectCategory(db.Model):
     project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('categories', lazy='joined', order_by=order))
     type = db.relationship(CategoryType, foreign_keys=[type_id], backref=db.backref('categories', lazy='joined'))
 
+from geopd.core import app
+import markdown
+from flask import Markup
 
 class ContentFile(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
@@ -379,6 +382,15 @@ class ContentFile(db.Model):
     extension = db.Column(db.Text, nullable=False)
 
     project_category = db.relationship(ProjectCategory, foreign_keys=[category_id], backref=db.backref('content_files'), lazy='joined')
+
+    @hybrid_property
+    def read_file(self):
+        if self.read_and_show:
+            full_path = os.path.join(app.config["PRIVATE_DIR"], self.file_url)
+            if os.path.exists(full_path):
+                with open(full_path, 'r') as f:
+                    read_contents = Markup(markdown.markdown(f.read()))
+                    return read_contents
 
     @property
     def file_url(self):

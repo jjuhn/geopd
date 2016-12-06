@@ -28,10 +28,10 @@ def get_categories():
     return jsonify(response.document), response.status
 
 
-@api.route('/categories/<int:category_id>')
+@api.route('/project-categories/<int:project_id>')
 @login_required
-def get_category(category_id):
-    response = jsonapi.get_related(db.session, request.args, 'project-categories', category_id, 'content-files')
+def get_project_categories(project_id):
+    response = jsonapi.get_related(db.session, request.args, 'project-categories', project_id, 'project')
     return jsonify(response.document), response.status
 
 

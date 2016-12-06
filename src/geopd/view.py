@@ -18,7 +18,6 @@ from geopd.core import app
 from geopd.core import send_email
 from geopd.core.form import ChangeAddressForm
 from geopd.core.auth import RegistrationForm
-
 from geopd.form import PostForm
 from geopd.form import UpdateSurveyForm
 from geopd.form import ProjectPostForm
@@ -120,44 +119,70 @@ def make_tree(path):
 
 
 @app.route('/projects/<int:project_id>')
-@login_required
 def show_project(project_id):
-    admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
-
     p = Project.query.get(project_id)
-    pm = ProjectMember.query\
-        .filter(ProjectMember.project_id == project_id)\
-        .filter(ProjectMember.member_id == current_user.id)\
-        .filter(ProjectMember.investigator == True).count()
-
-    is_member = True if current_user in p.members else False
-    is_investigator = True if pm > 0 else False
-
     read_contents_dict = {}
     for category in p.categories:
         for file in category.content_files:
             if file.read_and_show:
-                full_path = os.path.join(app.config["PRIVATE_DIR"],file.file_url)
+                full_path = os.path.join(app.config["PRIVATE_DIR"], file.file_url)
                 if os.path.exists(full_path):
                     with open(full_path, 'r') as f:
                         read_contents = Markup(markdown.markdown(f.read()))
                         read_contents_dict.update({category.id: read_contents})
 
-    return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
-                           is_member=is_member, is_investigator=is_investigator, read_contents=read_contents_dict, admin=admin)
+
+    if current_user.is_anonymous:
+        return render_template('projects/public.html', project=Project.query.get(project_id), read_contents=read_contents_dict)
+
+    else:
+        admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
+
+        pm = ProjectMember.query\
+            .filter(ProjectMember.project_id == project_id)\
+            .filter(ProjectMember.member_id == current_user.id)\
+            .filter(ProjectMember.investigator == True).count()
+
+        is_member = True if current_user in p.members else False
+        is_investigator = True if pm > 0 else False
+
+        return render_template('projects/project.html', project=Project.query.get(project_id), form=ProjectPostForm(),
+                               is_member=is_member, is_investigator=is_investigator, read_contents=read_contents_dict, admin=admin)
 
 
-@app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
-@app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
+@app.route('/projects/<int:project_id>/create_project_category')
+def create_project_category(project_id):
+
+    return render_template('projects/create_projecte_category', project=Project.query.get(project_id))
+
+
+
+
+
+@app.route('/projects/<int:project_id>/manage_members')
 @login_required
-def send_file(project_id, dir, subdir, filename):
-    return send_from_directory(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id), dir, subdir), filename)
+def show_manage_project_members(project_id):
+    return render_template('projects/manage_members.html', project=Project.query.get(project_id))
 
 
-@app.route('/projects/<int:project_id>/manage')
+@app.route('/projects/<int:project_id>/manage_project')
 @login_required
 def show_manage_project(project_id):
-    return render_template('projects/manage_members.html', project=Project.query.get(project_id))
+    return render_template('projects/manage_project.html', project=Project.query.get(project_id), )
+
+
+@app.route('/projects/manage_category/')
+@login_required
+def show_manage_categories():
+    return render_template('projects/manage_category.html')
+
+
+@app.route('/projects/<int:project_id>/manage_category/<int:category_id>')
+@login_required
+def show_manage_category(project_id, category_id):
+    return render_template('projects/manage_category.html',
+                           project=Project.query.get(project_id),
+                           category=ProjectCategory.query.get(category_id))
 
 
 @app.route('/projects/<int:project_id>/manage', methods=['POST'])
@@ -666,15 +691,15 @@ def before_request():
 
 
 
-# @event.listens_for(User, 'after_insert')
-# def update_referrer_after_insert_user(mapper, connection, target):
-#     referrer_id = request.form.get('referrer')
-#     referrer = User.query.get(referrer_id)
-#     ur = UserReferrer(target, referrer)
-#     db.session.add(ur)
-#
-#     send_email(referrer.email, "Requesting activation of new user.",
-#                'email/new_member_request', user=target, committee=referrer)
+@event.listens_for(User, 'after_insert')
+def update_referrer_after_insert_user(mapper, connection, target):
+    referrer_id = request.form.get('referrer')
+    referrer = User.query.get(referrer_id)
+    ur = UserReferrer(target, referrer)
+    db.session.add(ur)
+
+    send_email(referrer.email, "Requesting activation of new user.",
+               'email/new_member_request', user=target, committee=referrer)
 
 
 

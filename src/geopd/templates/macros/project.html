@@ -38,11 +38,31 @@
     </div>
     {% endfor %}
 </div>
-<script>
-
-</script>
-
 {% endmacro %}
+
+{% macro create_project_accordians_public(project, read_contents) %}
+<div class="panel-group" id="accordion">
+    {% for category in project.categories %}
+        {% if category.name == 'General Information' or category.name == 'Aims' %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#{{ category.id }}">{{ category.name }}</a>
+                    </h4>
+                </div>
+                <div id="{{ category.id }}" class="panel-collapse">
+                    <div class="panel-body">
+                        {% if category.type.name == 'text' %}
+                            {{ read_contents.get(category.id) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endmacro %}
+
 
 {% macro create_project_tabs(project, categories) %}
 <ul class="nav nav-tabs">

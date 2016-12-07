@@ -1,8 +1,4 @@
 {% macro create_members_table(project) %}
-<!--<ul class="nav nav-tabs">-->
-    <!--<li role="presentation" class="active"><a href="#members-pane">Project Members</a></li>-->
-<!--</ul>-->
-<!--<div class="tab-content">-->
     <div role="tabpanel" class="tab-pane fade in active" id="members-pane">
         <table id="user-table" class="table" width="100%">
             <thead>
@@ -17,7 +13,6 @@
             </thead>
         </table>
     </div>
-<!--</div>-->
 
 <script>
     $(document).ready(function(){
@@ -61,7 +56,7 @@
                     },
                     {
                         data: function(user){
-                            return can.dom.datetime(user['created-on']);
+                            return user['created-on'];
                         },
                         render: function(data, type, row) {
                             if (type=='sort' || type=='type'){
@@ -74,7 +69,7 @@
                     },
                     {
                         data: function(user){
-                            return can.dom.datetime(user['last-seen']);
+                            return user['last-seen'];
                         },
                         render: function(data, type, row) {
                             if (type=='sort' || type=='type'){

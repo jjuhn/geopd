@@ -62,11 +62,27 @@
                     {
                         data: function(user){
                             return can.dom.datetime(user['created-on']);
+                        },
+                        render: function(data, type, row) {
+                            if (type=='sort' || type=='type'){
+                                return Date.parse(data);
+                            }
+                            else{
+                                return can.dom.datetime(data);
+                            }
                         }
                     },
                     {
                         data: function(user){
                             return can.dom.datetime(user['last-seen']);
+                        },
+                        render: function(data, type, row) {
+                            if (type=='sort' || type=='type'){
+                                return Date.parse(data);
+                            }
+                            else{
+                                return can.dom.datetime(data);
+                            }
                         }
                     }
                 ]

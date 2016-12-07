@@ -64,11 +64,8 @@
     {{ super() }}
     <script>
         $(document).ready(function () {
-
             {% if post.author.id == current_user.id %}
-
                 var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
-
                 $('#post-edit').dblclick(function () {
                     $('#post').markdown({
                         hideable: true,

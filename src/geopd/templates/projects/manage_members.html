@@ -47,7 +47,7 @@
                             });
                             $.post("{{ url_for('update_project_members', project_id=project.id) }}",
                                     {users: users}).done(function () {
-                                window.location = "{{ url_for('show_manage_project', project_id=project.id) }}";
+                                window.location = "{{ url_for('show_manage_project_members', project_id=project.id) }}";
                             });
                         }
                     }, {
@@ -60,7 +60,7 @@
                             });
                             $.post("{{ url_for('remove_project_members', project_id=project.id) }}",
                                     {users: users}).done(function () {
-                                window.location = "{{ url_for('show_manage_project', project_id=project.id) }}";
+                                window.location = "{{ url_for('show_manage_project_members', project_id=project.id) }}";
                             });
                         }
                     }],

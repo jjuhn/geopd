@@ -1,9 +1,9 @@
-{% macro create_project_discussion_board(project, form) %}
+{% macro create_project_discussion_board(project, form, is_investigator, admin) %}
 
 <ul class="nav nav-tabs">
     <li role="presentation" class="active">
         <a id="posts-tab" href="#posts-pane" role="tab" data-toggle="tab">Posts
-        <span id="posts-count" class="badge"></span>
+        <!--<span id="posts-count" class="badge"></span>-->
         </a>
     </li>
     <li role="presentation">
@@ -12,14 +12,29 @@
 </ul>
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane fade in active" id="posts-pane">
+        <p align="right">
+            <label>
+                <input id="manage-toggle"
+                      type="checkbox"
+                      data-onstyle="info"
+                      data-offstyle="primary"
+                      data-on="Exit"
+                      data-off="Manage"
+                      data-size="small"
+                      data-toggle='toggle'
+                      data-width="75">
+            </label>
+        </p>
         <table id="post-table" class="table" width="100%">
             <thead>
                 <tr>
+                    <th></th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Created</th>
                     <th>Modified</th>
                     <th>Comments</th>
+                    <th>Deleted</th>
                 </tr>
             </thead>
         </table>
@@ -49,7 +64,8 @@
                 <div class="help-block with-errors"></div>
             </div>
             <div class="form-group">
-                <input id="project_upload" name="project_upload[]" multiple type="file" class="file-loading">
+                Upload: <input id="project_upload" name="project_upload[]" multiple type="file" class="file-loading">
+                <p><small>Supported Upload extensions: txt, png, jpg, jpeg, gif, doc, docx, rtf</small></p>
             </div>
             <div class="form-group">
                 {{ form.submit(class="btn btn-primary") }}
@@ -65,7 +81,7 @@
                 showUpload: false,
                 browseOnZoneClick: true,
                 previewFileIcon: '<i class="fa fa-file"></i>',
-                allowedPreviewTypes: ['image', 'text'], // allow only preview of image & text files
+                allowedPreviewTypes: ['image', 'text', 'pdf'], // allow only preview of image & text files
                 previewFileIconSettings: {
                     'docx': '<i class="fa fa-file-word-o text-primary"></i>',
                     'xlsx': '<i class="fa fa-file-excel-o text-success"></i>',
@@ -81,25 +97,56 @@
 
         $.getJSON(url.readable(), function(json){
             var posts = jsonapi.parse_response(json, 2);
-            $('#posts-count').text(posts.length);
+//            $('#posts-count').text(posts.length);
 
             var table = $('#post-table').DataTable({
                 rowReorder:{
                     selector: 'td:nth-child(2)'
                 },
                 responsive:true,
-
                 data: posts,
                 order: [[3, 2]],
+                select: {
+                        style: 'multi',
+                        selector: 'td:first-child'
+                    },
+                buttons:[
+                    {
+                        text:'Remove',
+                        className: 'btn btn-danger',
+                        action: function(e, dt, node, config){
+                            var posts = [];
+                            dt.rows('.selected').data().each(function(post){
+                                posts.push(post.id)
+                            });
+                            $.post('{{ url_for('delete_project_posts') }}', {posts:posts}).done(function(){
+                                location.href="{{url_for('show_projects')}}{{project.id}}"
+                                location.reload();
+                            });
+
+                            // not delete from the database but add another column in discussion board for archiving.
+
+                        }
+                    }
+                ],
                 columns:[
                     {
                         data: function(post){
-                            return can.dom.link('{{url_for('show_project', project_id=project.id) }}/posts/' + post.id, post.title);
+                            return '';
+                        },
+                        orderable: false,
+                        className:'select-checkbox'
+                    },
+                    {
+                        data: function(post){
+                            return can.dom.link('{{url_for('show_project', project_id=project.id) }}/posts/'
+                            + post.id, post.title);
                         }
                     },
                     {
                         data: function(post){
-                            return can.dom.link('{{ url_for('show_users') }}' + post.author.id, post.author.name.first + ' ' +post.author.name.last);
+                            return can.dom.link('{{ url_for('show_users') }}'
+                            + post.author.id, post.author.name.first + ' ' +post.author.name.last);
 
                         }
                     },
@@ -129,10 +176,46 @@
                         data: function(post){
                             return post.comments.length
                         }
+                    },
+                    {
+                        data: function(post){
+                            return post.deleted
+                        }
+
                     }
                 ]
-                })
-        })
+                });
+        table.column(6).search('False').draw();
+
+        {% if is_investigator or admin %}
+            table.buttons().container().find('a.btn').removeClass('dt-button');
+            table.buttons().container().appendTo($('.col-sm-6:eq(0) div', table.table().container()));
+
+            $('#manage-toggle').change(function(){
+                $(this).prop('checked')? manage(): show_boards();
+            });
+        {% else %}
+            $('#manage-toggle').bootstrapToggle('disable');
+        {% endif %}
+        $('.dt-buttons').hide();
+        table.column(0).visible(false);
+        table.column(6).visible(false);
+
+        function manage(){
+            table.column(0).visible(true);
+            table.column(6).visible(true);
+            table.column(6).search('').draw();
+            $('.dt-buttons').show();
+        }
+        function show_boards(){
+            table.column(0).visible(false);
+            table.column(6).visible(false);
+            table.column(6).search('False').draw();
+            $('.dt-buttons').hide();
+        }
+
+        });
+
     });
 </script>
 

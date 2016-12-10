@@ -101,23 +101,6 @@ def show_projects():
     return render_template('/projects/index.html', projects=Project.query.order_by(desc(Project.id)).all(), project_members=ProjectMember)
 
 
-def make_tree(path):
-    tree = dict(name=os.path.basename(path), children=[])
-    try:
-        lst = os.listdir(path)
-    except OSError:
-        pass #ignore errors
-    else:
-        for name in lst:
-            name = name.decode('utf8').encode('ascii', 'ignore')
-            fn = os.path.join(path, name)
-            if os.path.isdir(fn):
-                tree['children'].append(make_tree(fn))
-            else:
-                tree['children'].append(dict(name=name))
-    return tree
-
-
 @app.route('/projects/<int:project_id>')
 def show_project(project_id):
     p = Project.query.get(project_id)
@@ -130,7 +113,6 @@ def show_project(project_id):
                     with open(full_path, 'r') as f:
                         read_contents = Markup(markdown.markdown(f.read()))
                         read_contents_dict.update({category.id: read_contents})
-
 
     if current_user.is_anonymous:
         return render_template('projects/public.html', project=Project.query.get(project_id), read_contents=read_contents_dict)
@@ -317,6 +299,18 @@ def create_project_post(project_id):
 
 
     return redirect(url_for('show_project', project_id=project_id))
+
+
+@app.route('/projects/delete_posts', methods=['POST'])
+@login_required
+def delete_project_posts():
+    post_id_list = [int(post_id) for post_id in request.form.getlist('posts[]')]
+    for pp in ProjectPost.query.filter(ProjectPost.id.in_(post_id_list)):
+        pp.deleted = True
+    db.session.commit()
+
+    return '', 204
+
 
 
 @app.route('/projects/<int:project_id>/posts/<int:post_id>')

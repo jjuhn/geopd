@@ -94,6 +94,7 @@ class ProjectPost(db.Model):
     updated_on = db.Column(db.DateTime)
     author_id = db.Column(db.Integer, db.ForeignKey(User.id))
     project_id = db.Column(db.Integer, db.ForeignKey(Project.id))
+    deleted = db.Column(db.Boolean, nullable=False)
 
     author = db.relationship(User, foreign_keys=[author_id], backref=db.backref('project_posts'))
     project = db.relationship(Project, foreign_keys=[project_id], backref=db.backref('posts'))

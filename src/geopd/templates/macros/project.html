@@ -23,7 +23,7 @@
                     {{ create_project_files_table(category.id, is_member, is_investigator, admin) }}
                 {% elif category.type.name == 'discussion_board' %}
                     {% if is_member or is_investigator or admin %}
-                        {{ create_project_discussion_board(project, form) }}
+                        {{ create_project_discussion_board(project, form, is_investigtor, admin) }}
                     {% else %}
                         Discussion board is only available for members of {{ project.name }} project.
                     {% endif %}

@@ -175,17 +175,20 @@
                     {
                         data: function(post){
                             var category = 'success';
+                            var deleted = 'No';
                             if (post.deleted){
-                                category = 'danger'
+                                category = 'danger';
+                                deleted = 'Yes';
                             }
-                            return can.dom.label(post.deleted, undefined, category);
-
+                            return can.dom.label(deleted, undefined, category);
                         }
+
 
                     }
                 ]
                 });
-        table.column(6).search('False').draw();
+
+        table.column(6).search('No').draw();
 
         {% if is_investigator or admin %}
             table.buttons().container().find('a.btn').removeClass('dt-button');
@@ -210,7 +213,7 @@
         function show_boards(){
             table.column(0).visible(false);
             table.column(6).visible(false);
-            table.column(6).search('False').draw();
+            table.column(6).search('No').draw();
             $('.dt-buttons').hide();
         }
 

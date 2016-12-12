@@ -174,10 +174,10 @@
                     },
                     {
                         data: function(post){
-                            var category = 'success';
+                            var category = 'danger';
                             var deleted = 'No';
                             if (post.deleted){
-                                category = 'danger';
+                                category = 'success';
                                 deleted = 'Yes';
                             }
                             return can.dom.label(deleted, undefined, category);

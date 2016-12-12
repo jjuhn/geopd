@@ -1,8 +1,22 @@
-{% macro create_members_table(project) %}
+{% macro create_members_table(project, is_investigator, admin) %}
     <div role="tabpanel" class="tab-pane fade in active" id="members-pane">
+        <p align="right">
+            <label>
+                <input id="manage-members-toggle"
+                      type="checkbox"
+                      data-onstyle="info"
+                      data-offstyle="primary"
+                      data-on="Exit"
+                      data-off="Manage"
+                      data-size="small"
+                      data-toggle='toggle'
+                      data-width="75">
+            </label>
+        </p>
         <table id="user-table" class="table" width="100%">
             <thead>
                 <tr>
+                    <th></th>
                     <th>Name</th>
                     <th>Institution</th>
                     <th>City</th>
@@ -16,7 +30,8 @@
 
 <script>
     $(document).ready(function(){
-        var url = URI('/api/projects/{{ project.id }}');
+        var url = URI('/api/users/');
+//        var url = URI('/api/projects/{{ project.id }}');
         url.addQuery('include', 'name,address,mprojects');
         $.getJSON(url.readable(), function(json){
             var table = $('#user-table').DataTable({
@@ -26,7 +41,48 @@
                 responsive:true,
                 data: jsonapi.parse_response(json,3),
                 order:[[4, 'desc']],
+                select: {
+                    style: 'multi',
+                    selector: 'td:first-child'
+                },
+                buttons:[
+                    {
+                        text: 'Add',
+                        className: 'btn btn-success',
+                        action: function (e, dt, node, config) {
+                            var users = [];
+                            dt.rows('.selected').data().each(function (user) {
+                                users.push(user.id);
+                            });
+                            $.post("{{ url_for('update_project_members', project_id=project.id) }}",
+                                    {users: users}).done(function () {
+                                window.location = "{{ url_for('show_project', project_id=project.id) }}";
+                            });
+                        }
+                    },
+                    {
+                        text: 'Remove',
+                        className: 'btn btn-danger',
+                        action: function (e, dt, node, config) {
+                            var users = [];
+                            dt.rows('.selected').data().each(function (user) {
+                                users.push(user.id);
+                            });
+                            $.post("{{ url_for('remove_project_members', project_id=project.id) }}",
+                                    {users: users}).done(function () {
+                                window.location = "{{ url_for('show_project', project_id=project.id) }}";
+                            });
+                        }
+                    }
+                ],
                 columns:[
+                    {
+                        data: function(post){
+                            return '';
+                        },
+                        orderable: false,
+                        className:'select-checkbox'
+                    },
                     {
                         data: function(user){
                             return can.dom.link('{{ url_for('show_users') }}'
@@ -82,9 +138,34 @@
                     }
                 ]
             });
+            table.column(4).search('{{project.name}}').draw();
 
-        })
-    })
+            {% if is_investigator or admin %}
+                table.buttons().container().find('a.btn').removeClass('dt-button');
+                table.buttons().container().appendTo($('.col-sm-6:eq(0) div', table.table().container()));
+
+                $('#manage-members-toggle').change(function(){
+                    $(this).prop('checked')? manage(): show_boards();
+                });
+            {% else %}
+                $('#manage-members-toggle').bootstrapToggle('disable');
+            {% endif %}
+            $('.dt-buttons').hide();
+            table.column(0).visible(false);
+
+            function manage(){
+                table.column(0).visible(true);
+                table.column(4).search('').draw();
+                $('.dt-buttons').show();
+            }
+            function show_boards(){
+                table.column(0).visible(false);
+                table.column(4).search('{{project.name}}').draw();
+                $('.dt-buttons').hide();
+            }
+
+        });
+    });
 </script>
 
 {% endmacro %}

@@ -347,7 +347,7 @@ class UserReferrer(db.Model):
     referee = db.relationship(User, foreign_keys=[id], backref=db.backref('user_referee', lazy='joined', uselist=False))
 
     referrer = db.relationship(User, foreign_keys=[referrer_id],
-                                 backref=db.backref('userreferrer', lazy='joined', uselist=False))
+                                 backref=db.backref('userreferrer', lazy='joined'))
 
     def __init__(self, referee, referrer):
         self.id = referee.id

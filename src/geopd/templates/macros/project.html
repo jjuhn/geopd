@@ -18,7 +18,7 @@
                 {% if category.type.name == 'text' %}
                     {{ read_contents.get(category.id) }}
                 {% elif category.type.name == 'member' %}
-                    {{ create_members_table(project) }}
+                    {{ create_members_table(project, is_investigator, admin) }}
                 {% elif category.type.name == 'file' %}
                     {{ create_project_files_table(category.id, is_member, is_investigator, admin) }}
                 {% elif category.type.name == 'discussion_board' %}

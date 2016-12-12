@@ -97,8 +97,6 @@
 
         $.getJSON(url.readable(), function(json){
             var posts = jsonapi.parse_response(json, 2);
-//            $('#posts-count').text(posts.length);
-
             var table = $('#post-table').DataTable({
                 rowReorder:{
                     selector: 'td:nth-child(2)'
@@ -123,9 +121,6 @@
                                 location.href="{{url_for('show_projects')}}{{project.id}}"
                                 location.reload();
                             });
-
-                            // not delete from the database but add another column in discussion board for archiving.
-
                         }
                     }
                 ],
@@ -179,7 +174,12 @@
                     },
                     {
                         data: function(post){
-                            return post.deleted
+                            var category = 'success';
+                            if (post.deleted){
+                                category = 'danger'
+                            }
+                            return can.dom.label(post.deleted, undefined, category);
+
                         }
 
                     }
@@ -215,7 +215,6 @@
         }
 
         });
-
     });
 </script>
 

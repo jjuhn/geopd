@@ -384,6 +384,15 @@ class ContentFile(db.Model):
 
     project_category = db.relationship(ProjectCategory, foreign_keys=[category_id], backref=db.backref('content_files'), lazy='joined')
 
+
+    def __init__(self, file_name, category_id, read_and_show, display_name, extension):
+        self.file_name = file_name
+        self.category_id = category_id
+        self.read_and_show = read_and_show
+        self.display_name = display_name
+        self.extension = extension
+
+
     @hybrid_property
     def read_file(self):
         if self.read_and_show:

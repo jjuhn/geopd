@@ -130,6 +130,6 @@ def update_communication_post_comment(post_id):
 @api.route('/com-post-comments/<int:post_id>', methods=['DELETE'])
 @login_required
 def delete_communication_post_comment(post_id):
-    response = jsonapi.delete_resource(db.session, 'communications-post-comments', post_id)
+    response = jsonapi.delete_resource(db.session, 'com-post-comments', post_id)
     return jsonify(response.document), response.status
 

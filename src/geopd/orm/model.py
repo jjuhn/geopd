@@ -103,6 +103,7 @@ class ProjectPost(db.Model):
         self.title = title
         self.body = body
         self.author = current_user
+        self.deleted = False
 
 
 class ComPost(db.Model):

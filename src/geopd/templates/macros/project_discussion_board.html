@@ -12,29 +12,28 @@
 </ul>
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane fade in active" id="posts-pane">
-        <p align="right">
-            <label>
-                <input id="manage-toggle"
-                      type="checkbox"
-                      data-onstyle="info"
-                      data-offstyle="primary"
-                      data-on="Exit"
-                      data-off="Manage"
-                      data-size="small"
-                      data-toggle='toggle'
-                      data-width="75">
-            </label>
-        </p>
+        <!--<p align="right">-->
+            <!--<label>-->
+                <!--<input id="manage-toggle"-->
+                      <!--type="checkbox"-->
+                      <!--data-onstyle="info"-->
+                      <!--data-offstyle="primary"-->
+                      <!--data-on="Exit"-->
+                      <!--data-off="Manage"-->
+                      <!--data-size="small"-->
+                      <!--data-toggle='toggle'-->
+                      <!--data-width="75">-->
+            <!--</label>-->
+        <!--</p>-->
         <table id="post-table" class="table" width="100%">
             <thead>
                 <tr>
-                    <th></th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Created</th>
                     <th>Modified</th>
                     <th>Comments</th>
-                    <th>Deleted</th>
+                    <!--<th>Deleted</th>-->
                 </tr>
             </thead>
         </table>
@@ -104,34 +103,34 @@
                 responsive:true,
                 data: posts,
                 order: [[3, 2]],
-                select: {
-                        style: 'multi',
-                        selector: 'td:first-child'
-                    },
-                buttons:[
-                    {
-                        text:'Remove',
-                        className: 'btn btn-danger',
-                        action: function(e, dt, node, config){
-                            var posts = [];
-                            dt.rows('.selected').data().each(function(post){
-                                posts.push(post.id)
-                            });
-                            $.post('{{ url_for('delete_project_posts') }}', {posts:posts}).done(function(){
-                                location.href="{{url_for('show_projects')}}{{project.id}}"
-                                location.reload();
-                            });
-                        }
-                    }
-                ],
+                <!--select: {-->
+                        <!--style: 'multi',-->
+                        <!--selector: 'td:first-child'-->
+                    <!--},-->
+                <!--buttons:[-->
+                    <!--{-->
+                        <!--text:'Remove',-->
+                        <!--className: 'btn btn-danger',-->
+                        <!--action: function(e, dt, node, config){-->
+                            <!--var posts = [];-->
+                            <!--dt.rows('.selected').data().each(function(post){-->
+                                <!--posts.push(post.id)-->
+                            <!--});-->
+                            <!--$.post('{{ url_for('delete_project_posts') }}', {posts:posts}).done(function(){-->
+                                <!--location.href="{{url_for('show_projects')}}{{project.id}}"-->
+                                <!--location.reload();-->
+                            <!--});-->
+                        <!--}-->
+                    <!--}-->
+                <!--],-->
                 columns:[
-                    {
-                        data: function(post){
-                            return '';
-                        },
-                        orderable: false,
-                        className:'select-checkbox'
-                    },
+//                    {
+//                        data: function(post){
+//                            return '';
+//                        },
+//                        orderable: false,
+//                        className:'select-checkbox'
+//                    },
                     {
                         data: function(post){
                             return can.dom.link('{{url_for('show_project', project_id=project.id) }}/posts/'
@@ -172,50 +171,50 @@
                             return post.comments.length
                         }
                     },
-                    {
-                        data: function(post){
-                            var category = 'danger';
-                            var deleted = 'No';
-                            if (post.deleted){
-                                category = 'success';
-                                deleted = 'Yes';
-                            }
-                            return can.dom.label(deleted, undefined, category);
-                        }
-
-
-                    }
+//                    {
+//                        data: function(post){
+//                            var category = 'danger';
+//                            var deleted = 'No';
+//                            if (post.deleted){
+//                                category = 'success';
+//                                deleted = 'Yes';
+//                            }
+//                            return can.dom.label(deleted, undefined, category);
+//                        }
+//
+//
+//                    }
                 ]
                 });
 
-        table.column(6).search('No').draw();
-
-        {% if is_investigator or admin %}
-            table.buttons().container().find('a.btn').removeClass('dt-button');
-            table.buttons().container().appendTo($('.col-sm-6:eq(0) div', table.table().container()));
-
-            $('#manage-toggle').change(function(){
-                $(this).prop('checked')? manage(): show_boards();
-            });
-        {% else %}
-            $('#manage-toggle').bootstrapToggle('disable');
-        {% endif %}
-        $('.dt-buttons').hide();
-        table.column(0).visible(false);
-        table.column(6).visible(false);
-
-        function manage(){
-            table.column(0).visible(true);
-            table.column(6).visible(true);
-            table.column(6).search('').draw();
-            $('.dt-buttons').show();
-        }
-        function show_boards(){
-            table.column(0).visible(false);
-            table.column(6).visible(false);
-            table.column(6).search('No').draw();
-            $('.dt-buttons').hide();
-        }
+//        table.column(6).search('No').draw();
+//
+//        {% if is_investigator or admin %}
+//            table.buttons().container().find('a.btn').removeClass('dt-button');
+//            table.buttons().container().appendTo($('.col-sm-6:eq(0) div', table.table().container()));
+//
+//            $('#manage-toggle').change(function(){
+//                $(this).prop('checked')? manage(): show_boards();
+//            });
+//        {% else %}
+//            $('#manage-toggle').bootstrapToggle('disable');
+//        {% endif %}
+//        $('.dt-buttons').hide();
+//        table.column(0).visible(false);
+//        table.column(6).visible(false);
+//
+//        function manage(){
+//            table.column(0).visible(true);
+//            table.column(6).visible(true);
+//            table.column(6).search('').draw();
+//            $('.dt-buttons').show();
+//        }
+//        function show_boards(){
+//            table.column(0).visible(false);
+//            table.column(6).visible(false);
+//            table.column(6).search('No').draw();
+//            $('.dt-buttons').hide();
+//        }
 
         });
     });

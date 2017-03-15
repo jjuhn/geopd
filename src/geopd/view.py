@@ -637,9 +637,9 @@ def registration():
         else:
             token = user.generate_confirmation_token()
             send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
-            if committee:
-                send_email(committee.email, "Requesting activation of new user.",
-                           'email/new_member_request', user=user, committee=committee)
+            # if committee:
+            #     send_email(committee.email, "Requesting activation of new user.",
+            #                'email/new_member_request', user=user, committee=committee)
 
             flash('A confirmation email has been sent to your email address', 'success')
             db.session.commit()
@@ -688,7 +688,6 @@ def before_request():
                             break
 
 
-
 @event.listens_for(User, 'after_insert')
 def update_referrer_after_insert_user(mapper, connection, target):
     referrer_id = request.form.get('referrer')
@@ -696,8 +695,7 @@ def update_referrer_after_insert_user(mapper, connection, target):
     ur = UserReferrer(target, referrer)
     db.session.add(ur)
 
-    send_email(referrer.email, "Requesting activation of new user.",
-               'email/new_member_request', user=target, committee=referrer)
-
-
+    for user in Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users:
+          send_email_async(user.email, "Requesting activation of new user.",
+                         "email/new_member_request", user=target, committee=referrer)
 

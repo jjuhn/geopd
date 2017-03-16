@@ -612,46 +612,48 @@ def update_user_biography(user_id):
     return '', 204
 
 
-@app.route("/registration", methods=['GET', 'POST'])
-def registration():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-
-    form = RegistrationForm()
-
-    if form.validate_on_submit():
-        selected_committee = request.form.get("referrer")
-        committee = User.query.get(selected_committee) if selected_committee else None
-
-        user = User(email=form.email.data, password=form.password.data, name=form.name.data)
-        user.address.load(request.form)
-        db.session.add(user)
-
-        try:
-            db.session.flush()
-
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('Error while processing request. Please try again later', 'warning')
-
-        else:
-            token = user.generate_confirmation_token()
-            send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
-            # if committee:
-            #     send_email(committee.email, "Requesting activation of new user.",
-            #                'email/new_member_request', user=user, committee=committee)
-
-            flash('A confirmation email has been sent to your email address', 'success')
-            db.session.commit()
-            return redirect(url_for('index'))
-
-    # flash form errors if necessary
-    for error in form.errors.values():
-        flash(error[0], 'danger')
-
-    return render_template('auth_geopd/register.html', form=form,
-                           steering_committee=Permission.query.get(2).users,
-                           admin=Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users)
+# @app.route("/registration", methods=['GET', 'POST'])
+# def registration():
+#     if current_user.is_authenticated:
+#         return redirect(url_for('index'))
+#
+#     form = RegistrationForm()
+#     if form.validate_on_submit():
+#         selected_committee = request.form.get("referrer")
+#         committee = User.query.get(selected_committee) if selected_committee else None
+#
+#         user = User(email=form.email.data, password=form.password.data, name=form.name.data)
+#         user.address.load(request.form)
+#         db.session.add(user)
+#
+#         try:
+#             db.session.flush()
+#
+#         except SQLAlchemyError as e:
+#             db.session.rollback()
+#             flash('Error while processing request. Please try again later', 'warning')
+#
+#         else:
+#             token = user.generate_confirmation_token()
+#             # send_email(user.email, 'Confirm Your Account', 'auth/email/confirm', user=user, token=token)
+#             print "hihi"
+#             print committee
+#
+#             # if committee:
+#             #     send_email(committee.email, "Requesting activation of new user.",
+#             #                'email/new_member_request', user=user, committee=committee)
+#
+#             flash('A confirmation email has been sent to your email address', 'success')
+#             db.session.commit()
+#             return redirect(url_for('index'))
+#
+#     # flash form errors if necessary
+#     for error in form.errors.values():
+#         flash(error[0], 'danger')
+#
+#     return render_template('auth_geopd/register.html', form=form,
+#                            steering_committee=Permission.query.get(2).users,
+#                            admin=Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users)
 
 
 ########################################################################################################################
@@ -695,7 +697,4 @@ def update_referrer_after_insert_user(mapper, connection, target):
     ur = UserReferrer(target, referrer)
     db.session.add(ur)
 
-    for user in Permission.query.get(Permission.MANAGE_USER_ACCOUNT).users:
-          send_email_async(user.email, "Requesting activation of new user.",
-                         "email/new_member_request", user=target, committee=referrer)
 

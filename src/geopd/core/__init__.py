@@ -11,7 +11,7 @@ from flask_bootstrap import Bootstrap
 from flask_mail import Mail
 from flask_mail import Message
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import CsrfProtect
+from flask_wtf import CSRFProtect
 from markdown import markdown
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.declarative import declared_attr
@@ -56,7 +56,7 @@ app.json_encoder = CustomJSONEncoder
 
 # flask plugins
 Bootstrap(app)
-CsrfProtect(app)
+CSRFProtect(app)
 mail = Mail(app)
 assets = Environment(app)
 

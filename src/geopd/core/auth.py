@@ -171,6 +171,7 @@ def register():
 
     if form.validate_on_submit():
 
+        selected_committee = request.form.get("referrer")
         user = User(email=form.email.data, password=form.password.data, name=form.name.data)
         user.address.load(request.form)
         db.session.add(user)
@@ -182,7 +183,16 @@ def register():
             flash('Error while processing request. Please try again later', 'warning')
         else:
             token = user.generate_confirmation_token()
-            send_email(user.email, 'Confirm Your Account', 'core/auth/email/confirm', user=user, token=token)
+
+            cc = []
+            for c_user in Permission.query.get(Permission.STEERING_COMMITTEE).users:
+                cc.append(c_user.email)
+
+            send_email(cc[0], "Requesting activation of new user.",
+                       "email/new_member_request", cc=cc, user=user, committee=User.query.get(selected_committee) )
+
+
+            # send_email(user.email, 'Confirm Your Account', 'core/auth/email/confirm', user=user, token=token)
             flash('A confirmation email has been sent to your email address', 'success')
             db.session.commit()
             return redirect(url_for('index'))

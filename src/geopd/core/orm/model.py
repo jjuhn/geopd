@@ -147,6 +147,7 @@ class User(UserMixin, db.Model):
 
 class Permission(db.Model):
     MANAGE_USER_ACCOUNT = 1
+    STEERING_COMMITTEE = 2
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     title = db.Column(db.Text, nullable=False, unique=True)

@@ -23,6 +23,7 @@ from geopd.form import UpdateSurveyForm
 from geopd.form import ProjectPostForm
 from geopd.form import ModalForm
 from werkzeug.utils import secure_filename
+from flask import jsonify
 
 from geopd.orm.model import *
 
@@ -402,22 +403,34 @@ def create_communications_post():
                 sq = SurveyQuestion.query.filter(SurveyQuestion.name=='communications').first()
                 responses = sq.responses
 
-                users_aff = []
-                for user_response in responses:
-                    for choice in user_response.answer_choices:
-                        if choice.label in aff_names:
-                            users_aff.append(user_response.user_survey.user)
+                all_emails = []
 
-                if users_aff:
-                    users_aff = set(users_aff)
-                    if current_user in users_aff:
-                        users_aff.remove(current_user)
+                for user in User.query.all():
+                    all_emails.append(user.email)
 
-                    users_aff = list(users_aff)
+                # for testing
+                # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
+
+                if "General" in aff_names:
+                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+
+                else:
+                    users_aff = []
+                    for user_response in responses:
+                        for choice in user_response.answer_choices:
+                            if choice.label in aff_names:
+                                users_aff.append(user_response.user_survey.user)
+
                     if users_aff:
-                        for user in users_aff:
-                            send_email_async(user.email, "Communications Board Updated", "email/communications_board_update",
-                                   user=user, current_user=current_user)
+                        users_aff = set(users_aff)
+                        if current_user in users_aff:
+                            users_aff.remove(current_user)
+
+                        users_aff = list(users_aff)
+                        if users_aff:
+                            for user in users_aff:
+                                send_email_async(user.email, "Communications Board Updated", "email/communications_board_update",
+                                       user=user, current_user=current_user)
 
     return redirect(url_for('show_communications'))
 

@@ -1,0 +1,7 @@
+<p>Dear GEoPD member</p>
+<p>{{ current_user.name.full }} has created a thread (title: {{ title }})</p>
+<p>This post is located at:
+<a href="{{ url_for('show_communications', _external=True) }}">Communications Board</a></p>
+<p>Sincerely, </p>
+<p>The {{ config.APP_NAME }} Team</p>
+<p><small>Note: replies to this email address are not monitored.</small></p>

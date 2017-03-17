@@ -19,6 +19,7 @@
                     <th>Affiliations</th>
                     <th>Created</th>
                     <th>Modified</th>
+                    <th>Comments</th>
                 </tr>
             </thead>
         </table>
@@ -86,7 +87,7 @@
         });
 
         var url = URI('/api/communications-posts/');
-        url.addQuery('include', 'author,author.name,affiliations');
+        url.addQuery('include', 'author,author.name,affiliations,comments');
 
         $.getJSON(url.readable(), function(json){
             var posts = jsonapi.parse_response(json, 2);
@@ -141,6 +142,12 @@
                                 return can.dom.datetime(data);
                             }
                         }
+                    },
+                    {
+                        data: function(post){
+                            return post.comments.length
+                        }
+
                     }
                 ]
                 })

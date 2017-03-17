@@ -711,3 +711,43 @@ def update_referrer_after_insert_user(mapper, connection, target):
     db.session.add(ur)
 
 
+def get_comment_post(comment):
+    if comment.parent:
+        return get_comment_post(comment.parent)
+    else:
+        return comment.com_post
+
+
+def get_immediate_parent_comment(comment):
+    if comment.parent:
+        return comment.parent
+
+
+@event.listens_for(ComPostComment, 'after_insert')
+def email_post_creator(mapper, connection, target):
+    try:
+        post_for_this_comment = get_comment_post(target)
+        parent_comment = get_immediate_parent_comment(target)
+
+        if parent_comment and not (parent_comment.author == target.author):
+            commentor = target.author
+            parent_commentor = parent_comment.author
+
+            send_email_async(parent_commentor.email,
+                             "{0} has commented on your comment.".format(commentor.name.full),
+                             "email/new_comments_parents", post_id=post_for_this_comment.id, commentor=commentor, owner=parent_commentor)
+
+        if post_for_this_comment and not (post_for_this_comment.author == target.author):
+            owner = post_for_this_comment.author
+            commentor = target.author
+
+            send_email_async(owner.email,
+                         "{0} has commented on your post.".format(commentor.name.full),
+                         "email/new_comments", post_id=post_for_this_comment.id, commentor=commentor, owner=owner)
+
+    except Exception as e:
+        print str(e)
+
+
+
+

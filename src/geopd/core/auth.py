@@ -191,8 +191,7 @@ def register():
             send_email(cc[0], "Requesting activation of new user.",
                        "email/new_member_request", cc=cc, user=user, committee=User.query.get(selected_committee) )
 
-
-            # send_email(user.email, 'Confirm Your Account', 'core/auth/email/confirm', user=user, token=token)
+            send_email(user.email, 'Confirm Your Account', 'core/auth/email/confirm', user=user, token=token)
             flash('A confirmation email has been sent to your email address', 'success')
             db.session.commit()
             return redirect(url_for('index'))

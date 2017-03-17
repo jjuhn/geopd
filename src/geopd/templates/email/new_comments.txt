@@ -1,0 +1,8 @@
+Dear {{ owner.name.first }}
+{{ commentor.name.full }} has created a comments you have posted on Communications Board.
+This thread is located at: {{ url_for('show_communications_post' ,post_id=post_id, _external=True) }}
+Sincerely,
+
+The {{ config.APP_NAME }} Team
+
+Note: replies to this email address are not monitored.

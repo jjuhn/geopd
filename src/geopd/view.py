@@ -405,7 +405,7 @@ def create_communications_post():
 
                 all_emails = []
 
-                for user in User.query.all():
+                for user in User.query.filter(User.status_id == 1).all():
                     all_emails.append(user.email)
 
                 # for testing

@@ -93,6 +93,31 @@ def show_meeting(id):
     return render_template('meetings/index.html', meeting=meeting, meetings=meetings)
 
 
+@app.route('/contents/')
+def show_contents():
+    if current_user.is_authenticated:
+        return render_template('/contents/index.html', pictures=Picture.query.all())
+    return render_template('/contents/public/index.html')
+
+
+@app.route('/pictures/<int:picture_id>')
+@login_required
+def send_pictures(picture_id):
+    p = Picture.query.filter(Picture.id==picture_id).one()
+    file_name = os.path.basename(p.stored_path)
+    dir_name = os.path.dirname(p.stored_path)
+
+    return send_from_directory(os.path.join('static', dir_name), file_name)
+
+
+# @app.route('/pictures/static/')
+#
+# @app.route('/projects/<int:project_id>/<path:dir>/<path:filename>', defaults={'subdir': ""})
+# @app.route('/projects/<int:project_id>/<path:dir>/<path:subdir>/<path:filename>')
+# @login_required
+# def send_file(project_id, dir, subdir, filename):
+#     return send_from_directory(os.path.join(app.config["PRIVATE_DIR"], "projects", str(project_id), dir, subdir), filename)
+
 ########################################################################################################################
 # projects
 ########################################################################################################################
@@ -623,6 +648,7 @@ def update_user_biography(user_id):
     db.session.commit()
 
     return '', 204
+
 
 
 # @app.route("/registration", methods=['GET', 'POST'])

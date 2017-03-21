@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+{% block content %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <!--<div class="col-md-9 col-md-offset-1">-->
+
+            <!--</div>-->
+            <div class="col-md-offset-1 col-md-10">
+                <h1 class="page-header text-primary">GEoPD Website Branding</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
+                <img class="img-circle img-responsive"
+                     width="240"
+                     src="{{ image_url }}"
+                     alt="{{ project_name }}"
+                     onerror="this.src='{{ url_for('static', filename='images/projects/')}}projects.jpg'">
+            </div>
+            <div class="col-md-8">
+                <table id="pictures" class="table" width="100%">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>id</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            var url = URI('/api/pictures');
+            $.getJSON(url.readable(), function(json){
+                var table = $('#pictures').DataTable({
+                    rowReorder: {
+                        selector: 'td:nth-child(1)'
+                    },
+                    responsive: true,
+                    data: jsonapi.parse_response(json, 1),
+                    columns: [
+                        {
+                            data: function(data){
+                                return data
+                            },
+                            render: function(data, type, full, meta){
+                                var href = ["/pictures", data["id"]].join('/');
+
+                                return '<a href="#" download><span class="glyphicon glyphicon-download"></span></a>'.replace("#", href);
+                            },
+                            orderable: false,
+                            className: 'download-button'
+
+                        },
+                        {
+                            data: function(data){
+                                return data["id"]
+                            }
+                        },
+                        {
+                            data: function(data){
+                                return data["display-name"]
+                            }
+                        }
+                    ]
+
+                })
+            })
+
+        })
+    </script>
+
+
+
+{% endblock %}

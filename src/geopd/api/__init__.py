@@ -7,7 +7,8 @@ for name in [
     'geopd.api.user_surveys',
     'geopd.api.cores',
     'geopd.api.posts',
-    'geopd.api.projects']:
+    'geopd.api.projects',
+    'geopd.api.pictures']:
 
     import_module(name)
 

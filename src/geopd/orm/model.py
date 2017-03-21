@@ -464,4 +464,8 @@ class ContentPedigree(db.Model):
         self.file_name = file_name
 
 
+class Picture(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    stored_path = db.Column(db.Text, nullable=False)
+    display_name = db.Column(db.Text)
 

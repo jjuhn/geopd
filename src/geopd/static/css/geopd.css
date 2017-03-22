@@ -94,6 +94,10 @@ li.media .well {
     margin: 0;
 }
 
+#introduction-panel {
+    margin-top: 2em;
+}
+
 #registration-panel {
     margin-top: 2em;
 }

@@ -20,6 +20,7 @@ from . import app
 from . import send_email
 from .form import AddressMixin
 from .orm.model import *
+from geopd.orm.model import Permission
 
 ########################################################################################################################
 # login manager
@@ -99,7 +100,9 @@ class RegistrationForm(FlaskForm, AddressMixin):
     def validate_email(self, field):
         if User.query.filter(User.email == field.data).first():
             raise ValidationError("The email address: '{0}' is already registered.".format(field.data))
-
+    def validate_lat(self, field):
+        if field.data == '':
+            raise ValidationError("Please choose location from the list.")
 
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Old password')
@@ -173,6 +176,9 @@ def register():
 
         selected_committee = request.form.get("referrer")
         user = User(email=form.email.data, password=form.password.data, name=form.name.data)
+
+        print request.form
+
         user.address.load(request.form)
         db.session.add(user)
 
@@ -200,7 +206,14 @@ def register():
     for error in form.errors.values():
         flash(error[0], 'danger')
 
-    return render_template('core/auth/register.html', form=form)
+    users = User.query.all()
+    committee = []
+    for u in users:
+        if u.permissions.get(2):
+            committee.append(u)
+    print committee
+
+    return render_template('core/auth/register.html', form=form, users=committee)
 
 
 @app.route('/confirm/<token>')

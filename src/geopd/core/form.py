@@ -6,6 +6,7 @@ from wtforms import StringField
 from wtforms import SubmitField
 from wtforms import TextAreaField
 from wtforms import SelectMultipleField
+from wtforms.validators import DataRequired
 
 
 class MultiCheckboxField(SelectMultipleField):

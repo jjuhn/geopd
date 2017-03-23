@@ -3,78 +3,143 @@
 
     <div class="container-fluid">
         <div class="row">
-            <!--<div class="col-md-9 col-md-offset-1">-->
-
-            <!--</div>-->
             <div class="col-md-offset-1 col-md-10">
                 <h1 class="page-header text-primary">GEoPD Website Branding</h1>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-2 col-md-offset-1 hidden-xs hidden-sm">
-                <img class="img-circle img-responsive"
-                     width="240"
-                     src="{{ image_url }}"
-                     alt="{{ project_name }}"
-                     onerror="this.src='{{ url_for('static', filename='images/projects/')}}projects.jpg'">
+            <div class="col-md-2">
+
             </div>
             <div class="col-md-8">
-                <table id="pictures" class="table" width="100%">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>id</th>
-                            <th>Name</th>
-                        </tr>
-                    </thead>
-                </table>
+                <row>
+                {% for picture in pictures %}
+                    {% if loop.index is divisibleby(3) %}
+                        <div class="col-sm-4">
+                            <a href="#" class="thumbnail" data-toggle="modal" data-image="/static/{{picture.stored_path}}" data-target="#image-gallery">
+                                <img src="/static/{{picture.stored_path}}">
+                            </a>
+                        </div>
+                    </row>
+                    <row>
+                    {% else %}
+                        <div class="col-sm-4">
+                            <a href="#" class="thumbnail" data-toggle="modal" data-image="/static/{{picture.stored_path}}" data-target="#image-gallery">
+                                <img class="img-responsive" src="/static/{{picture.stored_path}}">
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                </row>
             </div>
+            <div class="col-md-2">
 
+            </div>
         </div>
     </div>
 
-    <script>
-        $(document).ready(function(){
-            var url = URI('/api/pictures');
-            $.getJSON(url.readable(), function(json){
-                var table = $('#pictures').DataTable({
-                    rowReorder: {
-                        selector: 'td:nth-child(1)'
-                    },
-                    responsive: true,
-                    data: jsonapi.parse_response(json, 1),
-                    columns: [
-                        {
-                            data: function(data){
-                                return data
-                            },
-                            render: function(data, type, full, meta){
-                                var href = ["/pictures", data["id"]].join('/');
 
-                                return '<a href="#" download><span class="glyphicon glyphicon-download"></span></a>'.replace("#", href);
-                            },
-                            orderable: false,
-                            className: 'download-button'
+<div class="modal fade" id="image-gallery" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="image-gallery-title"></h4>
+            </div>
+            <div class="modal-body">
+                <img id="image-gallery-image" class="img-responsive" src="" style="margin:auto;">
+            </div>
 
-                        },
-                        {
-                            data: function(data){
-                                return data["id"]
-                            }
-                        },
-                        {
-                            data: function(data){
-                                return data["display-name"]
-                            }
-                        }
-                    ]
+            <div class="modal-footer">
 
-                })
-            })
+                <div class="col-md-2">
+                </div>
 
-        })
-    </script>
+                <div class="col-md-8 text-justify" id="image-gallery-caption">
+                </div>
+
+                <div class="col-md-2">
+                    <a id='image-download' class="btn btn-default" href="" download="">Download</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+        $('.list-group-item').click(function(e){
+            e.preventDefault();
+            $(this).addClass('active').siblings().removeClass('active');
+            console.log($(this))
+        });
+
+        loadGallery(true, 'a.thumbnail');
+
+        $('#download').click(function(e){
+            e.preventDefault();
+
+            console.log($('#image-gallery-image').prop('src'));
+            window.location.href= $('#image-gallery-image').prop('src');
 
 
+        });
+
+        //This function disables buttons when needed
+        function disableButtons(counter_max, counter_current){
+            $('#show-previous-image, #show-next-image').show();
+            if(counter_max == counter_current){
+                $('#show-next-image').hide();
+            } else if (counter_current == 1){
+                $('#show-previous-image').hide();
+            }
+        }
+
+        /**
+         *
+         * @param setIDs        Sets IDs when DOM is loaded. If using a PHP counter, set to false.
+         * @param setClickAttr  Sets the attribute for the click handler.
+         */
+
+        function loadGallery(setIDs, setClickAttr){
+
+            var current_image,
+                selector,
+                counter = 0;
+
+            $('#show-next-image, #show-previous-image').click(function(){
+                if($(this).attr('id') == 'show-previous-image'){
+                    current_image--;
+                } else {
+                    current_image++;
+                }
+
+                selector = $('[data-image-id="' + current_image + '"]');
+                updateGallery(selector);
+            });
+
+            function updateGallery(selector) {
+                var $sel = selector;
+                current_image = $sel.data('image-id');
+                $('#image-gallery-caption').text($sel.data('caption'));
+                $('#image-gallery-title').text($sel.data('title'));
+                $('#image-gallery-image').attr('src', $sel.data('image'));
+                $('#image-download').attr('href', $sel.data('image'));
+                disableButtons(counter, $sel.data('image-id'));
+            }
+
+            if(setIDs == true){
+                $('[data-image-id]').each(function(){
+                    counter++;
+                    $(this).attr('data-image-id',counter);
+                });
+            }
+            $(setClickAttr).on('click',function(){
+                updateGallery($(this));
+            });
+        }
+    });
+</script>
 
 {% endblock %}

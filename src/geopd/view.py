@@ -581,7 +581,7 @@ def show_user(user_id):
     survey = Survey.query.get(SURVEY_PROFILE)
     communication_survey = Survey.query.get(SURVEY_COMMUNICATION)
 
-    affiliations = Affiliation.query.filter(Affiliation.hidden==False).order_by(Affiliation.id).all()
+    # affiliations = Affiliation.query.filter(Affiliation.hidden==False).order_by(Affiliation.id).all()
 
     return render_template('users/profile.html',
                            user=user,

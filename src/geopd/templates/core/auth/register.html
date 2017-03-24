@@ -6,7 +6,18 @@
 {% block content %}
     <div class="container-fluid">
         <div class="row">
-            <div id="map"></div>
+             <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+                <div id="map-panel" class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Steering Committee Location</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!--<div id="map" class="col-lg-10 col-md-6 col-xs-12"></div>-->
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -167,12 +178,12 @@
         function create_info_window_html(user) {
             var container = $('<div/>').append(
                     $('<div/>').addClass('info-window')
-                            .append($('<h4/>').html(user.name))
+                            .append($('<a/>').attr('href', user.profile).html($('<h4/>').html(user.name)))
                             .append($('<p/>').html(user.institution))
-                        .append($('<a href="mailto:'+user.email+'"/>').html(user.email))
-
-            );
-
+                            .append($('<p/>')
+                                    .append($('<span/>').addClass('glyphicon glyphicon-envelope'))
+                                    .append(' ')
+                                    .append($('<a href="mailto:'+user.email+'"/>').html(user.email))));
             if (user.address) {
                 container.find('div.info-window').append($('<p/>')
                         .append($('<span/>').addClass('glyphicon glyphicon-map-marker'))
@@ -182,6 +193,7 @@
 
             return container.html();
         }
+
 
         var autocomplete;
         function initMap() {
@@ -199,20 +211,33 @@
                     var marker{{ loop.index }} = new google.maps.Marker({
                         position: {lat: {{ user.address.latitude }}, lng: {{ user.address.longitude }}},
                         map: map,
-                        title: '{{ user.name.full }}',
+                        title: '{{ user.name.full }}'
                     });
 
-                    marker{{ loop.index }}.addListener('click', function () {
+                    var infowindow{{loop.index}} = new google.maps.InfoWindow({
+                     content: create_info_window_html({
+                                name: '{{ user.name.formal }}',
+                                email: '{{ user.email }}',
+                                institution: '{{ user.address.institution }}',
+                                address: '{{ user.address.long }}'
+                            })
+                        });
+
+                    infowindow{{ loop.index }}.open(map, marker{{ loop.index }});
+
+                    marker{{ loop.index }}.addListener('mouseover', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
-                                profile: '{{ url_for("show_user", user_id=user.id) }}',
-                                name: '{{ user.name.full }}',
+                                name: '{{ user.name.formal }}',
+                                email: '{{ user.email }}',
                                 institution: '{{ user.address.institution }}',
                                 address: '{{ user.address.long }}',
-                                email: '{{ user.email }}'
                             })
-                        }).open(map, marker{{ loop.index }});
+                        }).open(map, marker{{ loop.index }})
                     });
+
+
+
                 {%- endif -%}
             {%- endfor -%}
         }

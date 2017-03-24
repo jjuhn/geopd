@@ -2,13 +2,36 @@
 {% set project_name = "Communications" %}
 {% set image_url = "/geopd/images/communications/communications.jpg" %}
 {% from "macros/communications_discussion_board.html" import create_discussion_board %}
+{% from "macros/view_image.html" import view_image %}
+
 
 {% block project_content %}
-<div class="panel-group">
+
+<div class="panel-group" id="accordion">
     <div class="panel panel-default">
-        <div class="panel-heading">Discussion Board</div>
-        <div class="panel-body">{{ create_discussion_board(form, affiliations) }}</div>
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+                Discussion Board</a>
+            </h4>
+        </div>
+        <div id="collapse1" class="panel-collapse collapse">
+            <div class="panel-body">{{ create_discussion_board(form, affiliations) }}</div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                GEoPD Image Gallery</a>
+            </h4>
+        </div>
+        <div id="collapse2" class="panel-collapse collapse">
+            <div class="panel-body"> {{ view_image(pictures) }}</div>
+        </div>
     </div>
 </div>
+
 
 {% endblock %}

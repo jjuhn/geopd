@@ -93,11 +93,6 @@ def show_meeting(id):
     return render_template('meetings/index.html', meeting=meeting, meetings=meetings)
 
 
-@app.route('/contents/')
-def show_contents():
-    if current_user.is_authenticated:
-        return render_template('/contents/index.html', pictures=Picture.query.all())
-    return render_template('/contents/public/index.html')
 
 
 @app.route('/pictures/<int:picture_id>')
@@ -376,7 +371,7 @@ def send_post_file(project_id, post_id, filename):
 @app.route('/communications/')
 def show_communications():
     if current_user.is_authenticated:
-        return render_template('communications/index.html', form=PostForm(), affiliations=Affiliation.query.order_by(Affiliation.id).all())
+        return render_template('communications/index.html', form=PostForm(), pictures=Picture.query.all(), affiliations=Affiliation.query.order_by(Affiliation.id).all())
 
     return render_template('communications/public/index.html')
 

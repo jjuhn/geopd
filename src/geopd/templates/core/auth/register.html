@@ -4,171 +4,196 @@
 {% block title %}{{ super() }} - Register{% endblock %}
 
 {% block content %}
+<style>
+    #map {
+        height: 350px;
+    }
+
+
+</style>
     <div class="container-fluid">
-        <div class="row">
-             <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
-                <div id="map-panel" class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Steering Committee Location</h3>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div id="introduction-panel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Introduction</h3>
+                        </div>
+                        <div class="panel-body">
+                        <p>
+                            The GEoPD is a democratically elected society consisting of a President (2
+                            year term, 2 years renewable - Prof. Rejo Kruger 2016-2018), Past President
+                            (Prof. Matt Farrer) and Steering Committee (4 year term - Profs. Rejko
+                            Kruger, Beomseok Jean, Nobutaka Hattori, Manu Sharma, Christine Klein, Matt
+                            Farrer, Jan Aaasly and Alexis Elbas).
+                        </p>
+                        <p>
+                            Presidency is nominated by the
+                            Steering Committee and ratified by the GEoPD membership at biannual
+                            meetings. Membership to the Steering Committee requires that the
+                            investigator either: 1) organize and host a GEoPD annual meeting, and/or:
+                            2) direct a GEoPD project (see
+                            <a href="http://geopd.can.ubc.ca/projects/">http://geopd.can.ubc.ca/projects/
+                            </a>).
+                        </p>
+                        <p>
+                            Steering committee responsibilities include the development and leadership
+                            of Cores (Biology, Clinical, Communications, Epidemiology, Genetics). Only
+                            Steering Committee members are to directly activate or disable accounts.
+                            Steering Committee members are also to help mentor new PI/sites, in
+                            actuality they are to introduce them to the website, to communication
+                            blogs, and at annual meetings. They are to describe existing project,
+                            discuss potential for new projects and future opportunities.
+                        </p>
                     </div>
-                    <div class="panel-body">
-                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div id="map-panel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Steering Committee Location</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div id="map"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!--<div id="map" class="col-lg-10 col-md-6 col-xs-12"></div>-->
+            <div class="row">
+                <div class="col-md-6">
+                    <div id="registration-panel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Request for Access</h3>
+                        </div>
+                        <div class="panel-body">
+
+                            <form id="registration-form" action="{{ url_for('register') }}"
+                                  role="form" method="post" data-toggle="validator">
+                                {{ form.csrf_token }}
+
+                                <p class="text-muted">
+                                    <span class="glyphicon glyphicon-question-sign"></span>
+                                    Complete this form to request a login account.
+                                    Access will be granted upon the approval of the request.
+                                </p>
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-envelope"></span>
+                                        </span>
+                                        <input class="form-control" type="email"
+                                               placeholder="{{ form.email.label.text }}"
+                                               value="{{ request.form.email }}"
+                                               id="{{ form.email.id }}" name="{{ form.email.name }}"
+                                               required="required"/>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-user"></span>
+                                        </span>
+                                        <input class="form-control"
+                                               placeholder="{{ form.name.label.text }}, for example: Dr. John A. Smith Sr. (Johnny)"
+                                               value="{{ request.form.name }}"
+                                               id="{{ form.name.id }}" name="{{ form.name.name }}"
+                                               required="required"/>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-lock"></span>
+                                        </span>
+                                        <input class="form-control" type="password"
+                                               id="{{ form.password.id }}"
+                                               name="{{ form.password.name }}"
+                                               placeholder="{{ form.password.label.text }}"
+                                               required="required"
+                                               data-minlength="8"
+                                               data-minlength-error="password must include at least 8 characters">
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-lock"></span>
+                                        </span>
+                                        <input class="form-control" type="password"
+                                               id="{{ form.confirm.id }}"
+                                               name="{{ form.confirm.name }}"
+                                               placeholder="{{ form.confirm.label.text }}"
+                                               required="required"
+                                               data-match="#{{ form.password.id }}"
+                                               data-match-error="passwords don't match">
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+
+                                <!--<hr/>-->
+                                <!--{{ address.field(form) }}-->
+                                <!--<hr/>-->
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-home"></span>
+                                        </span>
+                                        <input class="form-control" id="searchTextField" type="text" size="50" placeholder="Enter your City" autocomplete="off" required>
+                                    </div>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+                                {{form.lng}}
+                                {{form.lat}}
+
+                                {% include "auth/register/extra.html" ignore missing %}
+
+                                <div class="form-group">
+                                    <input type="checkbox" name="{{ form.accept.name }}"
+                                           id="{{ form.accept.id }}" required="required"/>
+                                        <span>I agree with the
+                                            <a data-toggle="collapse" href="#terms">Terms and Conditions</a>
+                                        </span>
+                                    <div class="help-block with-errors"></div>
+                                </div>
+
+                                <div id="terms" class="collapse">
+                                    <div class="well">
+
+                                        {% include 'terms.html' with context %}
+                                    </div>
+                                </div>
+
+                                <div class="form-group pull-right">
+                                    {{ form.register(class='btn btn-primary btn-main') }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div id="how-to-panel" class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">How to Video</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="embed-responsive embed-responsive-4by3">
+                                <iframe width="500" height="315"
+                                        src="https://www.youtube.com/embed/8kDZ7spZzJE?ecver=1" allowfullscreen>
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div id="introduction-panel" class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Introduction</h3>
-                </div>
-                <div class="panel-body">
-                    <p>
-                        The GEoPD is a democratically elected society consisting of a President (2
-                        year term, 2 years renewable - Prof. Rejo Kruger 2016-2018), Past President
-                        (Prof. Matt Farrer) and Steering Committee (4 year term - Profs. Rejko
-                        Kruger, Beomseok Jean, Nobutaka Hattori, Manu Sharma, Christine Klein, Matt
-                        Farrer, Jan Aaasly and Alexis Elbas). Presidency is nominated by the
-                        Steering Committee and ratified by the GEoPD membership at biannual
-                        meetings. Membership to the Steering Committee requires that the
-                        investigator either: 1) organize and host a GEoPD annual meeting, and/or:
-                        2) direct a GEoPD project (see
-                        <a href="http://geopd.can.ubc.ca/projects/">http://geopd.can.ubc.ca/projects/
-                        </a>
-                        ).
-                    </p>
-                    <p>
-                        Steering committee responsibilities include the development and leadership
-                        of Cores (Biology, Clinical, Communications, Epidemiology, Genetics). Only
-                        Steering Committee members are to directly activate or disable accounts.
-                        Steering Committee members are also to help mentor new PI/sites, in
-                        actuality they are to introduce them to the website, to communication
-                        blogs, and at annual meetings. They are to describe existing project,
-                        discuss potential for new projects and future opportunities.
-                    </p>
-                </div>
-            </div>
-            </div>
-            <div class="col-md-6">
-                <div id="registration-panel" class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Request for Access</h3>
-                    </div>
-                    <div class="panel-body">
-
-                        <form id="registration-form" action="{{ url_for('register') }}"
-                              role="form" method="post" data-toggle="validator">
-                            {{ form.csrf_token }}
-
-                            <p class="text-muted">
-                                <span class="glyphicon glyphicon-question-sign"></span>
-                                Complete this form to request a login account.
-                                Access will be granted upon the approval of the request.
-                            </p>
-
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-envelope"></span>
-                                    </span>
-                                    <input class="form-control" type="email"
-                                           placeholder="{{ form.email.label.text }}"
-                                           value="{{ request.form.email }}"
-                                           id="{{ form.email.id }}" name="{{ form.email.name }}"
-                                           required="required"/>
-                                </div>
-                                <div class="help-block with-errors"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-user"></span>
-                                    </span>
-                                    <input class="form-control"
-                                           placeholder="{{ form.name.label.text }}, for example: Dr. John A. Smith Sr. (Johnny)"
-                                           value="{{ request.form.name }}"
-                                           id="{{ form.name.id }}" name="{{ form.name.name }}"
-                                           required="required"/>
-                                </div>
-                                <div class="help-block with-errors"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-lock"></span>
-                                    </span>
-                                    <input class="form-control" type="password"
-                                           id="{{ form.password.id }}"
-                                           name="{{ form.password.name }}"
-                                           placeholder="{{ form.password.label.text }}"
-                                           required="required"
-                                           data-minlength="8"
-                                           data-minlength-error="password must include at least 8 characters">
-                                </div>
-                                <div class="help-block with-errors"></div>
-                            </div>
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-lock"></span>
-                                    </span>
-                                    <input class="form-control" type="password"
-                                           id="{{ form.confirm.id }}"
-                                           name="{{ form.confirm.name }}"
-                                           placeholder="{{ form.confirm.label.text }}"
-                                           required="required"
-                                           data-match="#{{ form.password.id }}"
-                                           data-match-error="passwords don't match">
-                                </div>
-                                <div class="help-block with-errors"></div>
-                            </div>
-
-                            <!--<hr/>-->
-                            <!--{{ address.field(form) }}-->
-                            <!--<hr/>-->
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <span class="input-group-addon">
-                                        <span class="glyphicon glyphicon-home"></span>
-                                    </span>
-                                    <input class="form-control" id="searchTextField" type="text" size="50" placeholder="Enter your City" autocomplete="off" required>
-                                </div>
-                                <div class="help-block with-errors"></div>
-                            </div>
-                            {{form.lng}}
-                            {{form.lat}}
-
-                            {% include "auth/register/extra.html" ignore missing %}
-
-                            <div class="form-group">
-                                <input type="checkbox" name="{{ form.accept.name }}"
-                                       id="{{ form.accept.id }}" required="required"/>
-                                    <span>I agree with the
-                                        <a data-toggle="collapse" href="#terms">Terms and Conditions</a>
-                                    </span>
-                                <div class="help-block with-errors"></div>
-                            </div>
-
-                            <div id="terms" class="collapse">
-                                <div class="well">
-
-                                    {% include 'terms.html' with context %}
-                                </div>
-                            </div>
-
-                            <div class="form-group pull-right">
-                                {{ form.register(class='btn btn-primary btn-main') }}
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
     </div>
 {% endblock %}
 
@@ -198,8 +223,8 @@
         var autocomplete;
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: {lat: 10.0, lng: 0.0},
-                zoom: 2,
+                center: {lat: 20.0, lng: 0.0},
+                zoom: 1,
                 draggable: true,
                 scrollwheel:false
             });
@@ -214,18 +239,18 @@
                         title: '{{ user.name.full }}'
                     });
 
-                    var infowindow{{loop.index}} = new google.maps.InfoWindow({
-                     content: create_info_window_html({
-                                name: '{{ user.name.formal }}',
-                                email: '{{ user.email }}',
-                                institution: '{{ user.address.institution }}',
-                                address: '{{ user.address.long }}'
-                            })
-                        });
+//                    var infowindow{{loop.index}} = new google.maps.InfoWindow({
+//                     content: create_info_window_html({
+//                                name: '{{ user.name.formal }}',
+//                                email: '{{ user.email }}',
+//                                institution: '{{ user.address.institution }}',
+//                                address: '{{ user.address.long }}'
+//                            })
+//                        });
+//
+//                    infowindow{{ loop.index }}.open(map, marker{{ loop.index }});
 
-                    infowindow{{ loop.index }}.open(map, marker{{ loop.index }});
-
-                    marker{{ loop.index }}.addListener('mouseover', function () {
+                    marker{{ loop.index }}.addListener('click', function () {
                         new google.maps.InfoWindow({
                             content: create_info_window_html({
                                 name: '{{ user.name.formal }}',

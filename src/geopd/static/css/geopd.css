@@ -7,7 +7,8 @@ input[type=checkbox] ~ span {
 }
 
 .container-fluid, .container {
-    color: #666666;
+    color: #373D3F;
+
 }
 
 .navbar-brand {
@@ -94,13 +95,7 @@ li.media .well {
     margin: 0;
 }
 
-#introduction-panel {
-    margin-top: 2em;
-}
 
-#registration-panel {
-    margin-top: 2em;
-}
 
 .ui-autocomplete {
     position: absolute;

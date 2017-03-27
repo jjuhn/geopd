@@ -3,6 +3,7 @@
 {% import "macros/modal_form_survey.html" as modal_form %}
 
 {% block content %}
+
     <div class="container-fluid">
 
         <div class="row">
@@ -68,6 +69,7 @@
                     {% endif %}
                     <li><a data-toggle="tab" href="#survey-pane">Survey</a></li>
                     <li><a data-toggle="tab" href="#communications-pane">Communications Survey</a></li>
+                    <li><a data-toggle="tab" href="#help-pane">Help</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -146,7 +148,11 @@
                             {% endif %}
                         </form>
                     </div>
-
+                    <div id="help-pane" class="tab-pane fade">
+                        <div class="embed-responsive embed-responsive-4by3">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/y6q3MVIkzT8?ecver=1" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

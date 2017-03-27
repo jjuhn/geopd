@@ -15,6 +15,11 @@
                     <li role="presentation">
                         <a id="map-tab" href="#users-map" data-toggle="tab">World Map</a>
                     </li>
+                    {% if admin %}
+                    <li role="presentation">
+                        <a id="help-tab" href="#help" data-toggle="tab">Help</a>
+                    </li>
+                    {% endif %}
                 </ul>
 
                 <div class="tab-content">
@@ -40,6 +45,13 @@
                     </div>
                     <div class="tab-pane fade" id="users-map">
                         <div id="map"></div>
+                    </div>
+                    <div class="tab-pane fade" id="help">
+
+                        <div class="embed-responsive embed-responsive-4by3">
+                            <iframe width="560" height="315" src="https://www.youtube.com/embed/oxSnVvz3r6c?ecver=1" frameborder="0" allowfullscreen></iframe>
+                        </div>
+
                     </div>
                 </div>
             </div>

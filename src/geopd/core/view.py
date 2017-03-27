@@ -5,7 +5,7 @@ from flask import redirect
 from flask import render_template
 from flask import url_for
 from flask_login import login_required
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, InvalidRequestError
 
 from . import app
 from . import send_email
@@ -47,6 +47,10 @@ def update_user_address(user_id):
     if address_form.validate_on_submit():
         address = UserAddress.query.get(current_user.id)
         address.load(request.form)
+        if address.latitude == '' or address.longitude == '':
+            flash('Please choose address from the dropdown list', category='danger')
+            return redirect(url_for('show_user', user_id=current_user.id))
+
         try:
             db.session.commit()
         except SQLAlchemyError:

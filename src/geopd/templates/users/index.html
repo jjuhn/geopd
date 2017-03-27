@@ -126,7 +126,7 @@
 
 
             $.getJSON(url.readable(), function (json) {
-                console.log(jsonapi.parse_response(json, 2))
+
                 var table = $('#users').DataTable({
                     rowReorder:{
                         selector: 'td:nth-child(2)'
@@ -232,7 +232,7 @@
                     paging: true,
                     ordering: true,
                     searching: true,
-                    order: [[0, 'asc']],
+                    order: [[1, 'asc']],
                     deferRender: true,
                 });
 

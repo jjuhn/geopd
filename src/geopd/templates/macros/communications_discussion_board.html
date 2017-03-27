@@ -95,8 +95,9 @@
 
             var table = $('#post-table').DataTable({
                 rowReorder:{
-                    selector: 'td:nth-child(2)'
+                    selector: 'td:nth-child(3)'
                 },
+                order: [[3, ]],
                 responsive:true,
                 data: posts,
                 columns:[
@@ -145,6 +146,7 @@
                     },
                     {
                         data: function(post){
+
                             return post.comments.length
                         }
 

@@ -1,0 +1,3 @@
+{{user.name.full}} has posted something on the project discussion board
+hihi
+testing

@@ -570,8 +570,8 @@ def show_user(user_id):
                               joinedload('bio'),
                               joinedload('address')).filter(User.id == user_id).one()
 
-    if user.status_id != User.STATUS.ACTIVE:
-        abort(404)
+    # if user.status_id != User.STATUS.ACTIVE:
+    #     abort(404)
 
     survey = Survey.query.get(SURVEY_PROFILE)
     communication_survey = Survey.query.get(SURVEY_COMMUNICATION)

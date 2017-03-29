@@ -57,7 +57,7 @@
                 <hr/>
 
                 <div id="profile-message"></div>
-                {% if current_user.surveys[communication_survey.id].completed_on is none %}
+                {% if current_user.surveys[communication_survey.id].completed_on is none and user.id == current_user.id%}
                     {{ modal_form.create_survey(current_user, survey_form, communication_survey) }}
                 {% endif %}
 

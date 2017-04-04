@@ -74,8 +74,6 @@ def index():
 ########################################################################################################################
 @app.route('/news')
 def news():
-    posts = NewsPost.query.all()
-
 
     survey_not_finished = []
     for k, survey in current_user.surveys.iteritems():
@@ -84,7 +82,6 @@ def news():
         else:
             survey_not_finished.append(survey)
 
-    print survey_not_finished
 
     return render_template('news.html', posts=ComPost.query.order_by(ComPost.created_on.desc()).limit(5).all(), myProjects=current_user.mprojects, surveys=survey_not_finished)
 

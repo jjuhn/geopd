@@ -19,10 +19,10 @@
                     <p class="lead">
                         by <a href="{{ url_for('show_user', user_id=post.author.id)}}">{{ post.author.name.full }}</a>
                     </p>
-                    <p><span class="glyphicon glyphicon-time"></span> Posted on {{ post.created_on.strftime('%B %d, %Y') }} at {{ post.created_on.strftime('%-I:%-M %p') }}</p>
+                    <p><span class="glyphicon glyphicon-time"></span> Posted on {{ post.created_on.strftime('%B %d, %Y') }} at {{ post.created_on.strftime('%-I:%M %p') }}</p>
                         {% if post.comments %}
                         <p><span class="glyphicon glyphicon-pencil"></span> Commented by:
-                            {{ ",".join(post.get_comment_authors()) }}
+                            {{ ", ".join(post.get_comment_authors()) }}
                         </p>
                         {% endif %}
 

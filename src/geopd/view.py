@@ -19,6 +19,7 @@ from geopd.core import send_email
 from geopd.core.form import ChangeAddressForm
 from geopd.core.auth import RegistrationForm
 from geopd.form import PostForm
+from geopd.form import NewsPostForm
 from geopd.form import UpdateSurveyForm
 from geopd.form import ProjectPostForm
 from geopd.form import ModalForm
@@ -61,10 +62,32 @@ def send_email_async(to, subject, template_name, **context):
 @app.route('/')
 def index():
     if not current_user.is_anonymous:
-        return redirect(url_for('show_user', user_id=current_user.id))
+        # return redirect(url_for('show_user', user_id=current_user.id))
+        return redirect(url_for('news'))
 
     return render_template('welcome.html', cores=Core.query.all(),
                            meetings=Meeting.query.filter(Meeting.carousel).order_by(Meeting.year.desc()).all())
+
+
+########################################################################################################################
+# news
+########################################################################################################################
+@app.route('/news')
+def news():
+    posts = NewsPost.query.all()
+
+
+    survey_not_finished = []
+    for k, survey in current_user.surveys.iteritems():
+        if survey.completed_on:
+            pass
+        else:
+            survey_not_finished.append(survey)
+
+    print survey_not_finished
+
+    return render_template('news.html', posts=ComPost.query.order_by(ComPost.created_on.desc()).limit(5).all(), myProjects=current_user.mprojects, surveys=survey_not_finished)
+
 
 
 ########################################################################################################################
@@ -432,7 +455,8 @@ def create_communications_post():
                 # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
 
                 if "General" in aff_names:
-                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+                    print "commmented out"
+                    # send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
 
                 else:
                     users_aff = []

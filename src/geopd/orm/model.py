@@ -122,6 +122,12 @@ class ComPost(db.Model):
         self.body = body
         self.author = current_user
 
+    def get_comment_authors(self):
+        names = []
+        for comment in self.comments:
+            names.append(comment.author.name.full)
+        return set(names)
+
 
 class ComPostComment(CommentMixin, db.Model):
     com_post_id = db.Column(db.Integer, db.ForeignKey(ComPost.id), nullable=True)
@@ -469,3 +475,20 @@ class Picture(db.Model):
     stored_path = db.Column(db.Text, nullable=False)
     display_name = db.Column(db.Text)
 
+
+class NewsPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    summary = db.Column(db.Text)
+    title = db.Column(db.Text, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_on = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_on = db.Column(db.DateTime)
+    author_id = db.Column(db.Integer, db.ForeignKey(User.id))
+
+    author = db.relationship(User, foreign_keys=[author_id], backref=db.backref('news_posts'))
+
+    def __init__(self, summary, title, body):
+        self.summary = summary
+        self.title = title
+        self.body = body
+        self.author = current_user

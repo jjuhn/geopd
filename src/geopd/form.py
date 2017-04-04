@@ -20,3 +20,10 @@ class ProjectPostForm(PostForm):
 class ModalForm(FlaskForm):
     complete = SubmitField('Complete Survey')
     update = SubmitField('Update Survey')
+
+
+class NewsPostForm(FlaskForm):
+    title = StringField('Title')
+    body = TextAreaField('Content ...')
+    summary = TextAreaField('Summary ...')
+    submit = SubmitField('Publish')

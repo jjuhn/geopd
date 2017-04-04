@@ -1,0 +1,107 @@
+{% extends "core/base.html" %}
+{% import "/core/macros/avatar.html" as avatar %}
+
+{% block content %}
+
+    <div class="container">
+
+        <div class="row">
+            <!-- Blog Entries Column -->
+            <div class="col-md-8">
+                <h1 class="page-header">
+                    What's New on GEoPD
+                </h1>
+                {% for post in posts %}
+                <div id="page-content">
+                    <h2>
+                        <a href="{{ url_for('show_communications_post', post_id=post.id) }}">{{ post.title}}</a>
+                    </h2>
+                    <p class="lead">
+                        by <a href="{{ url_for('show_user', user_id=post.author.id)}}">{{ post.author.name.full }}</a>
+                    </p>
+                    <p><span class="glyphicon glyphicon-time"></span> Posted on {{ post.created_on.strftime('%B %d, %Y') }} at {{ post.created_on.strftime('%-I:%-M %p') }}</p>
+                        {% if post.comments %}
+                        <p><span class="glyphicon glyphicon-pencil"></span> Commented by:
+                            {{ ",".join(post.get_comment_authors()) }}
+                        </p>
+                        {% endif %}
+
+                    <hr>
+                    <p>{{ post.body }}</p>
+                    <hr>
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Blog Sidebar Widgets Column -->
+            <div id="affixed" class="col-md-4" data-spy="affix">
+                <!-- Blog Search Well -->
+                <div class="well">
+                    <h4>Welcome! {{ current_user.name.first }}</h4>
+                    {{ avatar.render(current_user, current_user.id) }}
+                    <!--<div class="input-group">-->
+                        <!--<input type="text" class="form-control">-->
+                        <!--<span class="input-group-btn">-->
+                            <!--<button class="btn btn-default" type="button">-->
+                                <!--<span class="glyphicon glyphicon-search"></span>-->
+                        <!--</button>-->
+                        <!--</span>-->
+                    <!--</div>-->
+                    <!-- /.input-group -->
+                </div>
+
+                <!-- Blog Categories Well -->
+                <div class="well">
+                    <h4>My Projects</h4>
+                    <div class="row">
+                        {% if myProjects %}
+                        <div class="col-lg-6">
+                            <ul>
+                            {% for project in myProjects %}
+                                <li><a href="{{ url_for('show_project', project_id= project.id) }}">{{project.name}}</a></li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                        {% else %}
+                        <div class="col-lg-12">
+                            <p>You are not currently affiliated with projects.</p>
+                            <a class="btn btn-primary" href="{{ url_for('show_projects') }}">Show Projects</a>
+
+                        </div>
+
+
+                        {% endif %}
+
+                        <!-- /.col-lg-6 -->
+                    </div>
+                    <!-- /.row -->
+                </div>
+
+                <!-- Side Widget Well -->
+                <div class="well">
+                    <h4>Survey Status</h4>
+                    {% if surveys|length > 0  %}
+                        <p>You have {{surveys|length }} remaining surveys.
+                            You can finish all the surveys in
+                            <a href="{{ url_for('show_user', user_id=current_user.id) }}">My Profile</a> page.</p>
+
+                    {% else %}
+                        <p>You have completed all the surveys</p>
+                    {% endif %}
+
+
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+{% endblock %}
+

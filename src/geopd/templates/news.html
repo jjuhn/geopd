@@ -39,17 +39,52 @@
                 <!-- Blog Search Well -->
                 <div class="well">
                     <h4>Welcome! {{ current_user.name.first }}</h4>
-                    {{ avatar.render(current_user, current_user.id) }}
-                    <!--<div class="input-group">-->
-                        <!--<input type="text" class="form-control">-->
-                        <!--<span class="input-group-btn">-->
-                            <!--<button class="btn btn-default" type="button">-->
-                                <!--<span class="glyphicon glyphicon-search"></span>-->
-                        <!--</button>-->
-                        <!--</span>-->
-                    <!--</div>-->
-                    <!-- /.input-group -->
                 </div>
+
+                <div class="well">
+                    <h4>My Profile <small><a href="{{ url_for('show_user', user_id=current_user.id) }}">  edit</a></small></h4>
+
+
+                    <div class="row">
+                    {% if current_user.avatar.data %}
+
+                        <div class="col-lg-6">
+                            <p class="text-muted">
+                                <span class="glyphicon glyphicon-map-marker"></span>
+                                {{ current_user.address.institution_full }}<br/>
+
+                            </p>
+                            <p class="text-muted">
+                                <small><em>{{ current_user.address.long }}</em></small>
+                            </p>
+                        </div>
+                        <div class="col-lg-6">
+                            <img src="{{ url_for('get_user_avatar', user_id=current_user.id) }}"
+                             alt="{{ current_user.name.full }}" class="img-rounded img-responsive thumbnail"/>
+                        </div>
+
+                    {% else %}
+                        <div class="col-lg-12">
+                            Image not found.
+                        </div>
+                    {% endif %}
+
+                    {% if not current_user.address.country %}
+                        <div class="col-lg-12">
+                            Address not found.
+                        </div>
+                    {% endif %}
+
+
+
+
+
+
+                    </div>
+                </div>
+
+
+
 
                 <!-- Blog Categories Well -->
                 <div class="well">

@@ -7,6 +7,8 @@ from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import send_from_directory
+from flask import current_app, make_response
+
 from flask_login import login_required
 from inflection import singularize
 from sqlalchemy.exc import SQLAlchemyError
@@ -453,8 +455,9 @@ def create_communications_post():
                 # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
 
                 if "General" in aff_names:
-                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
-
+                    # send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+                    # don't forget!!!
+                    print "hihihi"
                 else:
                     users_aff = []
                     for user_response in responses:
@@ -665,31 +668,60 @@ def update_user_biography(user_id):
 
     return '', 204
 
-# @app.route('/test', methods=['POST'])
-# @login_required
-# def test():
-#     form = PostForm
-#
-#     if request.method == 'POST':
-#         print request.files
-#
-#
-#
-#
-#     return render_template('/test.html', form=form)
-#
-#
-#
-# @app.route('/ckupload', methods=['POST', 'OPTIONS'])
-# @login_required
-# @csrf.exempt
-# def ckupload():
-#     print csrf
-#     """file/img upload interface"""
-#     if request.method == 'POST' and 'upload' in request.files:
-#         fileobj = request.files['upload']
-#         print fileobj
-#         return
+@app.route('/test', methods=['GET','POST'])
+@login_required
+def test():
+    form = PostForm
+    if request.method == 'POST':
+        print request.files
+
+    return render_template('/test.html', form=form)
+
+
+def gen_rnd_filename():
+    import random
+    filename_prefix = datetime.now().strftime('%Y%m%d%H%M%S')
+    return '%s%s' % (filename_prefix, str(random.randrange(1000, 10000)))
+
+
+
+@app.route('/ckupload', methods=['POST', 'OPTIONS'])
+@login_required
+@csrf.exempt
+def ckupload():
+    """CKEditor file upload"""
+    error = ''
+    url = ''
+    print request
+    callback = request.args.get("CKEditorFuncNum")
+    if request.method == 'POST' and 'upload' in request.files:
+        fileobj = request.files['upload']
+        fname, fext = os.path.splitext(fileobj.filename)
+        rnd_name = '%s%s' % (gen_rnd_filename(), fext)
+        filepath = os.path.join(current_app.static_folder, 'upload', rnd_name)
+        dirname = os.path.dirname(filepath)
+        if not os.path.exists(dirname):
+            try:
+                os.makedirs(dirname)
+            except:
+                error = 'ERROR_CREATE_DIR'
+        elif not os.access(dirname, os.W_OK):
+            error = 'ERROR_DIR_NOT_WRITEABLE'
+        if not error:
+            fileobj.save(filepath)
+            url = url_for('static', filename='%s/%s' % ('upload', rnd_name))
+    else:
+        error = 'post error'
+
+    response = {
+        "uploaded":1,
+        "fileName": rnd_name,
+        "url": url,
+        "error": error
+    }
+
+    return jsonify(response)
+
 
 
 

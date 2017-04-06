@@ -128,6 +128,13 @@ class ComPost(db.Model):
             names.append(comment.author.name.full)
         return set(names)
 
+    def get_uploaded_files(self):
+        path = os.path.join(app.config['UPLOAD_FOLDER'], "communication_post_uploads", str(self.id))
+        uploaded_files = []
+        if os.path.exists(path):
+            uploaded_files = [f for f in os.listdir(path)]
+        return uploaded_files
+
 
 class ComPostComment(CommentMixin, db.Model):
     com_post_id = db.Column(db.Integer, db.ForeignKey(ComPost.id), nullable=True)

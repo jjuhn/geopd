@@ -38,7 +38,7 @@
 
                     <hr>
                     {% if post.body|length > 200 %}
-                    <p>{{ post.body[:200] }}...</p>
+                    <p>{{ (post.body|md2html|safe)[:200] }}...</p>
                     <a href="{{ url_for('show_communications_post', post_id=post.id) }}" class="read_more">Read More</a><br/>
                     {% else %}
                         {{ post.body|md2html|safe }}

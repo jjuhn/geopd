@@ -27,7 +27,7 @@
                         {% endif %}
 
                     <hr>
-                    <p>{{ post.body }}</p>
+                    <p>{{ post.body|md2html|safe }}</p>
                     <hr>
                 </div>
                 {% endfor %}

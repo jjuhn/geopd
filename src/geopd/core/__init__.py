@@ -56,7 +56,7 @@ app.json_encoder = CustomJSONEncoder
 
 # flask plugins
 Bootstrap(app)
-CSRFProtect(app)
+csrf = CSRFProtect(app)
 mail = Mail(app)
 assets = Environment(app)
 

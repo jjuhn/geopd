@@ -14,17 +14,18 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import noload
 from sqlalchemy import desc
 from sqlalchemy import event
-from geopd.core import app
+from geopd.core import app, csrf
 from geopd.core import send_email
 from geopd.core.form import ChangeAddressForm
 from geopd.core.auth import RegistrationForm
 from geopd.form import PostForm
-from geopd.form import NewsPostForm
 from geopd.form import UpdateSurveyForm
 from geopd.form import ProjectPostForm
 from geopd.form import ModalForm
 from werkzeug.utils import secure_filename
 from flask import jsonify
+
+
 
 from geopd.orm.model import *
 
@@ -452,8 +453,7 @@ def create_communications_post():
                 # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
 
                 if "General" in aff_names:
-                    print "commmented out"
-                    # send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
 
                 else:
                     users_aff = []
@@ -664,6 +664,32 @@ def update_user_biography(user_id):
     db.session.commit()
 
     return '', 204
+
+# @app.route('/test', methods=['POST'])
+# @login_required
+# def test():
+#     form = PostForm
+#
+#     if request.method == 'POST':
+#         print request.files
+#
+#
+#
+#
+#     return render_template('/test.html', form=form)
+#
+#
+#
+# @app.route('/ckupload', methods=['POST', 'OPTIONS'])
+# @login_required
+# @csrf.exempt
+# def ckupload():
+#     print csrf
+#     """file/img upload interface"""
+#     if request.method == 'POST' and 'upload' in request.files:
+#         fileobj = request.files['upload']
+#         print fileobj
+#         return
 
 
 

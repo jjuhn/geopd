@@ -7,7 +7,7 @@
 
         <div class="row">
             <!-- Blog Entries Column -->
-            <div class="col-md-8">
+            <div class="col-md-8 col-sm-8">
                 <h1 class="page-header">
                     What's New on GEoPD
                 </h1>
@@ -35,7 +35,7 @@
             </div>
 
             <!-- Blog Sidebar Widgets Column -->
-            <div id="affixed" class="col-md-4" data-spy="affix">
+            <div id="affixed" class="col-md-4 col-sm-4" data-spy="affix">
                 <!-- Blog Search Well -->
                 <div class="well">
                     <h4>Welcome! {{ current_user.name.first }}</h4>
@@ -43,7 +43,6 @@
 
                 <div class="well">
                     <h4>My Profile <small><a href="{{ url_for('show_user', user_id=current_user.id) }}">  edit</a></small></h4>
-
 
                     <div class="row">
                     {% if current_user.avatar.data %}
@@ -75,16 +74,8 @@
                         </div>
                     {% endif %}
 
-
-
-
-
-
                     </div>
                 </div>
-
-
-
 
                 <!-- Blog Categories Well -->
                 <div class="well">
@@ -124,9 +115,6 @@
                     {% else %}
                         <p>You have completed all the surveys</p>
                     {% endif %}
-
-
-
 
                 </div>
 

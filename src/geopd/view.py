@@ -455,9 +455,8 @@ def create_communications_post():
                 # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
 
                 if "General" in aff_names:
-                    # send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
-                    # don't forget!!!
-                    print "hihihi"
+                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+
                 else:
                     users_aff = []
                     for user_response in responses:

@@ -1,13 +1,16 @@
 {% extends "core/base.html" %}
 {% block content %}
-    <div class="container-fluid">
+    <div class="container">
         <div class="row">
-            <div class="col-md-9 col-md-offset-1">
+            <div class="col-md-9">
                 <ol class="breadcrumb">
                     <li><a href="{{ url_for('show_communications') }}">Communications</a></li>
                     <li>{{ post.title }}</li>
                 </ol>
-
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9">
                 <h1 class="page-header text-primary" >{{ post.title }}</h1>
                 <p class="well well-sm text-muted">
                     <em>Created
@@ -39,7 +42,7 @@
                         </div>
                     </div>
                     <div class="panel panel-default">
-                        <div class="panel-heading">Attachments</div>
+                        <div class="panel-heading" id="attachments">Attachments</div>
                         <div class="panel-body" id="post-attach">
                             {% for file in uploaded_files %}
                             <li><a href="/communications/{{post.id}}/{{file}}" download> {{ file }} </a></li>
@@ -47,7 +50,7 @@
                         </div>
                     </div>
                     <div class="panel panel-default">
-                        <div class="panel-heading">Affiliations</div>
+                        <div class="panel-heading" id="affiliations">Affiliations</div>
                         <div class="panel-body">
                             {% for aff in post.affiliations %}
                                 <li>{{aff.name}}</li>
@@ -60,9 +63,16 @@
                 <hr/>
                 <div id="post-comments"></div>
             </div>
+            <nav class="col-sm-3" id="myScrollspy">
+                <ul class="nav nav-pills nav-stacked affix">
+                    <li class="active"><a href="#post">Post</a></li>
+                    <li><a href="#attachments">Attachments</a></li>
+                    <li><a href="#affiliations">Affiliations</a></li>
+                    <li><a href="#post-comments">Comments</a></li>
+                </ul>
+            </nav>
         </div>
     </div>
-
 {% endblock %}
 
 
@@ -70,6 +80,8 @@
     {{ super() }}
     <script>
         $(document).ready(function () {
+            $('body').scrollspy({target: '#myScrollspy'});
+
             {% if post.author.id == current_user.id %}
                 var close = '<a href="#" class="close" data-dismiss="alert">&times</a>';
                 $('#post-edit').dblclick(function () {

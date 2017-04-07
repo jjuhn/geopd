@@ -224,3 +224,7 @@ img.center {
 #affixed {
     right: 0;
 }
+
+.profile-picture{
+    object-fit: contain;
+}

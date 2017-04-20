@@ -1,0 +1,8 @@
+Dear {{ owner.name.first }}
+{{ commentor.name.full }} has created a comments you have posted on Project Discussion Board.
+This thread is located at: {{ url_for('show_project_post', project_id= project.id, post_id=post_id, _external=True) }}
+Sincerely,
+
+The {{ config.APP_NAME }} Team
+
+Note: replies to this email address are not monitored.

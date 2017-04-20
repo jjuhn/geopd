@@ -874,7 +874,7 @@ def get_comment_post(comment):
 
 def get_project_comment_post(comment):
     if comment.parent:
-        return get_comment_post(comment.parent)
+        return get_project_comment_post(comment.parent)
     else:
         return comment.project_post
 
@@ -919,12 +919,13 @@ def email_project_post_creator(mapper, connection, target):
         parent_comment = get_immediate_parent_comment(target)
 
         if parent_comment and not (parent_comment.author == target.author):
+            print "here"
             commentor = target.author
             parent_commentor = parent_comment.author
 
             send_email_async(parent_commentor.email,
                              "{0} has commented on your comment.".format(commentor.name.full),
-                             "email/new_comments_parents", post_id=post_for_this_comment.id, commentor=commentor,
+                             "email/new_project_comments_parents", project=post_for_this_comment.project, post_id=post_for_this_comment.id, commentor=commentor,
                              owner=parent_commentor)
 
         if post_for_this_comment and not (post_for_this_comment.author == target.author):
@@ -933,7 +934,7 @@ def email_project_post_creator(mapper, connection, target):
 
             send_email_async(owner.email,
                              "{0} has commented on your post.".format(commentor.name.full),
-                             "email/new_comments", post_id=post_for_this_comment.id, commentor=commentor,
+                             "email/new_project_comments", project=post_for_this_comment.project, post_id=post_for_this_comment.id, commentor=commentor,
                              owner=owner)
 
     except Exception as e:

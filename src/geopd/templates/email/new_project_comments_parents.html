@@ -1,0 +1,8 @@
+<p>Dear {{ owner.name.first }}</p>
+<p>{{ commentor.name.full }} has created a comment under your previous comment on Project Discussion board.</p>
+<p>This thread is located at: <a href="{{ url_for('show_project_post', project_id= project.id, post_id=post_id, _external=True) }}">{{ url_for('show_project_post', project_id= project.id, post_id=post_id, _external=True) }}</a></p>
+<p>Sincerely,</p>
+
+<p>The {{ config.APP_NAME }} Team</p>
+
+<p>Note: replies to this email address are not monitored.</p>

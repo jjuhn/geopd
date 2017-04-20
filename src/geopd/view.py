@@ -26,6 +26,8 @@ from geopd.form import ProjectPostForm
 from geopd.form import ModalForm
 from werkzeug.utils import secure_filename
 from flask import jsonify
+import json
+from pyPdf import PdfFileWriter, PdfFileReader
 
 
 
@@ -247,14 +249,67 @@ def remove_project_members(project_id):
 
     return '', 204
 
+import Bio.Entrez
+
 ########################################################################################################################
 # publications
 ########################################################################################################################
-@app.route('/publications/')
+@app.route('/publications/', methods=['GET', 'POST'])
+@login_required
 def show_publications():
     publications = Publication.query.order_by(Publication.published_on.desc()).all()
-    return render_template('publications.html', publications=publications)
 
+    if request.method == 'POST':
+    #     p_id = request.form.get("p_id")
+    #     title = request.form.get("title")
+        file = request.files['publications_upload']
+        if allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(current_app.static_folder, 'upload', filename))
+
+            with open(os.path.join(current_app.static_folder, 'upload', filename)) as f:
+                pdf_reader = PdfFileReader(f)
+                title = pdf_reader.getDocumentInfo().title
+                if title:
+                    print title
+                else:
+                    os.remove(os.path.join(current_app.static_folder, 'upload', filename))
+
+    return render_template('publications.html', publications=publications, form=PostForm())
+
+
+@app.route('/publications/add', methods=['GET', 'POST'])
+def add_publications():
+    return render_template('pubmed.html')
+
+
+def find_pubmed(title):
+    Bio.Entrez.email = 'ozabaneh@can.ubc.ca'
+    Bio.Entrez.tool = 'geopd.orm.util'
+    handle = Bio.Entrez.esearch(db="PubMed", retmax=100, term=title)
+    record = Bio.Entrez.read(handle)
+    ids = record.get("IdList")
+    return ids
+
+
+@app.route('/_search_pubmed')
+def search_pubmed():
+    title = request.args.get('title')
+    print title
+
+    Bio.Entrez.email = 'ozabaneh@can.ubc.ca'
+    Bio.Entrez.tool = 'geopd.orm.util'
+    handle = Bio.Entrez.esearch(db="PubMed", retmax=100, term=title)
+    record = Bio.Entrez.read(handle)
+    ids = record.get("IdList")
+    print ids
+    if ids:
+        handle = Bio.Entrez.esummary(db='pubmed', id=",".join(str(x) for x in ids))
+        records = Bio.Entrez.read(handle)
+        handle.close()
+        return jsonify(result=json.dumps(records))
+    else:
+        return jsonify(result=json.dumps({}))
 
 ########################################################################################################################
 # surveys
@@ -332,14 +387,16 @@ def create_project_post(project_id):
                                 os.makedirs(save_path)
                             f.save(os.path.join(save_path, filename))
 
+                members_email = []
+
                 for user in project.members:
                     if not user == current_user:
-                        send_email_async(user.email,
-                                         "{0} Discussion Board Updated".format(project.name),
-                                         "email/project_board_update", user=user, project=project,
-                                         title=title, body=body)
+                        members_email.append(user.email)
 
-                        # send_email(user.email, "{0} Discussion Board Updated".format(project.name), "email/project_board_update", user=user, project=project, title=title, body=body)
+                send_email(current_user.email, "{0} Discussion Board Update".format(project.name),
+                           "email/project_board_update", cc=members_email, current_user=current_user, project=project,
+                           title=title)
+
 
 
     return redirect(url_for('show_project', project_id=project_id))
@@ -354,7 +411,6 @@ def delete_project_posts():
     db.session.commit()
 
     return '', 204
-
 
 
 @app.route('/projects/<int:project_id>/posts/<int:post_id>')
@@ -816,6 +872,14 @@ def get_comment_post(comment):
     else:
         return comment.com_post
 
+def get_project_comment_post(comment):
+    if comment.parent:
+        return get_comment_post(comment.parent)
+    else:
+        return comment.project_post
+
+
+
 
 def get_immediate_parent_comment(comment):
     if comment.parent:
@@ -848,5 +912,47 @@ def email_post_creator(mapper, connection, target):
         print str(e)
 
 
+@event.listens_for(ProjectPostComment, 'after_insert')
+def email_project_post_creator(mapper, connection, target):
+    try:
+        post_for_this_comment = get_project_comment_post(target)
+        parent_comment = get_immediate_parent_comment(target)
+
+        if parent_comment and not (parent_comment.author == target.author):
+            commentor = target.author
+            parent_commentor = parent_comment.author
+
+            send_email_async(parent_commentor.email,
+                             "{0} has commented on your comment.".format(commentor.name.full),
+                             "email/new_comments_parents", post_id=post_for_this_comment.id, commentor=commentor,
+                             owner=parent_commentor)
+
+        if post_for_this_comment and not (post_for_this_comment.author == target.author):
+            owner = post_for_this_comment.author
+            commentor = target.author
+
+            send_email_async(owner.email,
+                             "{0} has commented on your post.".format(commentor.name.full),
+                             "email/new_comments", post_id=post_for_this_comment.id, commentor=commentor,
+                             owner=owner)
+
+    except Exception as e:
+        print str(e)
 
 
+
+
+#
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     print "not found"
+#
+# @app.errorhandler(500)
+# def internal_error(error):
+#     print "internal server error"
+
+
+# import scholarly
+#
+#
+# print

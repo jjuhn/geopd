@@ -28,7 +28,8 @@ setup(name='geopd',
           'requests',
           'binaryornot',
           'sa_jsonapi',
-          'enum34'
+          'enum34',
+          'pyPdf'
       ],
       include_package_data=True,
       zip_safe=False,

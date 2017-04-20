@@ -33,8 +33,9 @@
                 <!--{{ nav_item('/cores/', 'Cores') }}-->
                 {% if current_user.is_authenticated %}
                 {{ nav_item('/surveys/', 'Surveys') }}
-                {% endif %}
                 {{ nav_item('/publications/', 'Publications') }}
+
+                {% endif %}
                 {{ nav_item('/contact/', 'Feedback' if current_user.is_authenticated else 'Contact Us') }}
             </ul>
 

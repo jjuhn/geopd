@@ -804,8 +804,6 @@ def user_counts():
 def admin():
 
     if current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions:
-
-
         # never_logged_in = User.query.filter(User.last_seen == None).filter(User.status_id != 2).all()
         # logged_in =  User.query.filter(User.last_seen != None).filter(User.status_id != 2).all()
 
@@ -818,9 +816,6 @@ def admin():
 
         import pandas as pd
         from sqlalchemy import text
-
-
-
 
         never_logged_in = User.query.filter(User.last_seen == None).filter(User.status_id != 2).count()
         logged_in = User.query.filter(User.last_seen != None).filter(User.status_id != 2).count()
@@ -852,11 +847,10 @@ def admin():
         bar_script, bar_div = components(b)
 
 
-
-
-
-
         return render_template('/admin.html', user=current_user, script=script, div=div, bar_script=bar_script, bar_div=bar_div)
+
+    else:
+        return redirect(url_for('index'))
 
 
 

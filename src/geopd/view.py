@@ -779,6 +779,86 @@ def ckupload():
 
 
 
+@app.route("/api/user_counts", methods=['GET'])
+def user_counts():
+    if current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions:
+        never_logged_in = User.query.filter(User.last_seen == None).filter(User.status_id != 2).all()
+        logged_in = User.query.filter(User.last_seen != None).filter(User.status_id != 2).all()
+        result = [
+            {
+                "Logged in at least once": len(logged_in)
+            },
+            {
+                "Never Logged in": len(never_logged_in)
+            }
+        ]
+
+        return jsonify(result)
+
+
+
+
+
+
+@app.route("/admin", methods=['GET'])
+def admin():
+
+    if current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions:
+
+
+        # never_logged_in = User.query.filter(User.last_seen == None).filter(User.status_id != 2).all()
+        # logged_in =  User.query.filter(User.last_seen != None).filter(User.status_id != 2).all()
+
+        # all_active_user = User.query.filter(User.status_id != 2).all()
+
+        from bokeh.embed import components
+        from bokeh.charts import Donut, Bar
+        from bokeh.charts.operations import blend
+        from bokeh.charts.attributes import cat, color
+
+        import pandas as pd
+        from sqlalchemy import text
+
+
+
+
+        never_logged_in = User.query.filter(User.last_seen == None).filter(User.status_id != 2).count()
+        logged_in = User.query.filter(User.last_seen != None).filter(User.status_id != 2).count()
+        total = never_logged_in + logged_in
+
+        d = {'user': pd.Series(['Never logged in', 'Logged in'], index=[0, 1]),
+             'user_count': pd.Series([never_logged_in, logged_in], index=[0, 1])
+             }
+
+        df = pd.DataFrame(d)
+
+        pie_chart = Donut(df, label=['user'], values='user_count', hover_text='user_count')
+        script, div = components(pie_chart)
+
+
+        df2 = pd.read_sql(UserSurvey.query.statement, db.session.bind)
+
+        def completed(row):
+            val = "Not Completed"
+            if row['completed_on']:
+                val="Completed"
+            return val
+
+        df2['completed'] = df2.apply(completed, axis=1)
+
+
+
+        b = Bar(df2, label='survey_id', values='user_id', agg='count', stack='completed', legend='top_right')
+        bar_script, bar_div = components(b)
+
+
+
+
+
+
+        return render_template('/admin.html', user=current_user, script=script, div=div, bar_script=bar_script, bar_div=bar_div)
+
+
 
 # @app.route("/registration", methods=['GET', 'POST'])
 # def registration():
@@ -877,8 +957,6 @@ def get_project_comment_post(comment):
         return get_project_comment_post(comment.parent)
     else:
         return comment.project_post
-
-
 
 
 def get_immediate_parent_comment(comment):

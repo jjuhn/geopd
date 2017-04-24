@@ -29,7 +29,8 @@ setup(name='geopd',
           'binaryornot',
           'sa_jsonapi',
           'enum34',
-          'pyPdf'
+          'pyPdf',
+          'bokeh'
       ],
       include_package_data=True,
       zip_safe=False,

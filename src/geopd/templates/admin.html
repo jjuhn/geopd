@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h1 class="page-header">User Statistics</h1>
+
+        {{ div|safe }}
+        {{ script|safe }}
+
+
+
+    </div>
+    <div class="row">
+        <h1 class="page-header">User Survey Statistics</h1>
+        {{ bar_div|safe }}
+        {{ bar_script|safe }}
+
+    </div>
+</div>
+
+{% endblock %}
+

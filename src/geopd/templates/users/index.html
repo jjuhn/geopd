@@ -56,6 +56,7 @@
                     </div>
                     <div class="tab-pane fade" id="users-map">
                         <div id="map"></div>
+
                     </div>
                     <div class="tab-pane fade" id="help">
 
@@ -126,6 +127,7 @@
         }
 
         $(document).ready(function () {
+
 
             var url = URI('/api/users/');
             url.addQuery('include', 'name,address,status,user-referee,user-referee.referrer,user-referee.referrer.name');

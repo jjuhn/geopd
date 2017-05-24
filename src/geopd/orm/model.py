@@ -200,7 +200,7 @@ class Meeting(db.Model):
 
     @property
     def image_url(self):
-        return url_for('static', filename='images/meetings/{0}.jpg'.format(self.city.lower()))
+        return url_for('static', filename='images/meetings/{0}_{1}.jpg'.format(self.city.lower(), self.year))
 
 
 class Core(db.Model):

@@ -89,9 +89,9 @@ assets.register('css',
 
 
 # send mail
-def send_email(to, subject, template_name, cc=None, **context):
+def send_email(to, subject, template_name, cc=None, bcc=None, **context):
     subject = "[{0}] {1}".format(app.config['APP_NAME'], subject)
-    msg = Message(subject, cc=cc,
+    msg = Message(subject, cc=cc, bcc=bcc,
                   sender='"{0}" <{1}>'.format(app.config['APP_NAME'], app.config['MAIL_USERNAME']),
                   recipients=[to])
     msg.body = render_template(template_name + '.txt', **context)

@@ -30,7 +30,6 @@ setup(name='geopd',
           'sa_jsonapi',
           'enum34',
           'pyPdf',
-          'bokeh'
       ],
       include_package_data=True,
       zip_safe=False,

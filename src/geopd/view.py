@@ -392,9 +392,10 @@ def create_project_post(project_id):
                 for user in project.members:
                     if not user == current_user:
                         members_email.append(user.email)
+                print members_email
 
                 send_email(current_user.email, "{0} Discussion Board Update".format(project.name),
-                           "email/project_board_update", cc=members_email, current_user=current_user, project=project,
+                           "email/project_board_update", bcc=members_email, current_user=current_user, project=project,
                            title=title)
 
 
@@ -511,7 +512,7 @@ def create_communications_post():
                 # all_emails = ["jjuhn@can.ubc.ca", "jjuhn1119@gmail.com"]
 
                 if "General" in aff_names:
-                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", cc=all_emails, current_user=current_user, title=title)
+                    send_email(current_user.email, "Communications Board Updated", "email/communications_board_general_update", bcc=all_emails, current_user=current_user, title=title)
 
                 else:
                     users_aff = []

@@ -78,6 +78,7 @@
     <script>
 
         function create_info_window_html(user) {
+
             var container = $('<div/>').append(
                     $('<div/>').addClass('info-window')
                             .append($('<a/>').attr('href', user.profile).html($('<h4/>').html(user.name)))
@@ -102,7 +103,6 @@
                 center: {lat: 60.0, lng: -120.0},
                 zoom: 3,
             });
-
             {% for user in users %}
                 {%- if user.address.latitude is not none and user.address.longitude is not none -%}
                     var marker{{ loop.index }} = new google.maps.Marker({

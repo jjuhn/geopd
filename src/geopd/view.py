@@ -637,7 +637,8 @@ def email_investigators(project_id):
 ########################################################################################################################
 @app.route('/users/')
 def show_users():
-    users = User.query.options(joinedload('address'))
+    users = User.query.options(joinedload('address')).filter(User.status_id == 1)
+
     tpl = 'users/public.html' if current_user.is_anonymous else 'users/index.html'
     admin = current_user.is_authenticated and Permission.MANAGE_USER_ACCOUNT in current_user.permissions
     return render_template(tpl, users=users, admin=admin)

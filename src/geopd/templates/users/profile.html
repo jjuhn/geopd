@@ -79,16 +79,33 @@
                         <h3 class="page-header text-primary">Research Interests</h3>
                         <div class="edit-biography">
                             <div id="interest" class="markdown">
-                                {{ user.bio.research_interests|md2html|safe
-                                    if user.bio.research_interests else 'Double click to edit.' }}
+                                {% if user.bio.research_interest and current_user.id == user.id %}
+                                    {{ user.bio.research_interests|md2html|safe }}
+                                {% elif user.bio.research_interest and current_user.id !=user.id %}
+                                    {{ user.bio.research_interests|md2html|safe }}
+                                {% elif not user.bio.research_interest and current_user.id !=user.id %}
+                                    Not Available
+                                {% elif not user.bio.research_interest and current_user.id ==user.id %}
+                                    Double click to edit
+                                {% endif %}
+
+
                             </div>
                         </div>
 
                         <h3 class="page-header text-primary">Research Experience</h3>
                         <div class="edit-biography">
                             <div id="experience" class="markdown">
-                                {{ user.bio.research_experience|md2html|safe
-                                    if user.bio.research_experience else 'Double click to edit.' }}
+                                {% if user.bio.research_experience and current_user.id == user.id %}
+                                    {{ user.bio.research_experience|md2html|safe }}
+                                {% elif user.bio.research_experience and current_user.id !=user.id %}
+                                    {{ user.bio.research_experience|md2html|safe }}
+                                {% elif not user.bio.research_experience and current_user.id !=user.id %}
+                                    Not Available
+                                {% elif not user.bio.research_experience and current_user.id ==user.id %}
+                                    Double click to edit
+                                {% endif %}
+
                             </div>
                         </div>
                     </div>

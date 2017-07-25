@@ -144,12 +144,15 @@
                                         <span class="input-group-addon">
                                             <span class="glyphicon glyphicon-home"></span>
                                         </span>
-                                        <input class="form-control" id="searchTextField" type="text" size="50" placeholder="Enter your City" autocomplete="off" required>
+                                        <input class="form-control" id="searchTextField" name="searchTextField" type="text" size="50" placeholder="Enter your City" autocomplete="off" required>
                                     </div>
                                     <div class="help-block with-errors"></div>
                                 </div>
+
                                 {{form.lng}}
                                 {{form.lat}}
+                                <input id="city" name="city" type="hidden" value="">
+                                <input id="country" name="country" type="hidden" value="">
 
                                 {% include "auth/register/extra.html" ignore missing %}
 
@@ -280,6 +283,21 @@
 
         function fillLatLong(){
             var place = autocomplete.getPlace();
+            var city = place.address_components[0].long_name;
+            var country = place.address_components.pop().long_name;
+            $('#city').val(city);
+            $('#country').val(country);
+
+//            jQuery.each(place.address_components, function(index, item){
+//                console.log(item);
+//                if (item.)
+//            });
+
+//            place.forEach(function(place){
+//                 console.log(place.address_components);
+//            });
+
+
             $('#lat').val(place.geometry.location.lat());
             $('#lng').val(place.geometry.location.lng());
         }

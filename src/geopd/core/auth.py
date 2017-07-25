@@ -176,6 +176,8 @@ def register():
 
         selected_committee = request.form.get("referrer")
         user = User(email=form.email.data, password=form.password.data, name=form.name.data)
+        city = request.form.get("city")
+        user.address.city = city
 
         user.address.load(request.form)
         db.session.add(user)
@@ -209,7 +211,6 @@ def register():
     for u in users:
         if u.permissions.get(2):
             committee.append(u)
-
 
     return render_template('core/auth/register.html', form=form, users=committee)
 

@@ -2,7 +2,6 @@
 
 {% block content %}
 <div class="container-fluid">
-
     <!-- Carousel //-->
     <div id="carousel" class="carousel" data-ride="carousel" align="center">
         <!-- Indicators -->
@@ -12,7 +11,6 @@
                 endif %}></li>
             {% endfor %}
         </ol>
-
         <!-- Wrapper for slides -->
         <div class="carousel-inner" role="listbox">
             {% for meeting in meetings %}
@@ -26,7 +24,6 @@
             {% endif %}
             {% endfor %}
         </div>
-
         <!-- Left and right controls -->
         <a class="left carousel-control" href="#carousel" role="button" data-slide="prev">
             <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
@@ -37,9 +34,7 @@
             <span class="sr-only">Next</span>
         </a>
     </div>
-
     <br/>
-
     <!-- Main Content //-->
     <div class="container-fluid">
         <div class="row">
